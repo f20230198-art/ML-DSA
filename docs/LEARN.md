@@ -228,3 +228,13 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Findings:** Mithril's proof only covers 2^50 signing queries (NIST usually assumes 2^64), so there is a gap between what is proven and what is needed; the real question is how many signatures an attacker needs. Trilithium publishes the high bits of w even for rejected attempts and depends on an extra assumption (MLWR, "learning with rounding") that its own authors call non-standard; Quorus avoids this by adding a bit of noise.
 - **Simple idea behind this:** a signer throws away "bad" attempts. If a threshold scheme still shows some data from the thrown-away attempts, an attacker may learn something from them. That is why rejected attempts matter.
 - **Why:** these two points are the most concrete places to look for weaknesses, and they were wrong or vague in the first draft.
+
+### 2026-10-01: Full reading of the main papers, report corrected again
+- **What:** Read the main bodies of Quorus, Trilithium, TALUS, Mithril (security part) and Kao, plus the two writeups for Niot, TALUS, Mithril, Quorus. Corrected the report again (still 10 pages).
+- **What changed in plain words:**
+  - TALUS's own authors already worked out how the leak through the second secret (s2) behaves and say their safety margin is "model-supported, not proven". So problem P1 is now "how much work does it really take to recover s2 from at most about 16,000 signatures", not just "how many signatures".
+  - Kao's paper itself says one of its modes (P2) hides data only if at least 2 honest signers take part; by the paper's own argument the key would leak if only T signers sign while T-1 are corrupted. So P4 is now a sharper question.
+  - Mithril publishes a "noisy" commitment (a full MLWE sample) even for rejected attempts, like Quorus, so P3 now covers Mithril too.
+  - Trilithium also offers the Quorus noise fix as an option.
+- **Honest status:** I read the main text of the five core papers but NOT their appendix proofs, and only the abstracts of the background papers (Raccoon, Gur-Katz-Silde, Dilithium, FROST). `notes/papers.md` lists exactly what was and was not read.
+- **Vocabulary:** an *appendix proof* is the long technical proof placed at the end of a paper; the main body states the result, the appendix proves it.
