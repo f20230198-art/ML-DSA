@@ -1,9 +1,17 @@
-# Design Notes
+# Harness Design
 
-Record implementation decisions here (language, module boundaries, constant-time considerations, testing strategy).
+Goal: simulate each scheme's public transcript on synthetic keys, then run statistical key-recovery tests automatically.
 
-## Open questions
+## Components
+- `harness/mldsa`: FIPS 204 primitives, parameter sets 44/65/87.
+- `harness/schemes`: per-scheme transcript generators (accepted + aborted attempts).
+- `harness/estimators`: leakage tests keyed to the checklist in CHECKLIST.md.
 
-- Implementation language
-- Which parameter sets to support first
-- Test vector source (NIST ACVP / KAT)
+## Open decisions
+- Language and numeric stack
+- Sample budgets (up to ~1e9 signatures needs vectorized or C inner loops)
+- How to model corrupted-party views per scheme
+- Whether to use ILP/lattice tooling (e.g. fpylll, OR-tools)
+
+## Scope
+Defensive cryptanalysis of public NIST submissions; coordinate with the teams before publishing any findings.
