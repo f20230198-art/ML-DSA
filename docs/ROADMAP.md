@@ -37,7 +37,7 @@ Ordered as in the dossier's ranked plan.
 
 ## Coursework: Phase 1 report
 - [x] Survey of 23 papers, problem formulation, 10-page docx (`report/`)
-- [ ] Confirm deadline extension (listed deadline 25.09.2026 has passed)
+- [x] Deadline extension confirmed by user (1 Oct 2026)
 - [ ] Run Turnitin check and submit
 - [x] Re-verified citations 2, 16, 23, 24 online (1 Oct 2026)
 - [ ] Re-verify citations 21 (Shamir), 22 (Feldman) (from memory)
