@@ -40,3 +40,9 @@ Ordered as in the dossier's ranked plan.
 - [ ] Confirm deadline extension (listed deadline 25.09.2026 has passed)
 - [ ] Run Turnitin check and submit
 - [ ] Re-verify citations 2, 16, 21-23 (cited from memory)
+
+## Ethics / disclosure
+- [ ] Read final NIST call text (IR 8214C) for rules on public analysis and comments
+- [ ] Ask course instructor if any permission is needed
+- [ ] Plan a fallback deliverable if no attack is found (harness plus measured margins)
+- [ ] Draft author-notification email template for any finding

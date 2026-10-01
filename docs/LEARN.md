@@ -238,3 +238,10 @@ Newest entries at the bottom. Format: **date, what, how, why.**
   - Trilithium also offers the Quorus noise fix as an option.
 - **Honest status:** I read the main text of the five core papers but NOT their appendix proofs, and only the abstracts of the background papers (Raccoon, Gur-Katz-Silde, Dilithium, FROST). `notes/papers.md` lists exactly what was and was not read.
 - **Vocabulary:** an *appendix proof* is the long technical proof placed at the end of a paper; the main body states the result, the appendix proves it.
+
+### 2026-10-01: Legal / permission check for publishing an attack
+- **What:** Checked what NIST's call says about public analysis, after a team chat worried about "US agency" and permissions.
+- **Findings:** NIST's call (IR 8214C) is built around public analysis: the stated goal is a body of reference material that the community analyses openly. Submitters hand in specs and open-source code. So analysing the submissions is intended. I did NOT find (and did not read the full text for) any rule requiring submitters' permission to publish cryptanalysis. Still unverified: the exact rules in the final call, and each submission's licence.
+- **Plain words:** in cryptography, breaking a published scheme on paper or on your own machine is normal research (that is what conferences are for). Trouble only starts if you attack live systems you do not own. We only test our own copies of the code.
+- **Real risk (the one Ashmit raised):** we may find nothing. Fix: make the report/paper valuable either way (a tested harness plus clear "we tried X, the margin is Y" results is a valid result).
+- **Courtesy step:** tell the scheme authors before making any finding public (already in CLAUDE.md).
