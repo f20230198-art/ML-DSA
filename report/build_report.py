@@ -197,12 +197,13 @@ para("**Survey methodology.** Sources were collected in three passes. First, the
      "preliminary versions. Third, searches for “Dilithium rejected signatures ILP”, “ILWE”, and “threshold "
      "lattice signatures” on ePrint, TCHES and proceedings of EUROCRYPT and ASIACRYPT surfaced the cryptanalytic literature. "
      "Inclusion required that a source either define a threshold ML-DSA construction, attack one, or supply a technique used by "
-     "such an attack. Abstracts and metadata of 18 sources were verified online on 1 October 2026; five classical references "
-     "are cited from memory and flagged for re-verification. The selection is deliberately weighted toward 2024–2026 "
+     "such an attack. Metadata of 22 of the 24 references were verified online by 1 October 2026; the two classical references "
+     "(Shamir [21], Feldman [22]) are cited from memory and flagged for re-verification. The selection is deliberately weighted toward 2024–2026 "
      "because the area did not exist as a field before 2024.")
 para("**Scope and honesty note.** This is a literature-and-specification assessment. Mithril, Quorus and Trilithium were "
-     "studied through their abstracts, preview writeups and the descriptions in later papers; no implementation code was run and "
-     "no experiments have been performed yet. Hypotheses below are labelled as such.")
+     "studied through their abstracts, preview writeups and the descriptions in later papers; no scheme implementation code was run. "
+     "The only experiment so far is a small simulation of the ILWE least-squares estimator on synthetic TALUS-style data (Section 3.5); "
+     "it was not run against any scheme's reference code. Hypotheses below are labelled as such.")
 
 # ---------------- Literature survey ----------------
 heading("2. Literature Survey")
@@ -616,6 +617,10 @@ para("Every experiment reports four quantities: the number of signatures consume
      "start at reduced dimensions to validate scaling laws, then move to full parameter sets, with the largest runs "
      "vectorised or written in a compiled language. The schedule follows the order in the roadmap: harness and sanity check, "
      "TALUS cap, Mithril, Quorus and Trilithium, Kao's claims, and finally reruns on reference code when packages are published.")
+para("**Preliminary result.** A first harness (18 unit tests) simulates b = −c·s + e, e = LowBits(w), for ML-DSA-44 and recovers s by "
+     "least squares. Measured error matches γ2/√(3τN) within 3% (N = 5,000 to 160,000). Extrapolating, rounding all 1,024 coefficients "
+     "of s2 needs about 3.6×10^9 signatures (50% success), roughly 12 times the 4γ2²/(3τ) formula. This model ignores t0, bounded noise "
+     "and lattice reduction and does not reproduce Niot's derivation [13]; read the formula as an order of magnitude.")
 para("**Expected outcomes and risks.** Positive results are attacks or concrete margins; negative results are bounded "
      "statements of the form “no leakage detected with q samples”, which are still useful evidence. Risks: billion-sample "
      "experiments need vectorised or compiled inner loops; simulators may deviate from the true protocols if our reading of "
@@ -701,19 +706,12 @@ para("**Summary of findings by research question.** The survey was guided by fou
 para("**Phase 2 milestones and acceptance tests.** Phase 2 is organised so that each milestone has a pass/fail test. "
      "M1: the primitives reproduce FIPS 204 known-answer vectors for all three parameter sets. M2: a deliberately leaky "
      "scheme (publishing A·s1) is broken in one signature by the Gaussian-elimination estimator. M3: the TALUS-without-check "
-     "simulator is broken by least squares at a sample count within a factor of two of the formula in Table I, at reduced "
+     "simulator is broken by least squares at a sample count that matches the measured error law γ₂/√(3τN); a preliminary run shows that rounding every coefficient of s2 needs about 12 times the Table I formula for ML-DSA-44, so M3 must explain this gap, at reduced "
      "parameters. M4: the bounded-noise estimator beats least squares by the stated margin or the report explains why not. "
      "M5 and M6: simulators for Mithril, Quorus and Trilithium produce transcripts that follow the specifications, as "
      "checked by an independent reading of each paper. M7: the written results state, for each scheme, either an attack or a "
      "bound. Failing M1 or M2 stops the project until fixed, because later results would be untrustworthy; failing "
      "M4 is itself an informative outcome. This staging also gives an early signal if the schedule slips.")
-para("**Future directions.** Beyond Phase 2, three extensions are natural. The first is adaptive corruption, which Mithril "
-     "argues heuristically and which would require simulators that let the adversary choose whom to corrupt after seeing "
-     "partial transcripts. The second is proactive security, where shares are refreshed periodically; this interacts with "
-     "TALUS's per-key cap and could turn key rotation into share rotation without changing the public key. The third is a "
-     "formal treatment of statistical leakage across rejected attempts, giving a theorem that bounds the information an "
-     "adversary gains from aborted transcripts as a function of the acceptance probability, which would replace today's "
-     "heuristics with a proof.")
 heading("References")
 refs = [
     ("NIST", "FIPS 204: Module-Lattice-Based Digital Signature Standard", "Aug. 2024."),

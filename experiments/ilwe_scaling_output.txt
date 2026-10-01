@@ -1,0 +1,10 @@
+ML-DSA-44: gamma2=95232 tau=39; Niot-style N = 4*g2^2/(3*tau) = 3.1e+08
+       N  std measured  std theory  round-ok frac  theory frac
+    5000       127.441     124.510          0.003        0.003
+   20000        60.308      62.255          0.003        0.006
+   80000        31.983      31.128          0.012        0.013
+  160000        22.145      22.011          0.013        0.018
+
+Extrapolation for all 1024 coefficients (k=4 ring elements of s2):
+  full-recovery prob 0.5: std needed 0.147, N = 3.58e+09 signatures (= 11.55 x Niot-style 4g2^2/(3tau))
+  full-recovery prob 0.99: std needed 0.113, N = 6.06e+09 signatures (= 19.55 x Niot-style 4g2^2/(3tau))

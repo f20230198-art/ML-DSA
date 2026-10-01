@@ -7,13 +7,13 @@ Ordered as in the dossier's ranked plan.
 - [ ] Verify dossier sources and recheck TCPT3 schedule / phase 3 list
 
 ## 1. Leakage-testing harness
-- [ ] ML-DSA reference primitives (params, NTT, Power2Round, Decompose, hints, sampling)
+- [~] ML-DSA reference primitives: params, rounding, ring mult, challenge sampling done; NTT, hints, SHAKE sampling, KATs still missing
 - [ ] Transcript simulator interface (accepted and aborted attempts)
-- [ ] Estimators: least squares, bounded-noise, ILP, Fisher information
+- [~] Estimators: least squares done (`harness/estimators/ilwe.py`); bounded-noise, ILP, Fisher information todo
 - [ ] Sanity check: reproduce Niot's ILWE attack on TALUS-style transcripts
 
 ## 2. TALUS v0.22 signing cap
-- [ ] Reproduce Niot's estimator (~3.1e8 / 1.9e9 / 1.5e9 samples)
+- [~] Reproduce Niot's estimator: formula checked against table, LS error law validated at ML-DSA-44; full-recovery N is ~12x formula in plain model (see experiments/ilwe_scaling_output.txt); t0 and -65/-87 not done
 - [ ] Bounded-noise / ILP estimator under BCC edges
 - [ ] Compare against cap (2^13–2^14) and uniqueness wall (2^15–2^16)
 
@@ -39,7 +39,9 @@ Ordered as in the dossier's ranked plan.
 - [x] Survey of 23 papers, problem formulation, 10-page docx (`report/`)
 - [ ] Confirm deadline extension (listed deadline 25.09.2026 has passed)
 - [ ] Run Turnitin check and submit
-- [ ] Re-verify citations 2, 16, 21-23 (cited from memory)
+- [x] Re-verified citations 2, 16, 23, 24 online (1 Oct 2026)
+- [ ] Re-verify citations 21 (Shamir), 22 (Feldman) (from memory)
+- [ ] Final read-through of report abstract and numbers before submitting
 
 ## Ethics / disclosure
 - [ ] Read final NIST call text (IR 8214C) for rules on public analysis and comments
