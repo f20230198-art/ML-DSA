@@ -207,3 +207,9 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Why:** Phase 1 coursework requires a literature survey and problem formulation with more than 15 papers. Note: the stated deadline (25.09.2026) has already passed, so check with the instructor.
 - **Caveats:** Papers 2, 16, 21-23 are cited from memory; the full Mithril, Quorus and Trilithium papers are not yet read. The report says so openly.
 - **Created this file** to keep explaining the project as it evolves.
+
+### 2026-10-01: Report converted to IEEE format, literature matrix, CLAUDE.md
+- **What:** Reformatted the report to IEEE style (two columns, Roman-numeral section headings, A/B/C subsections, italic Index Terms, numbered references with quoted titles). Added a literature matrix (Table II) rating each of the 23 papers H/M/L for relevance and ticking which themes it covers. Still exactly 10 pages. Created `CLAUDE.md` with the standing rules and updated memory.
+- **How:** Patched `report/build_report.py` (two-column section, IEEE heading function, reference tuples), rebuilt, converted to PDF through Word and counted pages.
+- **Why:** The course asked for IEEE form, and a matrix shows at a glance how related each paper is. CLAUDE.md makes sure the rules (no co-author, never push, update this file) persist across sessions.
+- **Relevance summary:** 13 central, 5 supporting, 5 background; 15 of 23 are from 2025-2026.

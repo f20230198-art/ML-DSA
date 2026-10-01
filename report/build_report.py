@@ -1,15 +1,17 @@
 """Builds report/Phase1_Report.docx. Run: python build_report.py"""
+import re
 from docx import Document
 from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+from docx.enum.section import WD_SECTION
 
 doc = Document()
 sec = doc.sections[0]
 sec.page_width, sec.page_height = Inches(8.27), Inches(11.69)  # A4
-sec.left_margin = sec.right_margin = Inches(1.0)
-sec.top_margin = sec.bottom_margin = Inches(1.0)
+sec.left_margin = sec.right_margin = Inches(0.75)
+sec.top_margin = sec.bottom_margin = Inches(0.8)
 
 st = doc.styles["Normal"]
 st.font.name = "Times New Roman"
@@ -17,7 +19,7 @@ st.font.size = Pt(10)
 st.element.rPr.rFonts.set(qn("w:eastAsia"), "Times New Roman")
 st.paragraph_format.space_after = Pt(4)
 st.paragraph_format.space_before = Pt(0)
-st.paragraph_format.line_spacing = 1.15
+st.paragraph_format.line_spacing = 1.0
 
 
 def run(p, text, bold=False, italic=False):
@@ -37,12 +39,31 @@ def para(text, align=WD_ALIGN_PARAGRAPH.JUSTIFY):
     return p
 
 
+ROMAN = ["I", "II", "III", "IV", "V", "VI"]
+_cnt = {"sec": 0, "sub": 0}
+
+
 def heading(text, level=1):
     p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(8 if level == 1 else 5)
-    p.paragraph_format.space_after = Pt(3)
     p.paragraph_format.keep_with_next = True
-    run(p, text, bold=True, italic=(level == 2))
+    text = re.sub(r"^\d+(\.\d+)?[a-z]? ", "", text)
+    if level == 1 and text in ("Abstract", "References"):
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.space_before = Pt(6)
+        p.paragraph_format.space_after = Pt(3)
+        run(p, text.upper(), bold=True).font.size = Pt(9)
+    elif level == 1:
+        _cnt["sec"] += 1
+        _cnt["sub"] = 0
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.space_before = Pt(8)
+        p.paragraph_format.space_after = Pt(3)
+        run(p, f"{ROMAN[_cnt['sec'] - 1]}. {text.upper()}")
+    else:
+        _cnt["sub"] += 1
+        p.paragraph_format.space_before = Pt(5)
+        p.paragraph_format.space_after = Pt(2)
+        run(p, f"{chr(64 + _cnt['sub'])}. {text}", italic=True)
 
 
 def bullet(text):
@@ -66,6 +87,8 @@ def shade(cell, color="D9D9D9"):
 
 
 def table(rows, widths):
+    k = 3.4 / sum(widths)
+    widths = [w * k for w in widths]
     t = doc.add_table(rows=len(rows), cols=len(rows[0]))
     t.style = "Table Grid"
     for i, row in enumerate(rows):
@@ -76,7 +99,7 @@ def table(rows, widths):
             p = c.paragraphs[0]
             p.paragraph_format.space_after = Pt(0)
             r = run(p, txt, bold=(i == 0))
-            r.font.size = Pt(9)
+            r.font.size = Pt(8)
             if i == 0:
                 shade(c)
     doc.add_paragraph().paragraph_format.space_after = Pt(2)
@@ -89,14 +112,13 @@ run(p, "Cryptanalysis of Threshold ML-DSA Proposals in the NIST MPTC First Call:
        "A Literature Survey and Problem Formulation", bold=True).font.size = Pt(14)
 p = doc.add_paragraph()
 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-run(p, "Project Phase 1 Report – Cryptography course, BITS Pilani, Dubai Campus")
+run(p, "Project Phase 1 Report – Cryptography, BITS Pilani, Dubai Campus")
 p = doc.add_paragraph()
 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 run(p, "Srivathsa H Honyal (f20230198)", italic=True)
 
 # ---------------- Abstract ----------------
-heading("Abstract")
-para("ML-DSA (FIPS 204) is the NIST-standardised lattice-based digital signature, but it was designed for a single signer. "
+para("**Abstract\u2014**ML-DSA (FIPS 204) is the NIST-standardised lattice-based digital signature, but it was designed for a single signer. "
      "Splitting the signing key among several parties, so that no single device holds the key, is hard because ML-DSA's "
      "rejection sampling and rounding steps do not combine well with secret sharing. In 2026 NIST opened a First Call for "
      "multi-party threshold schemes (IR 8214C), and four proposals aim to produce signatures that verify under an unmodified "
@@ -107,6 +129,18 @@ para("ML-DSA (FIPS 204) is the NIST-standardised lattice-based digital signature
      "largely because they have not been systematically tested. We formulate four concrete open problems and propose a "
      "reusable leakage-testing harness that simulates each scheme's public transcripts, including aborted attempts, and runs "
      "a battery of statistical key-recovery tests against them.")
+
+p = doc.add_paragraph()
+p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+run(p, "Index Terms\u2014", bold=True, italic=True)
+run(p, "ML-DSA, FIPS 204, threshold signatures, lattice cryptography, cryptanalysis, integer LWE, rejection sampling.", italic=True)
+new = doc.add_section(WD_SECTION.CONTINUOUS)
+cols = new._sectPr.xpath("./w:cols")
+c = cols[0] if cols else OxmlElement("w:cols")
+c.set(qn("w:num"), "2")
+c.set(qn("w:space"), "360")
+if not cols:
+    new._sectPr.append(c)
 
 # ---------------- Introduction ----------------
 heading("1. Introduction")
@@ -140,7 +174,7 @@ para("**Secret sharing and threshold signatures.** Shamir secret sharing [21] hi
      "to the polynomial coefficients so each party can check its share; this works because discrete-log commitments are hiding. "
      "Threshold Schnorr signatures such as FROST [23] exploit the linearity of Schnorr signing: partial signatures simply add. "
      "ML-DSA breaks every one of these conveniences. Shares of a short secret are not short, which violates the norm bounds "
-     "that rejection sampling relies on; rounding is non-linear; and, as Section 2.3 shows, the lattice analogue of Feldman "
+     "that rejection sampling relies on; rounding is non-linear; and, as Section II-C shows, the lattice analogue of Feldman "
      "commitments (publishing A·x) is not hiding at all, because A·x is invertible. The design space is therefore "
      "genuinely different from the discrete-log setting.")
 para("**Parameters.** All three ML-DSA parameter sets share q = 8380417, n = 256 and d = 13 dropped bits of t. They differ as "
@@ -152,11 +186,20 @@ table([
     ["ML-DSA-87", "5", "(8, 7)", "2", "60", "2^19", "(q−1)/32"],
 ], [1.1, 1.0, 0.8, 0.5, 0.5, 0.7, 1.1])
 para("The challenge c has only τ nonzero coefficients, which is why each signature gives the attacker one noisy linear "
-     "equation in the secret with small coefficients; this observation underlies the sample-count estimates in Section 2.3. "
+     "equation in the secret with small coefficients; this observation underlies the sample-count estimates in Section II-C. "
      "A pair of nonce and response is safe only because rejection sampling makes z's distribution independent of s1: "
      "z is accepted only when it lies in a box, and inside the box its distribution is uniform whichever s1 was used. Any "
      "threshold design that changes what is accepted, what is rejected, or what else is published must therefore re-establish "
      "this independence, and this is the property we test.")
+para("**Survey methodology.** Sources were collected in three passes. First, the submissions page of the NIST First Call "
+     "gave the four proposals and their preview writeups. Second, each proposal's ePrint or arXiv entry and its listed "
+     "predecessors were followed, which produced the Mithril, Quorus, Trilithium, TALUS and Kao papers and the withdrawn "
+     "preliminary versions. Third, searches for “Dilithium rejected signatures ILP”, “ILWE”, and “threshold "
+     "lattice signatures” on ePrint, TCHES and proceedings of EUROCRYPT and ASIACRYPT surfaced the cryptanalytic literature. "
+     "Inclusion required that a source either define a threshold ML-DSA construction, attack one, or supply a technique used by "
+     "such an attack. Abstracts and metadata of 18 sources were verified online on 1 October 2026; five classical references "
+     "are cited from memory and flagged for re-verification. The selection is deliberately weighted toward 2024–2026 "
+     "because the area did not exist as a field before 2024.")
 para("**Scope and honesty note.** This is a literature-and-specification assessment. Mithril, Quorus and Trilithium were "
      "studied through their abstracts, preview writeups and the descriptions in later papers; no implementation code was run and "
      "no experiments have been performed yet. Hypotheses below are labelled as such.")
@@ -173,6 +216,16 @@ para("Dilithium [2] introduced the signing structure above, and FIPS 204 [1] sta
      "identifiable aborts and a detector for adversarial short-vector correlations (this preliminary version has since been "
      "withdrawn in favour of a later paper). The decisive shift is toward schemes whose output verifies under the unmodified "
      "FIPS 204 verifier, because deployed certificates, hardware and pinned keys cannot change.")
+
+para("**Rounding functions that matter for the attacks.** ML-DSA compresses the public key by splitting each coefficient of "
+     "t = A·s1 + s2 into high and low parts with Power2Round, t = t1·2^d + t0 with d = 13, and publishes only t1. During "
+     "signing, Decompose splits w = A·y into w1 (high bits, hashed into the challenge) and a low part with bound γ2. A hint "
+     "vector h lets the verifier recompute w1 from A·z − c·t1·2^d, which equals w − c·s2 + c·t0. The second check "
+     "exists because if c·s2 pushed a coefficient of w across a rounding boundary, the verifier would recover the wrong w1. "
+     "Two consequences are used repeatedly below. First, the quantity v = A·z − c·t1·2^d that every verifier computes "
+     "equals w − c·(s2 − t0), so v is public and carries the term c·(s2 − t0). Second, when the second rejection "
+     "check is enforced, the low part of w stays at distance at least β from the boundary, which is what makes the leaked "
+     "noise uninformative; when it is removed or altered, that protection disappears.")
 
 heading("2.2 The four First-Call ML-DSA proposals", 2)
 para("**Mithril** [4,5,6,7] (PQShield, Brave, Bristol) is the first practical ML-DSA-compatible threshold scheme. It uses "
@@ -267,6 +320,21 @@ para("**Corruption models and why they matter.** The proofs behind the schemes a
      "retry, so aborted transcripts become part of the adversary's view. Each of these choices changes which transcripts "
      "an attack harness must simulate, which is why the harness treats the corruption model as an input rather than a constant.")
 
+para("**Numerical check of the sample estimate.** The estimate N ≈ 4γ2²/(3τ) can be evaluated directly from the "
+     "parameters and reproduces the figures in [13]. Table I lists the values, which also show why ML-DSA-65 and -87 need about "
+     "six and five times as many signatures as -44 even though their τ is larger.")
+table([
+    ["Set", "γ2", "τ", "4γ2²/(3τ)", "log2"],
+    ["ML-DSA-44", "95,232", "39", "3.1 x 10^8", "28.2"],
+    ["ML-DSA-65", "261,888", "49", "1.9 x 10^9", "30.8"],
+    ["ML-DSA-87", "261,888", "60", "1.5 x 10^9", "30.5"],
+], [1.1, 0.9, 0.5, 1.2, 0.6])
+para("These are about 2^28 to 2^31 signatures, which is 2^12 to 2^15 times larger than TALUS's cap of 2^13 to 2^14 per key. "
+     "The gap of 12 to 15 bits is the margin the unoptimised estimate leaves; whether an optimised estimator can close it is "
+     "problem P1 in Section III. Two points deserve emphasis. The estimate treats the noise as Gaussian with the variance of a "
+     "uniform distribution, which wastes the information in its sharp edges. And it recovers s′ one coefficient at a time, "
+     "whereas lattice reduction can exploit the fact that s′ is short in every coordinate simultaneously.")
+
 heading("2.4 Leakage-based cryptanalysis of lattice signatures", 2)
 para("The tools behind these attacks come from a line of work on ILWE and rejection-sampling leakage. Bootle et al. [17] "
      "introduced the ILWE view of linear leakage in BLISS. Zhou, Wang, Sun and Yu [18] (TCHES 2025) show that the challenges of "
@@ -278,6 +346,17 @@ para("The tools behind these attacks come from a line of work on ILWE and reject
      "find that, at the studied parameters, the experiments reinforce the schemes' proclaimed security. Together these show "
      "that any threshold design which releases values correlated with c·s1 or c·s2 must be examined with estimators "
      "stronger than plain least squares: bounded-noise estimators, ILP, robust regression and lattice reduction.")
+
+para("**Countermeasures studied in the literature.** The same papers discuss defences that inform design choices. For "
+     "side-channel leakage, masking splits secrets into shares so that no single intermediate value correlates with the key, "
+     "and shuffling randomises the order of coefficient operations; Damm et al. [19] show masking alone is insufficient when "
+     "even a fraction of samples leak with low noise. For rejection-sampling leakage, the straightforward defence is to hide "
+     "which check failed and to avoid releasing any value derived from a rejected response, which is why Quorus's choice to "
+     "release (w1, c, ⊥) needs the careful simulation argument it provides. At protocol level, the TALUS authors' response "
+     "limits the number of signatures per key, while Niot's remark [13] shows that merely restoring a removed check is not enough "
+     "if a corrupted party can bias its nonce share. These defences have different costs: masking costs time, a signing cap "
+     "costs key rotation, and hiding rejected transcripts costs interaction. Comparing them quantitatively is outside the "
+     "scope of Phase 1, but the harness will produce the leakage measurements such a comparison needs.")
 
 heading("2.5 Related and superseded work", 2)
 para("The Mithril line began as a poster [6] and a preliminary ePrint [5] covering both ML-DSA and an enhanced Raccoon with "
@@ -345,7 +424,7 @@ para("**TALUS v0.22.** The signing cap is the whole security argument for the s2
 
 heading("2.9 A reusable attack checklist", 2)
 para("Generalising the observed attacks, we distilled ten questions that can be asked of any threshold ML-DSA design. They "
-     "structure both the survey and the harness described in Section 3.")
+     "structure both the survey and the harness described in Section III.")
 table([
     ["#", "Question", "Typical consequence"],
     ["1", "Is A·x published for a secret or nonce x?", "x = A⁺(A·x) by Gaussian elimination"],
@@ -359,6 +438,48 @@ table([
     ["9", "How much do a posteriori hints reduce hardness?", "Lattice-estimator bit loss"],
     ["10", "Do implementations match the specification?", "Float samplers, timing, test vectors"],
 ], [0.4, 3.2, 2.9])
+
+heading("2.10 Literature matrix", 2)
+para("Table II rates every cited source for relevance (H = central, M = supporting, L = background) and marks the themes it "
+     "covers: TS = threshold signatures, MD = ML-DSA compatible, AT = attack or leakage analysis, SS = secret sharing or MPC "
+     "building block, RS = rejection sampling, ST = standard or specification.")
+table([
+    ["Ref", "Year", "Rel.", "TS", "MD", "AT", "SS", "RS", "ST"],
+    ['[1] FIPS 204', '2024', 'H', '', 'x', '', 'x', '', 'x'],
+    ['[2] Dilithium', '2018', 'M', '', 'x', '', 'x', '', ''],
+    ['[3] IR 8214C', '2026', 'H', 'x', 'x', '', '', '', 'x'],
+    ['[4] Mithril ePrint', '2026', 'H', 'x', 'x', '', 'x', 'x', ''],
+    ['[5] Reloaded', '2025', 'M', 'x', 'x', '', '', 'x', ''],
+    ['[6] Mithril poster', '2025', 'L', 'x', 'x', '', '', '', ''],
+    ['[7] Mithril PW01', '2026', 'H', 'x', 'x', '', 'x', 'x', 'x'],
+    ['[8] Quorus', '2025', 'H', 'x', 'x', '', 'x', 'x', ''],
+    ['[9] Trilithium', '2025', 'H', 'x', 'x', '', 'x', 'x', ''],
+    ['[10] TALUS', '2026', 'H', 'x', 'x', 'x', 'x', 'x', ''],
+    ['[11] TALUS PW v0.22', '2026', 'H', 'x', 'x', 'x', 'x', 'x', 'x'],
+    ['[12] Shamir nonce DKG', '2026', 'H', 'x', 'x', 'x', 'x', '', ''],
+    ['[13] Niot attack', '2026', 'H', 'x', 'x', 'x', '', 'x', ''],
+    ['[14] Threshold Raccoon', '2024', 'M', 'x', '', '', 'x', '', ''],
+    ['[15] Lattice TS + IA', '2025', 'L', 'x', '', '', 'x', '', ''],
+    ['[16] Gur et al.', '2024', 'L', 'x', '', '', 'x', '', ''],
+    ['[17] ILWE / BLISS', '2018', 'H', '', '', 'x', '', '', ''],
+    ['[18] Rejected sigs', '2025', 'H', '', 'x', 'x', '', 'x', ''],
+    ['[19] Concealed ILWE', '2025', 'H', '', 'x', 'x', '', 'x', ''],
+    ['[20] ILWE + rej. samp.', '2025', 'M', '', 'x', 'x', '', 'x', ''],
+    ['[21] Shamir', '1979', 'L', '', '', '', 'x', '', ''],
+    ['[22] Feldman', '1987', 'M', '', '', '', 'x', '', ''],
+    ['[23] FROST', '2020', 'L', 'x', '', '', 'x', '', ''],
+], [1.5, 0.4, 0.4, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3])
+para("Of the 23 sources, 13 are rated central (H), 5 supporting (M) and 5 background (L). Fifteen were published in 2025 or 2026, "
+     "and 21 of 23 are from 2018 or later. The sources marked AT are the evidence base for the estimators in Section III.")
+
+para("**Recommendations that follow from the survey.** Four design rules emerge from the failures recorded in the literature. "
+     "Do not publish any linear image of a secret or nonce under the public matrix, however it is masked, unless the mask "
+     "remains hiding under the worst-case corruption allowed (checklist items 1 and 8). Treat the response nonce as a secret "
+     "with the same status as the key, including in blame and abort procedures (item 2). Keep every rejection check that the "
+     "single-signer scheme has, or prove that the replacement leaks no more (item 3). And bound the number of signatures per "
+     "key only with a margin that an optimised estimator, not just least squares, cannot close (item 4). These rules are "
+     "not new individually, but the First-Call submissions show they are easy to violate when importing patterns from "
+     "discrete-log threshold schemes.")
 
 # ---------------- Problem formulation ----------------
 heading("3. Problem Formulation and Possible Solution")
@@ -379,6 +500,20 @@ table([
     ["(T, N)", "Threshold and number of parties; S is the signing set and C the corrupted set"],
     ["q_s", "Number of signing sessions the adversary observes"],
 ], [1.1, 5.4])
+para("The transcript is where the schemes differ most, so we summarise what each is claimed to publish beyond the final "
+     "signature. These entries are taken from the sources as we read them and are to be checked against the full papers.")
+table([
+    ["Scheme", "Published beyond (c, z, h)", "Aborted attempts"],
+    ["Mithril", "Round messages of the signing set; per-party commitments to w", "Visible to corrupted parties; no identifiable aborts"],
+    ["Quorus", "MPC protocol messages; honest-majority broadcasts", "Releases (w1, c, ⊥)"],
+    ["Trilithium", "Two-party messages; CRP-correlated values", "Declassified rejection bit; partial responses"],
+    ["TALUS v0.22", "ZK well-formedness proofs; blame data on dispute", "Nonces pre-filtered offline; bound to quorum"],
+], [0.9, 2.5, 2.1])
+para("Two readings of this table guide the experiments. First, the right column determines whether rejected-attempt tests "
+     "(P3) are meaningful for a scheme at all: TALUS filters offline, so its online transcripts have no rejected attempts and "
+     "the relevant leakage is in the accepted values and the cap. Second, the middle column determines which items of the "
+     "checklist apply, for instance item 1 (published A·x) is relevant wherever commitments to w or shares are broadcast, "
+     "and is the first thing the harness tests on any new transcript format.")
 heading("3.2 Open problems", 2)
 para("**P1 (TALUS signing cap).** Given the post-BCC noise e = LowBits(w) restricted to (−γ2+β, γ2−β), find the minimum "
      "number of signatures q* at which an optimised estimator recovers s′ = s2 − t0, and compare q* with the cap "
@@ -456,6 +591,27 @@ para("**Hint accounting.** For schemes where the adversary holds partial informa
      "we model the information as additional linear equations or a modified distribution on the secret and feed it to a lattice "
      "estimator to measure the loss in bits of security, as opposed to treating the instance as fresh MLWE.")
 
+para("**Simulator walkthrough (TALUS-style, accepted attempt).** To make the interface concrete, the simulator for a TALUS-like "
+     "scheme performs the following steps per signature. (1) Sample the aggregate nonce y from the scheme's distribution, "
+     "keeping only nonces that satisfy the boundary clearance condition. (2) Compute w = A·y and w1 = HighBits(w). (3) Derive "
+     "c from a random message and w1. (4) Compute z = y + c·s1 and apply the first rejection check. (5) Emit the public "
+     "record (c, z, h), plus whatever the scheme additionally broadcasts, together with a ground-truth tag. The estimator "
+     "receives only the public record. A corrupted-coalition variant additionally emits the internal shares of the "
+     "corrupted parties. For schemes with aborted attempts, step (4) emits a record flagged as rejected together with exactly "
+     "the fields the specification says are revealed, no more.")
+para("**Evaluation metrics.** We report (i) the minimum sample count at which the full secret is recovered with probability "
+     "at least 0.9 over repeated runs; (ii) the fraction of coefficients recovered as a function of sample count; (iii) for "
+     "statistical tests, the p-value or test statistic against the null of independence from the secret, with the number of "
+     "samples; and (iv) cost, measured as CPU time and memory. Recovery is verified against the public key, so a claimed "
+     "recovery can be checked by anyone: given a candidate s1, compute t and compare. This avoids the common problem of "
+     "reporting partial correlations as breaks.")
+para("**Threats to validity.** Internal threats include bugs in the primitives (mitigated by known-answer tests) and "
+     "estimator tuning that overfits to synthetic keys (mitigated by testing on many random keys). External threats include "
+     "differences between the simulated protocol and the real one, and parameter changes between preview writeups and final "
+     "packages. Construct threats include treating least-squares success as the only measure of leakage, since a scheme "
+     "can leak information that a particular estimator misses; for this reason several estimators are run on every "
+     "transcript type, and negative results are phrased as bounds on what was tried.")
+
 heading("3.5 Experimental design and validation", 2)
 para("Every experiment reports four quantities: the number of signatures consumed, the recovered key fraction, wall-clock cost, "
      "and the parameter set. Validation proceeds in three stages. (a) Primitives are checked against FIPS 204 known-answer tests, "
@@ -472,11 +628,19 @@ para("**Expected outcomes and risks.** Positive results are attacks or concrete 
      "patterns. Any finding should be shared with the scheme teams before publication, and posted to ePrint following standard "
      "responsible-disclosure practice.")
 
+para("**Expected contributions.** If the project succeeds, it yields three kinds of artefact. A reusable open-source harness "
+     "with validated ML-DSA primitives and a scheme-simulator interface, so that new threshold designs can be screened "
+     "in hours rather than weeks. A set of measured margins and bounds for the four proposals, expressed in bits of "
+     "security and in signatures, so that NIST and the teams can compare designs on the same scale. And a verified or "
+     "refuted statement about Kao's P2 profile [12], which matters because TALUS builds on it. Even when no attack is found, "
+     "the checklist and the measurements give the community a concrete way to assess how much testing each scheme has "
+     "received, which is currently missing for three of the four proposals.")
+
 heading("3.6 Limitations of this survey and Phase 2 plan", 2)
 para("The survey has three limitations that bear on how its conclusions should be read. First, the full Mithril, Quorus and "
      "Trilithium papers were not read end to end; for Quorus and Trilithium in particular, claims about reveal-on-reject and "
      "the rejected-partial heuristic come from abstracts and from how other papers describe them, so every statement in "
-     "Section 2.8 is a hypothesis to verify against the primary text. Second, several sources are preview writeups or "
+     "Section II-H is a hypothesis to verify against the primary text. Second, several sources are preview writeups or "
      "preliminary versions that may change before the package deadline, and two of the cited ePrints have been withdrawn "
      "and superseded. Third, the numerical figures quoted for TALUS differ slightly between the abstract and the table of the "
      "cryptanalytic note; we use the table. Phase 2 therefore begins by reading the unread papers in full, then proceeds in the "
@@ -499,7 +663,7 @@ para("The harness is aimed at public, standardisation-stage specifications, cons
      "any public posting, and will distinguish clearly between confirmed breaks (key recovered), margins (key recovered above a "
      "stated cap), and null results. Results that rely on our simulators rather than on the authors' code will be labelled as "
      "such, since a simulator can differ from the real protocol.")
-para("A secondary outcome is educational and methodological: the checklist in Section 2.9 and the harness together "
+para("A secondary outcome is educational and methodological: the checklist in Section II-I and the harness together "
      "provide a quick screening procedure that a designer can run on a new threshold ML-DSA variant before submitting it. "
      "Because several of the observed failures came from importing patterns from discrete-log protocols, a screening tool "
      "that encodes the lattice-specific pitfalls (invertible commitments, nonce leakage, removed rejection checks) has value "
@@ -515,39 +679,80 @@ para("Threshold ML-DSA is moving from research to standardisation, and the singl
      "harness, reproduce the TALUS attack, and run the estimators on the remaining schemes.")
 
 # ---------------- References ----------------
+para("**Why the open problems are tractable in a course-scale project.** Each of P1–P4 reduces to a bounded computation. "
+     "P1 needs a simulator that emits (c, v) pairs and an estimator, both of which are linear-algebra code that runs on a laptop "
+     "at reduced dimension and on a workstation at full dimension. P2 is a numerical integral over the acceptance region of "
+     "the hyperball sampler followed by a lattice-estimator call. P3 is a two-sample test on transcript statistics. P4 is algebra "
+     "on a published protocol and a small toy implementation. None requires access to proprietary code or hardware, "
+     "and none depends on solving a hard lattice problem at full security parameters, because the attacks of interest "
+     "exploit leakage rather than breaking MLWE. The main resource is therefore careful engineering and sample budget, "
+     "not new mathematics, which keeps the project feasible while still addressing questions that the designers' own "
+     "papers leave open.")
+para("**Positioning against existing work.** Prior cryptanalysis of lattice signatures [17]–[20] targets a single signer "
+     "whose implementation leaks through a physical side channel. Here the leakage is logical: it is part of the protocol "
+     "transcript, visible to any observer or corrupted party, and independent of hardware. This changes both the threat model, "
+     "where the adversary is a protocol participant, and the estimators, where the noise distribution is known exactly "
+     "from the specification rather than measured. It also means results transfer across implementations, which is why a "
+     "specification-level harness is more valuable than any single code audit. Conversely, schemes that were analysed only "
+     "by proof, such as Quorus and Trilithium, gain an independent empirical check that proofs alone cannot provide.")
+para("**Summary of findings by research question.** The survey was guided by four questions. (RQ1) Which threshold ML-DSA "
+     "designs exist and how do they differ? Four First-Call proposals, distinguished by corruption model, party count and round "
+     "complexity (Table of Section II-B). (RQ2) Which are known to be broken? Earlier TALUS versions, by two independent "
+     "attacks [13]; none of the others in public. (RQ3) Which techniques can break a scheme of this kind? Linear inversion "
+     "of published A·x, nonce-leak recovery, ILWE by least squares, ILP on rejection bounds and robust regression "
+     "([13], [17]–[19]). (RQ4) Where is the evidence thinnest? In heuristics (Trilithium), margins (TALUS cap), and "
+     "distributional deviations (Mithril). These answers directly produce the four open problems of Section III and the "
+     "ordering of the Phase 2 plan.")
+para("**Phase 2 milestones and acceptance tests.** Phase 2 is organised so that each milestone has a pass/fail test. "
+     "M1: the primitives reproduce FIPS 204 known-answer vectors for all three parameter sets. M2: a deliberately leaky "
+     "scheme (publishing A·s1) is broken in one signature by the Gaussian-elimination estimator. M3: the TALUS-without-check "
+     "simulator is broken by least squares at a sample count within a factor of two of the formula in Table I, at reduced "
+     "parameters. M4: the bounded-noise estimator beats least squares by the stated margin or the report explains why not. "
+     "M5 and M6: simulators for Mithril, Quorus and Trilithium produce transcripts that follow the specifications, as "
+     "checked by an independent reading of each paper. M7: the written results state, for each scheme, either an attack or a "
+     "bound. Failing M1 or M2 stops the project until fixed, because later results would be untrustworthy; failing "
+     "M4 is itself an informative outcome. This staging also gives an early signal if the schedule slips.")
+para("**Future directions.** Beyond Phase 2, three extensions are natural. The first is adaptive corruption, which Mithril "
+     "argues heuristically and which would require simulators that let the adversary choose whom to corrupt after seeing "
+     "partial transcripts. The second is proactive security, where shares are refreshed periodically; this interacts with "
+     "TALUS's per-key cap and could turn key rotation into share rotation without changing the public key. The third is a "
+     "formal treatment of statistical leakage across rejected attempts, giving a theorem that bounds the information an "
+     "adversary gains from aborted transcripts as a function of the acceptance probability, which would replace today's "
+     "heuristics with a proof.")
 heading("References")
 refs = [
-    "NIST, FIPS 204: Module-Lattice-Based Digital Signature Standard, August 2024.",
-    "L. Ducas, E. Kiltz, T. Lepoint, V. Lyubashevsky, P. Schwabe, G. Seiler, D. Stehlé, CRYSTALS-Dilithium: A Lattice-Based Digital Signature Scheme, IACR TCHES 2018(1), 238–268.",
-    "NIST, Multi-Party Threshold Schemes: First Call for Submissions, NIST IR 8214C, 2026.",
-    "S. Celi, R. del Pino, T. Espitau, G. Niot, T. Prest, Efficient Threshold ML-DSA, IACR ePrint 2026/013.",
-    "G. Borin, S. Celi, R. del Pino, T. Espitau, G. Niot, T. Prest, Threshold Signatures Reloaded: ML-DSA and Enhanced Raccoon with Identifiable Aborts, IACR ePrint 2025/1166 (withdrawn 2026, superseded by 2026/013 and 2026/419).",
-    "S. Celi et al., Poster: Efficient Threshold ML-DSA up to 6 Parties, ACM CCS 2025 (poster), doi:10.1145/3719027.3760739.",
-    "Mithril: Efficient Threshold ML-DSA from Secret Sharing with Short Shares, NIST MPTC First Call preview writeup PW01, 2026.",
-    "A. Bienstock, L. de Castro, D. Escudero, A. Polychroniadou, A. Takahashi, Quorus: Efficient, Scalable Threshold ML-DSA Signatures from MPC, IACR ePrint 2025/1163.",
-    "A. Dufka, S. Kravtšenko, P. Laud, N. Snetkov, Trilithium: Efficient and Universally Composable Distributed ML-DSA Signing, IACR ePrint 2025/675.",
-    "L. Kao, R. Chang, TALUS: FIPS-204-Exact Threshold ML-DSA via Boundary Clearance, arXiv:2603.22109.",
-    "TALUS, NIST MPTC First Call preview writeup v0.22, August 2026.",
-    "L. Kao, FIPS 204-Compatible Threshold ML-DSA via Shamir Nonce DKG, arXiv:2601.20917.",
-    "G. Niot, Key-Recovery Attacks on TALUS: A Cryptanalytic Note, IACR ePrint 2026/1386, July 2026.",
-    "R. del Pino, S. Katsumata, M. Maller, F. Mouhartem, T. Prest, M.-J. Saarinen, Threshold Raccoon: Practical Threshold Signatures from Standard Lattice Assumptions, EUROCRYPT 2024, LNCS 14652.",
-    "R. del Pino, T. Espitau, G. Niot, T. Prest, Simple and Efficient Lattice Threshold Signatures with Identifiable Aborts, IACR ePrint 2025/871 (withdrawn 2026, superseded by 2026/419).",
-    "K. D. Gür, J. Katz, T. Silde, Two-Round Threshold Lattice-Based Signatures from Threshold Homomorphic Encryption, PQCrypto 2024, LNCS 14772.",
-    "J. Bootle, C. Delaplace, T. Espitau, P.-A. Fouque, M. Tibouchi, LWE Without Modular Reduction and Improved Side-Channel Attacks Against BLISS, ASIACRYPT 2018, LNCS 11272, 494–524.",
-    "Y. Zhou, W. Wang, Y. Sun, Y. Yu, Rejected Signatures' Challenges Pose New Challenges: Key Recovery of CRYSTALS-Dilithium via Side-Channel Attacks, IACR TCHES 2025 (ePrint 2025/214).",
-    "S. Damm, A. Fischer, A. May, S. Marzougui, L. Schwarz, H. Seidler, J.-P. Seifert, J. Thietke, V. Q. Ulitzsch, Solving Concealed ILWE and its Application for Breaking Masked Dilithium, ASIACRYPT 2025 (ePrint 2025/1629).",
-    "K. Yates, A. Pierrottet, A. Al Mamun, R. Cartor, M. Chowdhury, S. Gao, Security Analysis of Integer Learning with Errors with Rejection Sampling, arXiv:2512.08172, December 2025.",
-    "A. Shamir, How to Share a Secret, Communications of the ACM 22(11), 612–613, 1979.",
-    "P. Feldman, A Practical Scheme for Non-interactive Verifiable Secret Sharing, FOCS 1987, 427–438.",
-    "C. Komlo, I. Goldberg, FROST: Flexible Round-Optimized Schnorr Threshold Signatures, SAC 2020, LNCS 12804.",
+    ("NIST", "FIPS 204: Module-Lattice-Based Digital Signature Standard", "Aug. 2024."),
+    ("L. Ducas, E. Kiltz, T. Lepoint, V. Lyubashevsky, P. Schwabe, G. Seiler, and D. Stehl\u00e9", "CRYSTALS-Dilithium: A lattice-based digital signature scheme", "IACR Trans. Cryptogr. Hardw. Embed. Syst., vol. 2018, no. 1, pp. 238\u2013268, 2018."),
+    ("NIST", "Multi-Party Threshold Schemes: First Call for Submissions", "NIST IR 8214C, 2026."),
+    ("S. Celi, R. del Pino, T. Espitau, G. Niot, and T. Prest", "Efficient threshold ML-DSA", "IACR ePrint 2026/013, 2026."),
+    ("G. Borin, S. Celi, R. del Pino, T. Espitau, G. Niot, and T. Prest", "Threshold signatures reloaded: ML-DSA and enhanced Raccoon with identifiable aborts", "IACR ePrint 2025/1166, 2025 (withdrawn May 2026)."),
+    ("S. Celi et al.", "Poster: Efficient threshold ML-DSA up to 6 parties", "in Proc. ACM CCS, 2025, doi:10.1145/3719027.3760739."),
+    ("Mithril team", "Mithril: Efficient threshold ML-DSA from secret sharing with short shares", "NIST MPTC First Call preview writeup PW01, 2026."),
+    ("A. Bienstock, L. de Castro, D. Escudero, A. Polychroniadou, and A. Takahashi", "Quorus: Efficient, scalable threshold ML-DSA signatures from MPC", "IACR ePrint 2025/1163, 2025."),
+    ("A. Dufka, S. Kravt\u0161enko, P. Laud, and N. Snetkov", "Trilithium: Efficient and universally composable distributed ML-DSA signing", "IACR ePrint 2025/675, 2025."),
+    ("L. Kao and R. Chang", "TALUS: FIPS-204-exact threshold ML-DSA via boundary clearance", "arXiv:2603.22109, 2026."),
+    ("TALUS team", "TALUS preview writeup v0.22", "NIST MPTC First Call, Aug. 2026."),
+    ("L. Kao", "FIPS 204-compatible threshold ML-DSA via Shamir nonce DKG", "arXiv:2601.20917, 2026."),
+    ("G. Niot", "Key-recovery attacks on TALUS: A cryptanalytic note", "IACR ePrint 2026/1386, Jul. 2026."),
+    ("R. del Pino, S. Katsumata, M. Maller, F. Mouhartem, T. Prest, and M.-J. Saarinen", "Threshold Raccoon: Practical threshold signatures from standard lattice assumptions", "in Proc. EUROCRYPT 2024, LNCS 14652, 2024."),
+    ("R. del Pino, T. Espitau, G. Niot, and T. Prest", "Simple and efficient lattice threshold signatures with identifiable aborts", "IACR ePrint 2025/871, 2025 (withdrawn May 2026)."),
+    ("K. D. G\u00fcr, J. Katz, and T. Silde", "Two-round threshold lattice-based signatures from threshold homomorphic encryption", "in Proc. PQCrypto 2024, LNCS 14772, 2024."),
+    ("J. Bootle, C. Delaplace, T. Espitau, P.-A. Fouque, and M. Tibouchi", "LWE without modular reduction and improved side-channel attacks against BLISS", "in Proc. ASIACRYPT 2018, LNCS 11272, pp. 494\u2013524, 2018."),
+    ("Y. Zhou, W. Wang, Y. Sun, and Y. Yu", "Rejected signatures\u2019 challenges pose new challenges: Key recovery of CRYSTALS-Dilithium via side-channel attacks", "IACR Trans. Cryptogr. Hardw. Embed. Syst., 2025 (ePrint 2025/214)."),
+    ("S. Damm et al.", "Solving concealed ILWE and its application for breaking masked Dilithium", "in Proc. ASIACRYPT 2025 (ePrint 2025/1629)."),
+    ("K. Yates, A. Pierrottet, A. Al Mamun, R. Cartor, M. Chowdhury, and S. Gao", "Security analysis of integer learning with errors with rejection sampling", "arXiv:2512.08172, Dec. 2025."),
+    ("A. Shamir", "How to share a secret", "Commun. ACM, vol. 22, no. 11, pp. 612\u2013613, 1979."),
+    ("P. Feldman", "A practical scheme for non-interactive verifiable secret sharing", "in Proc. IEEE FOCS, 1987, pp. 427\u2013438."),
+    ("C. Komlo and I. Goldberg", "FROST: Flexible round-optimized Schnorr threshold signatures", "in Proc. SAC 2020, LNCS 12804, 2020."),
 ]
-for i, r in enumerate(refs, 1):
+for i, (au, ti, ve) in enumerate(refs, 1):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     p.paragraph_format.left_indent = Inches(0.3)
     p.paragraph_format.first_line_indent = Inches(-0.3)
     p.paragraph_format.space_after = Pt(1)
-    run(p, f"[{i}] {r}").font.size = Pt(9)
+    for txt, it in ((f"[{i}] {au}, \u201c{ti},\u201d ", False), (ve, True)):
+        run(p, txt, italic=it).font.size = Pt(8)
 
 doc.save("Phase1_Report.docx")
 print("saved")
