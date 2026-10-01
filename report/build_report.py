@@ -234,7 +234,7 @@ para("**Mithril** [4,5,6,7] (PQShield, Brave, Bristol) is the first practical ML
      "participant for up to six parties, with Go implementations; the security argument is a game-based reduction in the random "
      "oracle model to MLWE and ML-DSA unforgeability under static corruption of up to T−1 parties. There are no identifiable "
      "aborts, and its parameters target a per-attempt success probability of 1/2 rather than ML-DSA's roughly 1/4, so the accepted-"
-     "response distribution differs from FIPS 204. The earlier version [5] was superseded by [4], which appears at USENIX Security 2026; the preview writeup [7] notes that up to 8 parties remains practical, that no synchronised broadcast channel is needed, and that the Go implementation uses floating point for hyperball sampling.")
+     "response distribution differs from FIPS 204. Its proof uses R\u00e9nyi divergence and therefore covers only Q_s = 2^50 signing queries, with K parallel repetitions per attempt to amplify the success probability. The earlier version [5] was superseded by [4], which appears at USENIX Security 2026; the preview writeup [7] notes that up to 8 parties remains practical, that no synchronised broadcast channel is needed, and that the Go implementation uses floating point for hyperball sampling.")
 para("**Quorus** [8] (J.P. Morgan) modifies ML-DSA signing to be MPC-friendly while keeping FIPS 204 verification and "
      "signature sizes, and provides MPC protocols for honest-majority settings with about 150 KB online communication per party "
      "per rejection-sampling round (0.31–0.59 MB per successful signature, 16 or 29 online rounds depending on the variant) and appears at USENIX Security 2026. It tolerates fewer than n/2 corruptions, supports up to 63 parties in its benchmarks and is proven secure in the "
@@ -242,7 +242,9 @@ para("**Quorus** [8] (J.P. Morgan) modifies ML-DSA signing to be MPC-friendly wh
 para("**SplitForge / Trilithium** [9] (Cybernetica) targets two parties, a server and a phone, plus a correlated randomness "
      "provider (CRP). It proves security against a malicious server or phone in the UC model, uses an actively secure "
      "comparison protocol and a new rounding protocol, and has a Rust implementation. Key generation takes 3 rounds and each signing attempt 14. It is part of Cybernetica's SplitKey submission [9], is secure against one malicious party among server, phone and CRP, and the writeup concedes that a malicious CRP can mount selective-disclosure attacks that the authors consider harmless for the intended use. It "
-     "relies on a heuristic that a rejected partial signature can be simulated as uniform.")
+     "publishes the high bits w_H even for rejected attempts, and its security argument for this rests on an MLWR-type assumption that the "
+     "paper itself calls non-standard for ML-DSA parameters (Quorus [8] describes the same point as a heuristic that a rejected partial "
+     "signature can be simulated as uniform).")
 para("**TALUS** [10,11] (Codebat) introduces the Boundary Clearance Condition (BCC): for a constant fraction of nonces "
      "(31.7% at ML-DSA-65, 43.2% at -44, 39.1% at -87) the vector s2 provably cannot push w across a rounding boundary, so rejection checks can be enforced "
      "offline on preprocessed nonces. This yields a TEE-assisted one-round variant (described in v0.22 only as a contrasting example, not proposed for the threshold setting) and a distributed MPC profile, the proposed system, with two online "
@@ -373,7 +375,7 @@ bullet("**TALUS's cap** rests on an information-theoretic argument, with a gap o
 bullet("**Rejected-attempt transcripts** (Quorus reveal-on-reject, Trilithium's uniform-rejected-partial heuristic) have no "
        "empirical leakage analysis in the literature we found.")
 bullet("**Mithril's accepted-response distribution** (success probability 1/2) and its a posteriori key-sharing hint loss "
-       "(7–12 bits reported) lack independent re-derivation at q_s = 2^64.")
+       "(7–12 bits reported) lack independent re-derivation; the proof covers only Q_s = 2^50 signing queries, below the 2^64 usually assumed for signatures.")
 bullet("**Corruption-model gaps**: static-only proofs, honest-majority boundaries (N = 2T−1), and conditions buried in "
        "footnotes (|S∖C| ≥ 2).")
 
@@ -398,8 +400,8 @@ heading("2.8 Attack surface of each scheme (working hypotheses)", 2)
 para("The following subsections record where we expect to look first. They are hypotheses derived from the specifications and "
      "later papers, not results.")
 para("**Mithril.** (i) The accepted-response distribution: with success probability 1/2 per attempt instead of about 1/4, the "
-     "nonce distribution and rejection region differ from FIPS 204, so the Renyi or Fisher-information loss at q_s = 2^64 must "
-     "be computed concretely. (ii) A posteriori key sharing: the adversary obtains a noisy hint on the existing ML-DSA secret, "
+     "nonce distribution and rejection region differ from FIPS 204, so the Renyi or Fisher-information loss must "
+     "be computed concretely beyond the proven Q_s = 2^50 up to the 2^64 queries NIST typically assumes for signatures. (ii) A posteriori key sharing: the adversary obtains a noisy hint on the existing ML-DSA secret, "
      "which the authors quantify as a 7–12 bit loss; this should be re-derived for the exact share subset held by T−1 corrupted "
      "parties. (iii) Adaptive corruption is argued heuristically with a loss of at most 5 bits for N ≤ 6, a proof gap rather "
      "than an attack. (iv) Selective aborts: with no identifiable aborts, corrupted parties can abort after seeing honest "
@@ -411,11 +413,13 @@ para("**Quorus.** (i) Reveal-on-reject: rejected attempts release (w1, c, ⊥) a
      "implementations must reveal only ⊥. (iii) The MPC building blocks (the rejection-sampling functionality, batched OR, and "
      "offline preprocessing) are where implementation mistakes would hide. (iv) Honest majority is a hard assumption, so "
      "behaviour at N = 2T−1 boundaries deserves a check.")
-para("**SplitForge / Trilithium.** The statement that a rejected partial signature can be simulated as uniform is heuristic and "
-     "is the most attackable claim: the distribution of rejected partial responses may depend on s1 or s2. The rejection-check "
-     "result is declassified to both parties, so the number of bits about c·s2 revealed per attempt should be bounded. The "
-     "correlated randomness provider is a trusted third party, so what it can learn from its own correlated values matters, and "
-     "the scheme is two-party only (2-of-2).")
+para("**SplitForge / Trilithium.** The paper publishes w_H even in rejected runs and states openly that this needs an MLWR-type "
+     "assumption, noting that related work either adds a noise term (as Quorus does), introduces a rejected-decisional assumption, "
+     "or treats the question as open. This is the most attackable claim. Because the nonce y is fresh in every attempt, each "
+     "published w_H is an LWR-style sample under a new secret, so any accumulation of information about s1 or s2 must come "
+     "through the rejection events. The rejection-check result is declassified to both parties, so the bits revealed about c\u00b7s2 "
+     "per attempt should be bounded. The correlated randomness provider is a trusted third party that, per the writeup, can mount "
+     "selective-disclosure attacks the authors consider harmless, and the scheme is two-party only (2-of-2).")
 para("**TALUS v0.22.** The signing cap is the whole security argument for the s2 channel. Under BCC the noise "
      "e = LowBits(w) is restricted to (−γ2+β, γ2−β), so it has sharp edges, which carry more information per sample than "
      "variance alone. Other surfaces are the zero-knowledge share well-formedness proofs, the blame procedure, quorum binding "
@@ -521,22 +525,24 @@ para("**P1 (TALUS signing cap).** Given the post-BCC noise e = LowBits(w) restri
      "alone, so bounded-noise estimators, ILP and lattice reduction should beat least squares. Either outcome is informative: "
      "q* below the cap breaks the design; q* above it gives a concrete security margin.")
 para("**P2 (Mithril accepted-response leakage).** Compute the Fisher information I about s1 carried by one accepted response z "
-     "under Mithril's hyperball sampling and 1/2 acceptance, derive the attack wall ≈ 4/(I·τ), and check it exceeds 2^64. "
+     "under Mithril's hyperball sampling and 1/2 acceptance, derive the attack wall ≈ 4/(I·τ), and compare it with the proven Q_s = 2^50 and the 2^64 usually assumed. "
      "Also re-derive the hardness loss of the a posteriori key-sharing hint using the exact share subset held by T−1 corrupted "
      "parties, with the lattice estimator.")
-para("**P3 (Rejected-attempt leakage in Quorus and Trilithium).** Test whether the distribution of rejected-attempt "
-     "transcripts, (w1, c, ⊥) in Quorus and rejected partial responses in Trilithium, depends on s1 or s2. A positive result "
-     "would invalidate the simulatability claim or heuristic; the declassified rejection-check bit in Trilithium should be "
-     "quantified in bits per attempt about c·s2.")
+para("**P3 (Rejected-attempt leakage in Quorus and Trilithium).** Both schemes release the high bits w_H and the challenge c "
+     "for rejected attempts. Quorus adds a noise term e_w to w so that this is provably simulatable, while Trilithium keeps unmodified "
+     "ML-DSA and relies on an MLWR-type assumption. Test whether the rejected-attempt transcripts, together with the accept or "
+     "reject bit, carry any dependence on s1 or s2, using regression and ILP-style tests, and quantify the hardness of the "
+     "underlying rounding instances with the lattice estimator. A positive result in Trilithium would show the assumption fails at "
+     "ML-DSA parameters; a null result bounds it. The rejection bit declassified in Trilithium should also be quantified in bits per attempt about c\u00b7s2.")
 para("**P4 (Kao's P2 profile).** The paper [12] discloses that mask hiding fails at |S∖C| = 1 yet claims dishonest-majority unforgeability. Decide whether this failure yields key recovery, which "
      "would be a one-signature key recovery for any |S| = T with T−1 corruptions, and whether the Feldman-style DKG "
      "commitments show the A·s1,i pattern broken in [13].")
 para("**Hypotheses and success criteria.** For each problem we state what would count as a result. For P1 we hypothesise that a "
      "bounded-noise estimator needs at least an order of magnitude fewer signatures than least squares, and the criterion is "
      "a recovered key (checked against the public key) at a sample count below 2^16. For P2 we hypothesise that the Fisher "
-     "information per signature is small enough that the wall exceeds 2^64, so a null result is the expected outcome and the "
+     "information per signature is small enough that the wall exceeds 2^64 (well above the proven 2^50), so a null result is the expected outcome and the "
      "criterion is a numerical bound with its derivation. For P3 we hypothesise that Quorus's reveal-on-reject is simulatable "
-     "as claimed while Trilithium's rejected-partial heuristic may only hold approximately, and the criterion is a statistical "
+     "as claimed because of the added noise, while Trilithium's MLWR-type assumption may only hold approximately, and the criterion is a statistical "
      "test with a stated false-positive rate and sample budget. For P4 we hypothesise, from the algebra in [12], that the P2 "
      "profile fails at |S∖C| = 1, and the criterion is either an explicit recovery procedure on a toy instance or a precise "
      "reason why the masks still hide the commitments. Stating these in advance keeps the project from drifting into whatever "
@@ -586,7 +592,7 @@ para("**Fisher information and the attack wall.** For a scheme whose accepted re
      "secret s through a location shift c·s, the Fisher information I about s per signature determines the Cramér–Rao lower "
      "bound on any unbiased estimator’s variance. Following the argument in [10], key recovery requires on the order of "
      "4/(I·τ) signatures; we compute I numerically from the exact acceptance region and sampling distribution of each scheme "
-     "rather than relying on a Gaussian approximation, and report the resulting wall in bits to compare with q_s = 2^64.")
+     "rather than relying on a Gaussian approximation, and report the resulting wall in bits to compare with the proven 2^50 and the assumed 2^64.")
 para("**Hint accounting.** For schemes where the adversary holds partial information about the secret (Mithril's share subsets), "
      "we model the information as additional linear equations or a modified distribution on the secret and feed it to a lattice "
      "estimator to measure the loss in bits of security, as opposed to treating the instance as fresh MLWE.")

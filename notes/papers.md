@@ -46,3 +46,9 @@ Updated 2026-10-01 after downloading full texts. Reading depth:
 ## Still to read in full
 
 Mithril full paper (security proof, Sec. 3 and appendix), Quorus (simulatability proof), Trilithium (rejection-check security argument), Kao Lemma 2 and Remarks 11 and 15, TALUS Sections 7-8, Damm and Zhou bodies. IR 8214C not downloaded.
+
+## Second pass (Mithril proof, Trilithium rejection argument)
+
+- **Mithril** (Sec. 3, Theorem 3.2, Sec. 3.4): security proof uses Renyi divergence and holds only for Q_s = 2^50 signing queries (not 2^64, which my dossier-based draft assumed). K parallel repetitions amplify success probability; imbalanced hyperball sampling; success probability target 1/2. Game 9 replaces commitments of rejected attempts by uniform values under MLWE.
+- **Trilithium** (Sec. 3 discussion and App. D): publishes w_H even in rejected runs and relies on an MLWR-type assumption, explicitly called non-standard for ML-DSA parameters. Related work either adds noise (Quorus), assumes a new problem (Barthe et al.), or treats it as open (Coron et al.). The "heuristic" wording comes from the Quorus paper.
+- Report problems P2 and P3 were rewritten to match.

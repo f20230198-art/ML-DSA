@@ -222,3 +222,9 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Honest status:** I read three documents completely and checked specific passages in about ten more. I did NOT read every paper end to end (see `notes/papers.md`, column "Depth").
 
 **Beginner note, what is a "preview writeup"?** NIST asked each team to submit a short public document describing their plan before the full package is due. These are the "preview writeups"; they can still change.
+
+### 2026-10-01: Second reading pass, sharper problems P2 and P3
+- **What:** Read the security proof of Mithril and the rejection-check argument of Trilithium. Rewrote problems P2 and P3 in the report.
+- **Findings:** Mithril's proof only covers 2^50 signing queries (NIST usually assumes 2^64), so there is a gap between what is proven and what is needed; the real question is how many signatures an attacker needs. Trilithium publishes the high bits of w even for rejected attempts and depends on an extra assumption (MLWR, "learning with rounding") that its own authors call non-standard; Quorus avoids this by adding a bit of noise.
+- **Simple idea behind this:** a signer throws away "bad" attempts. If a threshold scheme still shows some data from the thrown-away attempts, an attacker may learn something from them. That is why rejected attempts matter.
+- **Why:** these two points are the most concrete places to look for weaknesses, and they were wrong or vague in the first draft.
