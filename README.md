@@ -8,6 +8,9 @@ Status: literature-and-spec assessment done; no code or experiments yet.
 
 | Path | Purpose |
 |------|---------|
+| `docs/LEARN.md` | Beginner-friendly explanation of the project plus running changelog (start here) |
+| `report/` | Phase 1 coursework report (docx built by `build_report.py`) |
+| `notes/papers.md` | Reading table of all cited papers |
 | `docs/DOSSIER.md` | Source assessment (as of 2026-09-29): schemes, known attacks, checklist, ranked plan |
 | `docs/ROADMAP.md` | Task checklist derived from the dossier's ranked plan |
 | `docs/CHECKLIST.md` | The 10-point reusable attack checklist |

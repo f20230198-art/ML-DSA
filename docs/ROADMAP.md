@@ -34,3 +34,9 @@ Ordered as in the dossier's ranked plan.
 
 ## Reading gaps
 - [ ] Full Mithril (ePrint 2026/013), Quorus (2025/1163), Trilithium (2025/675) papers
+
+## Coursework: Phase 1 report
+- [x] Survey of 23 papers, problem formulation, 10-page docx (`report/`)
+- [ ] Confirm deadline extension (listed deadline 25.09.2026 has passed)
+- [ ] Run Turnitin check and submit
+- [ ] Re-verify citations 2, 16, 21-23 (cited from memory)
