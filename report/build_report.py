@@ -115,7 +115,7 @@ p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 run(p, "Project Phase 1 Report – Cryptography, BITS Pilani, Dubai Campus")
 p = doc.add_paragraph()
 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-run(p, "Srivathsa H Honyal (f20230198)", italic=True)
+run(p, "Ashmit Dhown (f20230205) · Srivathsa H Honyal (f20230198)", italic=True)
 
 # ---------------- Abstract ----------------
 para("**Abstract\u2014**ML-DSA (FIPS 204) is the NIST-standardised lattice-based digital signature, but it was designed for a single signer. "
