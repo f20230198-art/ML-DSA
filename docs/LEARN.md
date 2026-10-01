@@ -213,3 +213,12 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **How:** Patched `report/build_report.py` (two-column section, IEEE heading function, reference tuples), rebuilt, converted to PDF through Word and counted pages.
 - **Why:** The course asked for IEEE form, and a matrix shows at a glance how related each paper is. CLAUDE.md makes sure the rules (no co-author, never push, update this file) persist across sessions.
 - **Relevance summary:** 13 central, 5 supporting, 5 background; 15 of 23 are from 2025-2026.
+
+### 2026-10-01: Downloaded the papers and checked the report against them
+- **What:** Downloaded the full PDFs of 19 papers (the two withdrawn ones have no PDF) and checked the report's claims against the real text. Fixed several mistakes and added a 24th reference (Finally!, PKC 2025).
+- **How:** Downloaded with curl, extracted text with pypdf, read the Niot note and the TALUS and Mithril writeups in full, and searched the long papers for the exact passages each claim depends on.
+- **Why:** The first draft was written from abstracts and the dossier, so some details could have been wrong.
+- **What changed:** Quorus communication is 150 KB not 100 KB; TALUS's TEE variant is not actually proposed; the least-squares variance formula was wrong; Kao's paper openly states the |S minus C| >= 2 limitation, so problem P4 is now phrased as "does that limitation give key recovery despite the paper's N-1 claim?"; Mithril and Quorus are USENIX Security 2026.
+- **Honest status:** I read three documents completely and checked specific passages in about ten more. I did NOT read every paper end to end (see `notes/papers.md`, column "Depth").
+
+**Beginner note, what is a "preview writeup"?** NIST asked each team to submit a short public document describing their plan before the full package is due. These are the "preview writeups"; they can still change.

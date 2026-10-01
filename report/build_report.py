@@ -122,7 +122,7 @@ para("**Abstract\u2014**ML-DSA (FIPS 204) is the NIST-standardised lattice-based
      "Splitting the signing key among several parties, so that no single device holds the key, is hard because ML-DSA's "
      "rejection sampling and rounding steps do not combine well with secret sharing. In 2026 NIST opened a First Call for "
      "multi-party threshold schemes (IR 8214C), and four proposals aim to produce signatures that verify under an unmodified "
-     "ML-DSA verifier: Mithril, Quorus, SplitForge/Trilithium and TALUS. This report surveys twenty-three papers and "
+     "ML-DSA verifier: Mithril, Quorus, SplitForge/Trilithium and TALUS. This report surveys twenty-four papers and "
      "specifications covering these schemes, their predecessors, and the cryptanalytic tools (integer learning with errors, "
      "integer linear programming, regression) used to attack lattice signatures through leakage. The survey shows that "
      "earlier versions of TALUS fall to two practical key-recovery attacks, while no public attack on the other three exists, "
@@ -212,7 +212,7 @@ para("Dilithium [2] introduced the signing structure above, and FIPS 204 [1] sta
      "such as threshold homomorphic encryption: Gür, Katz and Silde [16] give a two-round scheme from threshold HE. Threshold "
      "Raccoon [14] (Eurocrypt 2024) takes a lighter route using only symmetric primitives and simple lattice operations, with "
      "one-time additive masks that stop partial signing keys leaking through partial signatures; however its signatures are "
-     "not ML-DSA signatures. Del Pino, Espitau, Niot and Prest [15] extend short-share distributed key generation with "
+     "not ML-DSA signatures. Del Pino and Niot [24] give a compact Raccoon-based threshold signature that is limited to 2^64 signatures and about 8 parties. Del Pino, Espitau, Niot and Prest [15] extend short-share distributed key generation with "
      "identifiable aborts and a detector for adversarial short-vector correlations (this preliminary version has since been "
      "withdrawn in favour of a later paper). The decisive shift is toward schemes whose output verifies under the unmodified "
      "FIPS 204 verifier, because deployed certificates, hardware and pinned keys cannot change.")
@@ -234,19 +234,18 @@ para("**Mithril** [4,5,6,7] (PQShield, Brave, Bristol) is the first practical ML
      "participant for up to six parties, with Go implementations; the security argument is a game-based reduction in the random "
      "oracle model to MLWE and ML-DSA unforgeability under static corruption of up to T−1 parties. There are no identifiable "
      "aborts, and its parameters target a per-attempt success probability of 1/2 rather than ML-DSA's roughly 1/4, so the accepted-"
-     "response distribution differs from FIPS 204. The earlier version [5] was superseded by [4].")
+     "response distribution differs from FIPS 204. The earlier version [5] was superseded by [4], which appears at USENIX Security 2026; the preview writeup [7] notes that up to 8 parties remains practical, that no synchronised broadcast channel is needed, and that the Go implementation uses floating point for hyperball sampling.")
 para("**Quorus** [8] (J.P. Morgan) modifies ML-DSA signing to be MPC-friendly while keeping FIPS 204 verification and "
-     "signature sizes, and provides MPC protocols for honest-majority settings with about 100 KB online communication per party "
-     "per rejection-sampling round. It supports many parties (up to 64 in the preview writeup) and is proven secure in the "
-     "universal composability framework. A distinguishing choice is that rejected attempts release (w1, c, ⊥) and the proof "
-     "claims this is simulatable.")
+     "signature sizes, and provides MPC protocols for honest-majority settings with about 150 KB online communication per party "
+     "per rejection-sampling round (0.31–0.59 MB per successful signature, 16 or 29 online rounds depending on the variant) and appears at USENIX Security 2026. It tolerates fewer than n/2 corruptions, supports up to 63 parties in its benchmarks and is proven secure in the "
+     "universal composability framework. Its MPC-friendly variant draws the nonce uniformly, adds a small noise term e_w to w, removes the signing loop and always outputs w1 even when (z, h) is rejected; this is exactly what lets the Fiat–Shamir hash be computed in the clear and what the proof of simulatability of rejected partial signatures relies on.")
 para("**SplitForge / Trilithium** [9] (Cybernetica) targets two parties, a server and a phone, plus a correlated randomness "
      "provider (CRP). It proves security against a malicious server or phone in the UC model, uses an actively secure "
-     "comparison protocol and a new rounding protocol, and has a Rust implementation. It needs about 14 rounds per attempt and "
+     "comparison protocol and a new rounding protocol, and has a Rust implementation. Key generation takes 3 rounds and each signing attempt 14. It is part of Cybernetica's SplitKey submission [9], is secure against one malicious party among server, phone and CRP, and the writeup concedes that a malicious CRP can mount selective-disclosure attacks that the authors consider harmless for the intended use. It "
      "relies on a heuristic that a rejected partial signature can be simulated as uniform.")
 para("**TALUS** [10,11] (Codebat) introduces the Boundary Clearance Condition (BCC): for a constant fraction of nonces "
-     "(31.7% at ML-DSA-65) the vector s2 provably cannot push w across a rounding boundary, so rejection checks can be enforced "
-     "offline on preprocessed nonces. This yields a TEE-assisted one-round profile and a distributed MPC profile with two online "
+     "(31.7% at ML-DSA-65, 43.2% at -44, 39.1% at -87) the vector s2 provably cannot push w across a rounding boundary, so rejection checks can be enforced "
+     "offline on preprocessed nonces. This yields a TEE-assisted one-round variant (described in v0.22 only as a contrasting example, not proposed for the threshold setting) and a distributed MPC profile, the proposed system, with two online "
      "rounds. The same paper proves a lower bound: any FIPS-exact scheme revealing a summed (Irwin–Hall) nonce admits key "
      "recovery after about 2^30 signatures. TALUS builds on Kao's Shamir nonce DKG [12], where the signing nonce is itself a "
      "Shamir secret sharing, with pairwise-cancelling PRF masks and claimed nonce-share min-entropy above 5× the key entropy "
@@ -363,9 +362,9 @@ para("The Mithril line began as a poster [6] and a preliminary ePrint [5] coveri
      "identifiable aborts (up to 64 parties); the latter was later split into two papers, one of which is [4]. Kao's "
      "predecessor [12] is not itself a Call submission but shows the same patterns: its fully distributed profile P2 broadcasts "
      "masked commitments, and the paper's own remarks show an exposed λ_h·A·y_h yields y_h and then the key; masks hide "
-     "these only when |S∖C| ≥ 2, and with |S| = T and T−1 corrupted parties inside S, |S∖C| = 1. This is a hypothesis from "
-     "our reading and needs confirmation. Its Irwin–Hall nonce-loss bound is also only non-vacuous for q_s < 16,000, "
-     "whereas [10] later proves an attack near 2^30.")
+     "these only when |S∖C| ≥ 2. The paper discloses this: at T = N with N−1 corruptions, mask hiding does not hold in P2, yet its Table 1 still claims dishonest-majority unforgeability (tolerating N−1 corruptions) with complete UC proofs against static adversaries. Whether the loss of mask hiding can be turned into key recovery, which would contradict that claim, is the open question we formulate as P4. "
+     "The paper's Irwin–Hall analysis bounds the total loss by 0.013·q_s bits, which exceeds a 128-bit margin after about 10^4 sessions, "
+     "consistent with [10] later proving an attack near 2^30.")
 
 heading("2.6 Gap analysis", 2)
 bullet("**No systematic public testing** of Mithril, Quorus or Trilithium transcripts, only design-level arguments.")
@@ -468,9 +467,10 @@ table([
     ['[21] Shamir', '1979', 'L', '', '', '', 'x', '', ''],
     ['[22] Feldman', '1987', 'M', '', '', '', 'x', '', ''],
     ['[23] FROST', '2020', 'L', 'x', '', '', 'x', '', ''],
+    ['[24] Finally!', '2025', 'M', 'x', '', '', 'x', '', ''],
 ], [1.5, 0.4, 0.4, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3])
-para("Of the 23 sources, 13 are rated central (H), 5 supporting (M) and 5 background (L). Fifteen were published in 2025 or 2026, "
-     "and 21 of 23 are from 2018 or later. The sources marked AT are the evidence base for the estimators in Section III.")
+para("Of the 24 sources, 13 are rated central (H), 6 supporting (M) and 5 background (L). Sixteen were published in 2025 or 2026, "
+     "and 22 of 24 are from 2018 or later. The sources marked AT are the evidence base for the estimators in Section III.")
 
 para("**Recommendations that follow from the survey.** Four design rules emerge from the failures recorded in the literature. "
      "Do not publish any linear image of a secret or nonce under the public matrix, however it is masked, unless the mask "
@@ -528,7 +528,7 @@ para("**P3 (Rejected-attempt leakage in Quorus and Trilithium).** Test whether t
      "transcripts, (w1, c, ⊥) in Quorus and rejected partial responses in Trilithium, depends on s1 or s2. A positive result "
      "would invalidate the simulatability claim or heuristic; the declassified rejection-check bit in Trilithium should be "
      "quantified in bits per attempt about c·s2.")
-para("**P4 (Confirm or refute Kao's P2 claim).** Decide whether the masked-commitment argument fails at |S∖C| = 1, which "
+para("**P4 (Kao's P2 profile).** The paper [12] discloses that mask hiding fails at |S∖C| = 1 yet claims dishonest-majority unforgeability. Decide whether this failure yields key recovery, which "
      "would be a one-signature key recovery for any |S| = T with T−1 corruptions, and whether the Feldman-style DKG "
      "commitments show the A·s1,i pattern broken in [13].")
 para("**Hypotheses and success criteria.** For each problem we state what would count as a result. For P1 we hypothesise that a "
@@ -568,10 +568,10 @@ para("**Implementation considerations.** The harness is research software, so co
 heading("3.4 Estimators in more detail", 2)
 para("**Least squares and the ILWE sample bound.** Each signature supplies a sample (c, b) with b = −c·s′ + e, where "
      "c has τ coefficients of ±1 and e is the noise. Stacking N samples gives an overdetermined integer linear system "
-     "whose ordinary least-squares solution has per-coordinate error variance about Var(e)/(N·τ/n) in the "
-     "normalised ring representation. For uniform noise on [−γ2, γ2] with Var(e) ≈ γ2²/3, rounding recovers an "
-     "entry of s′ correctly with overwhelming probability once the standard deviation falls below a fraction of 1/2 times the "
-     "bound on |s′|; this reproduces the order N ≈ 4γ2²/(3τ) quoted in [13]. Our first experiment checks this "
+     "whose ordinary least-squares solution has per-coefficient error variance about σ_e²/(N·τ), because the denominator "
+     "concentrates at N·τ and the numerator has variance N·τ·σ_e². For uniform noise on [−γ2, γ2] with σ_e² ≈ γ2²/3, nearest-integer "
+     "rounding recovers a coefficient once the standard deviation σ_e/√(N·τ) drops below 1/2; this gives "
+     "N ≈ 4γ2²/(3τ) as derived in [13]. Our first experiment checks this "
      "scaling on reduced parameters, where the signature counts are small enough to run end to end.")
 para("**Bounded-noise estimation.** If e is not Gaussian but supported on a known interval (as under BCC), the posterior for "
      "each secret coefficient is much tighter than variance suggests, because every sample rules out all candidates for which "
@@ -672,7 +672,7 @@ para("A secondary outcome is educational and methodological: the checklist in Se
 # ---------------- Conclusion ----------------
 heading("4. Conclusion")
 para("Threshold ML-DSA is moving from research to standardisation, and the single published break of an early TALUS version "
-     "shows how easily thresholding can leak a key through commitments or removed rejection checks. The survey of twenty-three "
+     "shows how easily thresholding can leak a key through commitments or removed rejection checks. The survey of twenty-four "
      "sources identifies three schemes without public attacks only because they are untested, one scheme whose security now rests "
      "on a signing cap with an uncertain margin, and a toolbox (ILWE, ILP, robust regression) mature enough to test them. We "
      "formalised four open problems and proposed a leakage-testing harness as a reusable contribution. Phase 2 will implement the "
@@ -724,14 +724,14 @@ refs = [
     ("NIST", "FIPS 204: Module-Lattice-Based Digital Signature Standard", "Aug. 2024."),
     ("L. Ducas, E. Kiltz, T. Lepoint, V. Lyubashevsky, P. Schwabe, G. Seiler, and D. Stehl\u00e9", "CRYSTALS-Dilithium: A lattice-based digital signature scheme", "IACR Trans. Cryptogr. Hardw. Embed. Syst., vol. 2018, no. 1, pp. 238\u2013268, 2018."),
     ("NIST", "Multi-Party Threshold Schemes: First Call for Submissions", "NIST IR 8214C, 2026."),
-    ("S. Celi, R. del Pino, T. Espitau, G. Niot, and T. Prest", "Efficient threshold ML-DSA", "IACR ePrint 2026/013, 2026."),
+    ("S. Celi, R. del Pino, T. Espitau, G. Niot, and T. Prest", "Efficient threshold ML-DSA", "in Proc. USENIX Security Symp., 2026 (full version: IACR ePrint 2026/013)."),
     ("G. Borin, S. Celi, R. del Pino, T. Espitau, G. Niot, and T. Prest", "Threshold signatures reloaded: ML-DSA and enhanced Raccoon with identifiable aborts", "IACR ePrint 2025/1166, 2025 (withdrawn May 2026)."),
     ("S. Celi et al.", "Poster: Efficient threshold ML-DSA up to 6 parties", "in Proc. ACM CCS, 2025, doi:10.1145/3719027.3760739."),
-    ("Mithril team", "Mithril: Efficient threshold ML-DSA from secret sharing with short shares", "NIST MPTC First Call preview writeup PW01, 2026."),
-    ("A. Bienstock, L. de Castro, D. Escudero, A. Polychroniadou, and A. Takahashi", "Quorus: Efficient, scalable threshold ML-DSA signatures from MPC", "IACR ePrint 2025/1163, 2025."),
-    ("A. Dufka, S. Kravt\u0161enko, P. Laud, and N. Snetkov", "Trilithium: Efficient and universally composable distributed ML-DSA signing", "IACR ePrint 2025/675, 2025."),
+    ("S. Celi, G. Delerue, R. del Pino, T. Espitau, G. Niot, and T. Prest", "Mithril: Efficient threshold ML-DSA from secret sharing with short shares", "NIST MPTC First Call preview writeup v1.0, Jan. 2026."),
+    ("A. Bienstock, L. de Castro, D. Escudero, A. Polychroniadou, and A. Takahashi", "Quorus: Efficient, scalable threshold ML-DSA signatures from MPC", "in Proc. USENIX Security Symp., 2026 (full version: IACR ePrint 2025/1163)."),
+    ("A. Dufka, S. Kravt\u0161enko, P. Laud, and N. Snetkov", "Trilithium: Efficient and universally composable distributed ML-DSA signing", "IACR ePrint 2025/675, 2025; see also SplitForge, SplitKey preview writeup v0.1, NIST MPTC, Jan. 2026."),
     ("L. Kao and R. Chang", "TALUS: FIPS-204-exact threshold ML-DSA via boundary clearance", "arXiv:2603.22109, 2026."),
-    ("TALUS team", "TALUS preview writeup v0.22", "NIST MPTC First Call, Aug. 2026."),
+    ("L. Kao and R. Chang", "TALUS: FIPS-204-exact threshold ML-DSA via boundary clearance (preview writeup v0.22)", "NIST MPTC First Call, Aug. 2026."),
     ("L. Kao", "FIPS 204-compatible threshold ML-DSA via Shamir nonce DKG", "arXiv:2601.20917, 2026."),
     ("G. Niot", "Key-recovery attacks on TALUS: A cryptanalytic note", "IACR ePrint 2026/1386, Jul. 2026."),
     ("R. del Pino, S. Katsumata, M. Maller, F. Mouhartem, T. Prest, and M.-J. Saarinen", "Threshold Raccoon: Practical threshold signatures from standard lattice assumptions", "in Proc. EUROCRYPT 2024, LNCS 14652, 2024."),
@@ -743,7 +743,8 @@ refs = [
     ("K. Yates, A. Pierrottet, A. Al Mamun, R. Cartor, M. Chowdhury, and S. Gao", "Security analysis of integer learning with errors with rejection sampling", "arXiv:2512.08172, Dec. 2025."),
     ("A. Shamir", "How to share a secret", "Commun. ACM, vol. 22, no. 11, pp. 612\u2013613, 1979."),
     ("P. Feldman", "A practical scheme for non-interactive verifiable secret sharing", "in Proc. IEEE FOCS, 1987, pp. 427\u2013438."),
-    ("C. Komlo and I. Goldberg", "FROST: Flexible round-optimized Schnorr threshold signatures", "in Proc. SAC 2020, LNCS 12804, 2020."),
+    ("C. Komlo and I. Goldberg", "FROST: Flexible round-optimized Schnorr threshold signatures", "in Proc. SAC 2020, LNCS 12804, 2021, pp. 34\u201365."),
+    ("R. del Pino and G. Niot", "Finally! A compact lattice-based threshold signature", "in Proc. PKC 2025, Part III, LNCS 15676, 2025, pp. 169\u2013199."),
 ]
 for i, (au, ti, ve) in enumerate(refs, 1):
     p = doc.add_paragraph()
