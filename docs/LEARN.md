@@ -257,3 +257,4 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **What:** Wrote `report/latex/phase1_report.tex` (IEEEtran, 10 pt, Times via newtx), with sections arranged to match the marking scheme: Abstract, Introduction, Literature Survey, Problem Formulation, Possible Solution, Conclusion, References.
 - **How:** Took the content of `report/build_report.py`, moved stray paragraphs (feasibility, milestones) into the right sections, trimmed repetition, and used real equations and tables.
 - **Why:** The submission rubric marks those exact sections, and the user wanted a LaTeX source to compile themselves. Not compiled here (no LaTeX installed), so the page count still has to be checked to be 10.
+- **Update same day:** user asked for exactly 10 pages again, so the trimmed parts (worked attack examples, per-scheme attack surface, transcript table, metrics, risks, milestones, limitations) were added back into the LaTeX.
