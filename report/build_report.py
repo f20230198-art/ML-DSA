@@ -108,8 +108,8 @@ def table(rows, widths):
 # ---------------- Title ----------------
 p = doc.add_paragraph()
 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-run(p, "Cryptanalysis of Threshold ML-DSA Proposals in the NIST MPTC First Call: "
-       "A Literature Survey and Problem Formulation", bold=True).font.size = Pt(14)
+run(p, "Breaking the Threshold: A Systematic Cryptanalysis of Threshold ML-DSA "
+       "Submissions to the NIST Multi-Party Threshold Call", bold=True).font.size = Pt(14)
 p = doc.add_paragraph()
 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 run(p, "Project Phase 1 Report – Cryptography, BITS Pilani, Dubai Campus")
