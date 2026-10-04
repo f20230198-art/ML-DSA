@@ -258,3 +258,8 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **How:** Took the content of `report/build_report.py`, moved stray paragraphs (feasibility, milestones) into the right sections, trimmed repetition, and used real equations and tables.
 - **Why:** The submission rubric marks those exact sections, and the user wanted a LaTeX source to compile themselves. Not compiled here (no LaTeX installed), so the page count still has to be checked to be 10.
 - **Update same day:** user asked for exactly 10 pages again, so the trimmed parts (worked attack examples, per-scheme attack surface, transcript table, metrics, risks, milestones, limitations) were added back into the LaTeX.
+
+### 2026-10-04: Plain-language rewrite of the LaTeX report
+- **What:** Rewrote the body of `report/latex/phase1_report.tex` in shorter, plainer sentences (fewer semicolons and dashes, jargon explained). Facts, maths, tables and citations unchanged. Old version kept as `phase1_report_before_rewrite.tex`.
+- **Also fixed:** the contribution table pointed to wrong section/table numbers; it now uses automatic LaTeX references.
+- **Why:** the user found the old wording hard to read.
