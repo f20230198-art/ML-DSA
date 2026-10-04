@@ -37,6 +37,7 @@ Ordered as in the dossier's ranked plan.
 
 ## Coursework: Phase 1 report
 - [x] Survey of 23 papers, problem formulation, 10-page docx (`report/`)
+- [x] LaTeX version in rubric order (`report/latex/phase1_report.tex`); no need to pad to exactly 10 pages
 - [x] Deadline extension confirmed by user (1 Oct 2026)
 - [ ] Run Turnitin check and submit
 - [x] Re-verified citations 2, 16, 23, 24 online (1 Oct 2026)

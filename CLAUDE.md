@@ -18,7 +18,7 @@ Project: cryptanalysis of threshold ML-DSA proposals (Mithril, Quorus, SplitForg
 ## Conventions
 
 - Dossier claims are hypotheses until reproduced; say plainly what was and was not read or run. Never invent citations: check authors/venue/year online or flag "from memory".
-- Report: IEEE two-column, Times New Roman 10 pt, exactly 10 pages. Source is `report/build_report.py` (python-docx); build with `python build_report.py`, convert with `docx2pdf` (needs Word), check page count with `pypdf`. PDFs are gitignored.
+- Report: IEEE two-column, Times New Roman 10 pt, up to 10 pages (no padding; just cover the rubric sections). LaTeX version: `report/latex/phase1_report.tex`. Source is `report/build_report.py` (python-docx); build with `python build_report.py`, convert with `docx2pdf` (needs Word), check page count with `pypdf`. PDFs are gitignored.
 - Layout: `docs/` explanations and plans, `notes/` reading notes, `harness/` code (mldsa, schemes, estimators, tests), `experiments/`, `report/`, `papers/`.
 - Windows + Git Bash. In the Bash tool avoid heredocs containing apostrophes or unusual quoting; write scripts with the Write tool instead.
 - Coordinate with scheme teams before any public disclosure of an attack.
