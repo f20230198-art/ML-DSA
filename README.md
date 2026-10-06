@@ -2,7 +2,7 @@
 
 Research project assessing the threshold ML-DSA proposals in the NIST MPTC First Call (IR 8214C): **Mithril**, **Quorus**, **SplitForge/Trilithium** and **TALUS**. The goal is to build a reusable leakage-testing harness and use it to test each scheme's public transcripts against known attack patterns (see the dossier's checklist).
 
-Status: literature-and-spec assessment done; no code or experiments yet.
+Status: literature-and-spec assessment done; harness primitives, an ILWE least-squares experiment and a TALUS edge-estimator experiment exist (see docs/ROADMAP.md).
 
 ## Layout
 

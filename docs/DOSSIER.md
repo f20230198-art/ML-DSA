@@ -8,7 +8,7 @@ As of 2026-09-29.
 - **Practical key-recovery attacks exist on TALUS** (earlier versions), published by Guilhem Niot (PQShield) as ePrint 2026/1386. Two independent attacks: Gaussian elimination on broadcast commitments, and a statistical attack from a removed rejection check.
 - I found **no public key-recovery attack on Mithril, Quorus or Trilithium**. They keep the s2 rejection logic and do not publish A·(secret), so the TALUS attacks do not transfer directly.
 - Best open targets: (1) TALUS's current per-key signing cap, (2) the accepted-z distribution of Mithril and the reveal-on-reject tweak of Quorus (Fisher-information and ILWE-style tests), (3) the heuristic rejected-transcript simulation in Trilithium.
-- Scope: literature-and-spec assessment. No code has been run yet. Section 7 lists exactly what I did and did not read.
+- Scope: literature-and-spec assessment (written before any code). Harness code and a first TALUS experiment now exist; see docs/ROADMAP.md and docs/RUNBOOK.md for status. Section 7 lists exactly what I did and did not read.
 
 ## ML-DSA in 60 seconds
 

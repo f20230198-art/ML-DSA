@@ -114,6 +114,10 @@ Another tool: **ILWE** (Integer LWE). It is LWE without the mod q. Data of the f
 
 **Fisher information** measures how much a single observation tells you about a hidden parameter. If every signature leaks a tiny bit of Fisher information about s1, after enough signatures (roughly 4 / (information × τ)) you can estimate s1. This is the "wall" you will see in the docs.
 
+**Sharp edges and the 1/N idea.** If noise is bell-shaped, averaging N samples shrinks the error like 1/sqrt(N): 100 times more data buys 10 times more accuracy. If noise is uniform with hard edges (everything between -a and +a, nothing outside), the biggest and smallest values you see trap the hidden number between two walls, and the error shrinks like 1/N: 100 times more data buys 100 times more accuracy. Much less data is needed. TALUS's noise has hard edges, so this is the main thing we want to test.
+
+**Positive and negative controls.** A test that never fires proves nothing. A *positive control* feeds the test a case that is known to leak, and it must find the leak. A *negative control* feeds it a case known not to leak, and it must stay quiet. Only with both does "we found nothing" mean something.
+
 ## 1.11 NIST and the Call
 
 NIST (US standards body) runs the process that standardises cryptography. In 2026 it opened a **First Call for Multi-Party Threshold Schemes** (**IR 8214C**, the "MPTC" project). Teams submitted threshold designs; the public can analyse them. Our job is to analyse the four that threshold ML-DSA.
@@ -263,3 +267,31 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **What:** Rewrote the body of `report/latex/phase1_report.tex` in shorter, plainer sentences (fewer semicolons and dashes, jargon explained). Facts, maths, tables and citations unchanged. Old version kept as `phase1_report_before_rewrite.tex`.
 - **Also fixed:** the contribution table pointed to wrong section/table numbers; it now uses automatic LaTeX references.
 - **Why:** the user found the old wording hard to read.
+
+### 2026-10-06: Plan for the next phase (`docs/PLAN.md`)
+- **What:** Wrote a staged plan (A to G) saying what code to write, what to run, how to use each result, and how to present it. Added matching items to `docs/ROADMAP.md` and two basics to Part 1 (sharp edges, controls).
+- **How:** Read the dossier, roadmap, harness and the scaling experiment, then ordered work by value over cost and attached a written go/no-go gate to each stage.
+- **Why:** The gap that matters is that plain least squares needs about 3.6e9 TALUS signatures while the scheme caps a key at 2^13 to 2^14. The plan tests whether an estimator that uses the hard edges of the noise (guess: error shrinks like 1/N) closes that gap. Either outcome is a result: a break or a measured margin.
+- **Honest status:** the 1/N idea is a hypothesis from a one-dimensional analogy, not yet tested. Nothing was run for this entry. Deadlines for later phases are unknown and listed as open questions.
+
+### 2026-10-06: Edge-aware estimator prepared (not yet run)
+- **What:** Wrote the code for the TALUS bounded-noise experiment: reduced-ring arithmetic (`harness/mldsa/ringn.py`), the hard-edged noise channel (`harness/schemes/talus_bcc.py`), the edge estimator and a memory-light version of it (`harness/estimators/edge.py`), 12 new tests, the experiment script (`experiments/talus_edge_scaling.py`) and the run steps (`docs/RUNBOOK.md`).
+- **Earlier same day:** a rough first test (not saved) on small rings suggested the edge estimator beats least squares by about 100 times at 100,000 signatures, and that its error falls like 1/N. A bigger run used about 6 GB of memory and was stopped, which is why the new solver stores only a few hundred constraints at a time.
+- **How it works, in simple words:** each observation says "the secret times a known challenge is within B of this number". Intersecting thousands of such bands pins the secret down. The solver keeps a small set of the tightest bands, solves for the secret, checks which unused bands it violates, adds those, and repeats.
+- **Honest status:** the files pass a syntax check only. Nothing, including the new tests, has been executed, by request. The 1/N law, the estimate of about 2^18 signatures and any comparison with the TALUS cap remain hypotheses until the runbook is followed.
+- **Vocabulary:** *LP (linear program)* = finding numbers that satisfy many linear inequalities while minimising something. *Feasible* = consistent with every observation.
+
+### 2026-10-06: First run of the edge estimator (small rings) and TALUS C0 re-read
+- **What:** Ran the 30 tests (all pass) and the small ladder (ring sizes n = 8, 16, 32; 20 trials per point; ML-DSA-44 numbers, BCC noise, target s2). Also re-read the TALUS v0.22 preview writeup (main text, 9 pages) for the C0 step. Notes in `notes/schemes/talus.md`; raw results in `experiments/results/`.
+- **Result, in simple words:** the edge estimator recovers the whole ring element exactly at about 1.8e5 to 4e5 signatures (2^17.5 to 2^18.7). Least squares did not recover anything at any size tried (its error stayed near 100 when it needs to be under 0.5). Plain least squares needs about 3.6e9 at full size, so the edge idea is worth roughly four orders of magnitude here. That supports H1 in spirit.
+- **What it does NOT show:** the TALUS cap is 2^13 to 2^14 (8k to 16k), so these numbers are still 10 to 30 times above the cap. Also the sizes are tiny (n = 8 to 32, not 256), the exact 1/N law is not confirmed (the error hits 0 once recovery succeeds, which wrecks the slope fit; the printed slopes of -12 are an artifact, and `K_hat` is not constant), and the needed N went DOWN as n grew (tau = 1, 2, 5 nonzeros per challenge at n = 8, 16, 32). Whether that keeps going toward n = 256 (tau = 39) is exactly what the n = 64/128/256 points must show. Full secret recovery also needs all k = 4 ring elements, so the real N is a bit higher than the per-element numbers.
+- **C0 finding:** the writeup itself says a passive attack recovers the key after about 2^30 signatures and that the cap is the defence, so the s2 channel is still open at v0.22. It does not say what is released per signature or how t0 enters, so our noise model is an assumption.
+- **A mistake of mine:** I first thought the run was hung and killed it. It was only slow (about 40 s per point). The script saves after every point, so nothing was lost.
+- **Vocabulary:** *artifact* (in a fit) = a number that comes from how we computed it, not from the real behaviour.
+
+### 2026-10-06: Medium ladder (n = 64, 128) for the edge estimator
+- **What:** Ran n = 64 and n = 128 (10 trials per point, same model as above). Results in `experiments/results/talus_edge_ML-DSA-44_bcc_s2.json`, log in `ladder_medium.log`.
+- **Result:** per-element signatures needed for exact recovery (50% / 99% success): n = 32: 1.8e5 / 2.6e5; n = 64: 1.7e5 / 2.8e5; n = 128: 1.4e5 / 1.9e5. So the number is flattening around 1e5 to 2e5, about 2^17 to 2^18, instead of dropping toward the cap.
+- **Provisional reading against gate C1:** about 2^17 is roughly 3 to 4 bits above the cap (2^13 to 2^14) and about 1 to 2 bits above the authors' uniqueness wall (2^15.2 to 2^16.4). If n = 256 behaves the same, the cap holds against this attacker with a measured margin of a few bits, and the authors' wall is consistent with it. This is NOT a break.
+- **Why it is only provisional:** n = 256 not run; only 10 trials per point (coarse success rates); the noise model is our assumption (independent uniform noise, no wrap-around, no hint side information, see C0 note); per-element numbers, and all k = 4 elements must succeed, which raises N a little; the 1/N law still not cleanly fitted.
+- **Next:** run n = 256 near N = 1e5 to 2e5, then ML-DSA-65/-87, `--target s2-t0` and `--noise plain`.

@@ -1,0 +1,81 @@
+n=  64 N=   57092 ok_edge=0.00 ok_ls=0.00 err_edge=1.861 K=1.12 feas=0.00 (57s)
+n=  64 N=   85426 ok_edge=0.00 ok_ls=0.00 err_edge=1.332 K=1.20 feas=0.00 (88s)
+n=  64 N=  127821 ok_edge=0.10 ok_ls=0.00 err_edge=0.657 K=0.88 feas=0.20 (107s)
+n=  64 N=  191256 ok_edge=0.70 ok_ls=0.00 err_edge=0.459 K=0.92 feas=0.70 (161s)
+n=  64 N=  286172 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (265s)
+n=  64 N=  428193 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (397s)
+n= 128 N=   57092 ok_edge=0.00 ok_ls=0.00 err_edge=1.324 K=0.79 feas=0.00 (116s)
+n= 128 N=   85426 ok_edge=0.00 ok_ls=0.00 err_edge=0.793 K=0.71 feas=0.00 (175s)
+n= 128 N=  127821 ok_edge=0.30 ok_ls=0.00 err_edge=0.534 K=0.72 feas=0.30 (286s)
+n= 128 N=  191256 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (409s)
+n= 128 N=  286172 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (518s)
+n= 128 N=  428193 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (738s)
+ML-DSA-44 noise=bcc target=s2 solver=cp
+
+n=8 tau=1 bound=95154
+        N  ok edge  ok LS  err edge    err LS  K_hat  feas
+    71366     0.00   0.00     3.000     351.1   2.25  1.00
+    99162     0.00   0.00     3.000     245.0   3.13  1.00
+   137785     0.00   0.00     2.000     238.0   2.90  1.00
+   191452     0.05   0.00     2.000     227.7   4.02  1.00
+   266022     0.15   0.00     2.000     164.3   5.59  1.00
+   369636     0.40   0.00     1.000     180.6   3.88  1.00
+   513607     0.65   0.00     0.000     121.6   0.00  1.00
+   713655     0.85   0.00     0.000     128.1   0.00  1.00
+  fitted slope log(err)/log(N): edge -0.58, LS -0.42  (1/N law = -1, 1/sqrt(N) law = -0.5)
+  N*(success>=0.5) per ring element: 4.22e+05
+  N*(success>=0.99) per ring element: not bracketed
+
+n=16 tau=2 bound=95154
+        N  ok edge  ok LS  err edge    err LS  K_hat  feas
+    71366     0.00   0.00     2.167     244.9   1.63  0.65
+    99162     0.00   0.00     2.000     258.4   2.08  0.60
+   137785     0.00   0.00     1.411     203.0   2.04  0.45
+   191452     0.10   0.00     1.000     174.0   2.01  0.65
+   266022     0.45   0.00     1.000     145.9   2.80  0.95
+   369636     0.75   0.00     0.000     117.9   0.00  1.00
+   513607     1.00   0.00     0.000     105.2   0.00  1.00
+   713655     1.00   0.00     0.000      98.5   0.00  1.00
+  fitted slope log(err)/log(N): edge -12.29, LS -0.46  (1/N law = -1, 1/sqrt(N) law = -0.5)
+  N*(success>=0.5) per ring element: 2.81e+05
+  N*(success>=0.99) per ring element: 5.07e+05
+
+n=32 tau=5 bound=95154
+        N  ok edge  ok LS  err edge    err LS  K_hat  feas
+    71366     0.00   0.00     1.460     221.4   1.09  0.15
+    99162     0.00   0.00     1.262     166.2   1.32  0.10
+   137785     0.15   0.00     0.776     156.9   1.12  0.25
+   191452     0.60   0.00     0.385     132.2   0.78  0.70
+   266022     1.00   0.00     0.000     111.5   0.00  1.00
+   369636     1.00   0.00     0.000      97.4   0.00  1.00
+   513607     1.00   0.00     0.000      80.6   0.00  1.00
+   713655     1.00   0.00     0.000      66.9   0.00  1.00
+  fitted slope log(err)/log(N): edge -12.42, LS -0.49  (1/N law = -1, 1/sqrt(N) law = -0.5)
+  N*(success>=0.5) per ring element: 1.78e+05
+  N*(success>=0.99) per ring element: 2.64e+05
+
+n=64 tau=10 bound=95154
+        N  ok edge  ok LS  err edge    err LS  K_hat  feas
+    57092     0.00   0.00     1.861     175.5   1.12  0.00
+    85426     0.00   0.00     1.332     141.6   1.20  0.00
+   127821     0.10   0.00     0.657     129.3   0.88  0.20
+   191256     0.70   0.00     0.459      93.0   0.92  0.70
+   286172     1.00   0.00     0.000      81.3   0.00  1.00
+   428193     1.00   0.00     0.000      71.5   0.00  1.00
+  fitted slope log(err)/log(N): edge -11.12, LS -0.46  (1/N law = -1, 1/sqrt(N) law = -0.5)
+  N*(success>=0.5) per ring element: 1.67e+05
+  N*(success>=0.99) per ring element: 2.82e+05
+
+n=128 tau=20 bound=95154
+        N  ok edge  ok LS  err edge    err LS  K_hat  feas
+    57092     0.00   0.00     1.324     132.7   0.79  0.00
+    85426     0.00   0.00     0.793     128.5   0.71  0.00
+   127821     0.30   0.00     0.534      96.5   0.72  0.30
+   191256     1.00   0.00     0.000      80.5   0.00  1.00
+   286172     1.00   0.00     0.000      67.3   0.00  1.00
+   428193     1.00   0.00     0.000      59.8   0.00  1.00
+  fitted slope log(err)/log(N): edge -11.94, LS -0.43  (1/N law = -1, 1/sqrt(N) law = -0.5)
+  N*(success>=0.5) per ring element: 1.43e+05
+  N*(success>=0.99) per ring element: 1.9e+05
+
+Full-secret recovery over k ring elements needs success^k; see docs/RUNBOOK.md step 5.
