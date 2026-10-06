@@ -142,6 +142,9 @@ NIST (US standards body) runs the process that standardises cryptography. In 202
 | ILP | Integer linear programming |
 | Cryptanalysis | Analysing and trying to break crypto |
 | ePrint | IACR's open preprint server for crypto papers |
+| NTT | Number-theoretic transform: a fast way to multiply polynomials mod q (like FFT, but exact) |
+| Known-answer test (KAT) | Run the code on fixed inputs and compare with the correct output from a trusted implementation |
+| Oracle (testing) | A trusted independent implementation we compare our code against |
 
 ---
 
@@ -295,3 +298,9 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Provisional reading against gate C1:** about 2^17 is roughly 3 to 4 bits above the cap (2^13 to 2^14) and about 1 to 2 bits above the authors' uniqueness wall (2^15.2 to 2^16.4). If n = 256 behaves the same, the cap holds against this attacker with a measured margin of a few bits, and the authors' wall is consistent with it. This is NOT a break.
 - **Why it is only provisional:** n = 256 not run; only 10 trials per point (coarse success rates); the noise model is our assumption (independent uniform noise, no wrap-around, no hint side information, see C0 note); per-element numbers, and all k = 4 elements must succeed, which raises N a little; the 1/N law still not cleanly fitted.
 - **Next:** run n = 256 near N = 1e5 to 2e5, then ML-DSA-65/-87, `--target s2-t0` and `--noise plain`.
+
+### 2026-10-06: Stage A (our own ML-DSA) and Stage B (scheme views)
+- **What:** Wrote a full ML-DSA in the harness: `ntt.py` (fast polynomial multiplication), SHAKE-based samplers appended to `sampling.py`, `hints.py`, and `dsa.py` (key generation, signing, verifying, byte encodings). Signing can return **every attempt**, accepted or rejected, with the reason for rejection and the secret internals (y, w1, c, z). Then `schemes/base.py`: a `SchemeView` says what an adversary sees of each attempt. Two controls: `YLeakView` (a toy that also leaks the nonce y, so the key must be recoverable) and `PlainMLDSAView` (real ML-DSA, rejected attempts hidden, nothing should leak).
+- **How I checked it:** installed `dilithium-py` (a separate pure-Python FIPS 204 implementation) as an oracle. For ML-DSA-44, -65 and -87 our public key, secret key and signature are byte-for-byte identical to the oracle's, including signatures that needed several attempts, and each verifies the other's. 12 new tests (42 in total) all pass.
+- **Honest limits:** the oracle's own match with the official NIST test vectors is taken from its documentation, not re-checked by us; I did not download or run the official KAT files. Our code is not constant-time and is for experiments only. The views are controls only; no scheme-specific view (TALUS, Mithril, Quorus, Trilithium) exists yet, because those need their papers read first. Gate B (express TALUS and Mithril without changing estimators) is therefore not passed yet.
+- **Why it matters:** every later result depends on the rejection behaviour being exactly right, and now rejected attempts can be studied with real values instead of synthetic ones.

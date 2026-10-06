@@ -4,14 +4,14 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 
 ## 0. Setup
 - [x] Pick language/tooling (Python + numpy/scipy; Sage availability still to check for the lattice estimator)
-- [ ] PLAN Stage A: NTT, SHAKE sampling, hints, full sign/verify with all attempts, FIPS 204 known-answer tests
-- [ ] PLAN Stage B: scheme-view interface (`harness/schemes/base.py`)
+- [x] PLAN Stage A: NTT, SHAKE sampling, hints, full sign/verify with all attempts; byte-identical to dilithium-py oracle for -44/-65/-87 (6 Oct). Official NIST KAT files not yet run
+- [~] PLAN Stage B: scheme-view interface done with two controls (`harness/schemes/base.py`); no scheme-specific views yet, gate B open
 - [x] Fix stale line in DOSSIER and README ("no code has been run")
 - [ ] Verify dossier sources and recheck TCPT3 schedule / phase 3 list
 
 ## 1. Leakage-testing harness
-- [~] ML-DSA reference primitives: params, rounding, ring mult, challenge sampling done; NTT, hints, SHAKE sampling, KATs still missing
-- [ ] Transcript simulator interface (accepted and aborted attempts)
+- [x] ML-DSA reference primitives: params, rounding, ring mult, NTT, hints, SHAKE sampling, full sign/verify (official KAT files still to run)
+- [~] Transcript simulator interface: `Attempt` records plus `SchemeView`; positive (y leak) and negative (plain ML-DSA) controls pass
 - [~] Estimators: least squares done (`harness/estimators/ilwe.py`); bounded-noise, ILP, Fisher information todo
 - [ ] Sanity check: reproduce Niot's ILWE attack on TALUS-style transcripts
 
