@@ -33,8 +33,10 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [ ] Trilithium rejected-partial uniformity test; CRP and declassified-bit analysis
 
 ## 5. Kao predecessor design (arXiv 2601.20917)
-- [ ] Confirm or refute P2 masked-commitment claim at |S∖C| = 1
-- [ ] Check DKG Feldman-style commitments (App. B.1)
+- [x] Confirm or refute P2 masked-commitment claim at |S∖C| = 1 (2026-10-06, Stage D, toy `harness/schemes/kao_p2.py`: algebra confirmed on a toy; the paper already states the |S∖C| >= 2 condition; open point is the N-1 unforgeability claim, see notes/schemes/kao-p2.md)
+- [ ] Ask whether P2 really broadcasts every W_i (then the SUM A*y is public and the attack works at any |S∖C|); needs the Rust code or the authors
+- [x] Read App. B.1 key DKG: Feldman-style commitment t(i) = A s1(i) + s2(i) (and the text says Feldman over g^a, i.e. not lattice-native); the specific A*s1,i pattern broken in TALUS is not checked
+- [ ] Read remaining Kao appendices (A, H-M proofs) fully
 
 ## 6. Packages phase (from March 2027)
 - [ ] Rerun harness on actual reference code

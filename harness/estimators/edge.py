@@ -172,3 +172,18 @@ def chebyshev(A, b):
     if res.status != 0:
         raise RuntimeError(res.message)
     return res.x[:n], res.x[-1]
+
+
+def least_squares_fft(c, b, chunk=4096):
+    """Exact min ||b + c*x||_2 in one pass. In the twisted-FFT domain the normal equations are
+    diagonal: x_hat_k = -sum_i conj(c_hat_ik) b_hat_ik / sum_i |c_hat_ik|^2. No iteration."""
+    count, n = c.shape
+    psi = get_ring(n)._psi
+    m = np.zeros(n)
+    r = np.zeros(n, dtype=complex)
+    for start in range(0, count, chunk):
+        ch = np.fft.fft(c[start:start + chunk].astype(float) * psi, axis=-1)
+        bh = np.fft.fft(b[start:start + chunk].astype(float) * psi, axis=-1)
+        m += (ch.real ** 2 + ch.imag ** 2).sum(axis=0)
+        r += (ch.conj() * bh).sum(axis=0)
+    return (np.fft.ifft(-r / m) * np.conj(psi)).real

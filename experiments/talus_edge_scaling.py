@@ -27,7 +27,11 @@ from harness.mldsa.params import ALL
 from harness.schemes.talus_bcc import make_channel, make_transcript, sample_target
 
 
-def solve_edge(c, b, ch, solver, rng):
+def solve_edge(c, b, ch, solver, rng, obs=None):
+    if obs is not None:
+        from harness.estimators import edge_gpu
+        x, _, info = edge_gpu.chebyshev_cutting_plane_gpu(c, b, ch.target_max + 1, rng, obs=obs)
+        return x, info
     if solver == "lp":
         A = edge.negacyclic_rows(c.astype(np.int64))
         x, _ = edge.chebyshev(A, b.astype(float).ravel())
@@ -36,17 +40,21 @@ def solve_edge(c, b, ch, solver, rng):
     return x, info
 
 
-def run_point(p, n, count, trials, noise, target, solver, seed):
+def run_point(p, n, count, trials, noise, target, solver, seed, device="cpu"):
     ch = make_channel(p, n, noise, target)
     rows = []
     for trial in range(trials):
         rng = np.random.default_rng([seed, n, count, trial])
         s = sample_target(rng, ch)
         c, b = make_transcript(rng, ch, s, count)
+        obs = None
+        if device == "gpu":
+            from harness.estimators import edge_gpu
+            obs = edge_gpu.GpuObs(c, b)
         t0 = time.time()
-        xe, info = solve_edge(c, b, ch, solver, rng)
+        xe, info = solve_edge(c, b, ch, solver, rng, obs)
         t_edge = time.time() - t0
-        xl = edge.least_squares_cg(c, b)
+        xl = obs.least_squares() if obs is not None else edge.least_squares_fft(c, b)
         re = edge.round_to_range(xe, ch.target_max)
         rl = edge.round_to_range(xl, ch.target_max)
         rows.append(dict(
@@ -125,6 +133,8 @@ def main():
     ap.add_argument("--target", default="s2", choices=["s2", "s2-t0"])
     ap.add_argument("--solver", default="cp", choices=["cp", "lp"],
                     help="cp = cutting plane (any n); lp = full sparse LP (n <= 32 only)")
+    ap.add_argument("--device", default="cpu", choices=["cpu", "gpu"],
+                    help="gpu = CUDA FFT residuals via PyTorch (same algorithm, ~3x faster at n = 256)")
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--out", default=None)
     ap.add_argument("--summary", default=None, help="print a summary of a results file and exit")
@@ -149,7 +159,7 @@ def main():
             if (n, count) in done:
                 continue
             t0 = time.time()
-            ch, rows = run_point(p, n, count, args.trials, args.noise, args.target, args.solver, args.seed)
+            ch, rows = run_point(p, n, count, args.trials, args.noise, args.target, args.solver, args.seed, args.device)
             q = point_summary(ch, count, rows)
             data["points"].append(q)
             json.dump(data, open(out, "w"), indent=1)

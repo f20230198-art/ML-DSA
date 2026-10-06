@@ -144,3 +144,27 @@ def test_edge_beats_least_squares_on_uniform_noise():
     x_cp, _, _ = edge.chebyshev_cutting_plane(c, b, ch.target_max + 1, rng)
     x_ls = edge.least_squares_cg(c, b)
     assert np.abs(x_cp - s).max() < 0.2 * np.abs(x_ls - s).max()
+
+
+def test_least_squares_fft_matches_cg():
+    rng = np.random.default_rng(11)
+    ch = make_channel(ML_DSA_44, 16, "bcc", "s2")
+    s = sample_target(rng, ch)
+    c, b = make_transcript(rng, ch, s, 3000)
+    assert np.allclose(edge.least_squares_fft(c, b), edge.least_squares_cg(c, b, iters=60), atol=1e-6)
+
+
+def test_gpu_matches_cpu():
+    import pytest
+    edge_gpu = pytest.importorskip("harness.estimators.edge_gpu")
+    if not edge_gpu.available():
+        pytest.skip("no CUDA device")
+    rng = np.random.default_rng(12)
+    ch = make_channel(ML_DSA_44, 16, "bcc", "s2")
+    s = sample_target(rng, ch)
+    c, b = make_transcript(rng, ch, s, 4000)
+    obs = edge_gpu.GpuObs(c, b)
+    assert np.allclose(obs.least_squares(), edge.least_squares_fft(c, b), atol=1e-8)
+    x1, t1, _ = edge.chebyshev_cutting_plane(c, b, ch.target_max + 1, np.random.default_rng(3))
+    x2, t2, _ = edge_gpu.chebyshev_cutting_plane_gpu(c, b, ch.target_max + 1, np.random.default_rng(3), obs=obs)
+    assert abs(t1 - t2) < 1e-6 and np.allclose(x1, x2, atol=1e-5)

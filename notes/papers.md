@@ -19,7 +19,7 @@ Updated 2026-10-01 after downloading full texts. Reading depth:
 | 9 | Dufka et al., Trilithium (+ SplitKey writeup v0.1) | ePrint 2025/675 | 3 keygen / 14 signing rounds, CRP, UC, MLWR-type assumption | Main body read (Sec. 1-5 start, App. D discussion); security proof appendices not read; SplitKey writeup first half |
 | 10 | Kao and Chang, TALUS | arXiv 2603.22109 (v5) | BCC, ~2^30 lower bound, cap ~2^14 | Main text read (Sec. 1-12, App. A-C); App. D-I not read |
 | 11 | TALUS preview writeup v0.22 (2026-08-11) | NIST MPTC | Cap, TEE not proposed, response to Niot | **Full** |
-| 12 | Kao, Shamir Nonce DKG | arXiv 2601.20917 | P2 needs abs(S minus C) >= 2, disclosed; claims N-1 unforgeability | Intro, Sec. 1-3 and 4.1-4.2 read; appendices (5,000+ lines) not read |
+| 12 | Kao, Shamir Nonce DKG | arXiv 2601.20917 | P2 needs abs(S minus C) >= 2, disclosed; claims N-1 unforgeability | Verified by download 2026-10-06: arXiv:2601.20917v6 (3 Mar 2026), Leo Kao, Codebat Technologies, cs.CR. Read: abstract, Sec. 1-4.3 (Remarks 4, 10, 11, 15, Lemma 1, Lemma 2, Algorithm 3), Sec. 6.1, 6.3-6.4, Cor. 5 proof, App. B.1, M.1 start; the other appendices and all benchmarks not read line by line |
 | 13 | Niot, Key-recovery attacks on TALUS | ePrint 2026/1386 | Two attacks, sample table | **Full** |
 | 14 | del Pino et al., Threshold Raccoon | EUROCRYPT 2024; ePrint 2024/184 | Non-ML-DSA threshold lattice sig | Abstract (PDF downloaded) |
 | 15 | del Pino et al., lattice TS with identifiable aborts | ePrint 2025/871 (withdrawn) | Short-share DKG | Abstract |
