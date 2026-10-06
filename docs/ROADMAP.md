@@ -3,7 +3,7 @@
 Ordered as in the dossier's ranked plan. The detailed stages, gates and paper framing are in `docs/PLAN.md` (stages A to G).
 
 ## 0. Setup
-- [x] Pick language/tooling (Python + numpy/scipy; Sage availability still to check for the lattice estimator)
+- [x] Pick language/tooling (Python + numpy/scipy). Sage and fpylll are NOT installed (checked 6 Oct); Docker is, so a Sage image is an option for the Mithril lattice-estimator stage
 - [x] PLAN Stage A: NTT, SHAKE sampling, hints, full sign/verify with all attempts; byte-identical to dilithium-py oracle for -44/-65/-87 (6 Oct). Official NIST KAT files not yet run
 - [~] PLAN Stage B: scheme-view interface done with two controls (`harness/schemes/base.py`); no scheme-specific views yet, gate B open
 - [x] Fix stale line in DOSSIER and README ("no code has been run")

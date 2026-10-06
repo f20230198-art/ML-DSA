@@ -543,6 +543,21 @@
    "feasible_rounded": 1.0,
    "true_feasible": 1.0,
    "seconds": 18.17345037460327
+  },
+  {
+   "n": 256,
+   "tau": 39,
+   "bound": 95154,
+   "N": 34255,
+   "trials": 5,
+   "succ_edge": 0.0,
+   "succ_ls": 0.0,
+   "err_edge_med": 1.7038063512375314,
+   "err_ls_med": 137.57952697231696,
+   "K_hat": 0.6133624079034159,
+   "feasible_rounded": 0.0,
+   "true_feasible": 1.0,
+   "seconds": 6.8028883934021
   }
  ]
 }
