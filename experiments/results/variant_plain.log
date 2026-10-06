@@ -1,0 +1,21 @@
+n=  64 N=   57139 ok_edge=0.00 ok_ls=0.00 err_edge=1.776 K=1.07 feas=0.00 (67s)
+n=  64 N=   85496 ok_edge=0.00 ok_ls=0.00 err_edge=1.123 K=1.01 feas=0.00 (103s)
+n=  64 N=  127926 ok_edge=0.10 ok_ls=0.00 err_edge=0.736 K=0.99 feas=0.10 (155s)
+n=  64 N=  191413 ok_edge=0.80 ok_ls=0.00 err_edge=0.151 K=0.30 feas=0.80 (214s)
+n=  64 N=  286407 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (305s)
+n=  64 N=  428544 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (446s)
+ML-DSA-44 noise=plain target=s2 solver=cp
+
+n=64 tau=10 bound=95232
+        N  ok edge  ok LS  err edge    err LS  K_hat  feas
+    57139     0.00   0.00     1.776     166.7   1.07  0.00
+    85496     0.00   0.00     1.123     167.5   1.01  0.00
+   127926     0.10   0.00     0.736     131.7   0.99  0.10
+   191413     0.80   0.00     0.151      97.6   0.30  0.80
+   286407     1.00   0.00     0.000      81.0   0.00  1.00
+   428544     1.00   0.00     0.000      70.7   0.00  1.00
+  fitted slope log(err)/log(N): edge -11.57, LS -0.48  (1/N law = -1, 1/sqrt(N) law = -0.5)
+  N*(success>=0.5) per ring element: 1.61e+05
+  N*(success>=0.99) per ring element: 2.81e+05
+
+Full-secret recovery over k ring elements needs success^k; see docs/RUNBOOK.md step 5.

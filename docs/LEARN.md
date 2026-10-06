@@ -318,3 +318,18 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Results so far (per ring element, exact recovery, ML-DSA-44, BCC noise):** n = 256: 50% at 8.7e4, 99% at 1.9e5 signatures (2^16.4, 2^17.5), 5 trials per point. ML-DSA-65 at n = 64: exact recovery from about 5e5. ML-DSA-87, `s2-t0` and plain-noise runs at n = 64 are still running; ML-DSA-65 at n = 256 is running on the GPU. The numbers stay above the cap (2^13 to 2^14) and above the uniqueness wall (2^15.2 to 2^16.4), so no break is indicated. Final table to follow when the runs end.
 - **Sub-task by a helper agent (Stage D):** see the Kao P2 entry above and `notes/schemes/kao-p2.md`. I checked that its files exist and the full suite passes (49 tests).
 - **Vocabulary:** *profiling* = measuring which part of a program uses the time. *GPU* = graphics chip that does many identical small calculations at once, good for FFTs.
+
+### 2026-10-06: Margin table for the TALUS cap (first full set of runs)
+- **What:** Finished all planned runs: ML-DSA-44 and -65 at the full ring size n = 256, ML-DSA-87 at n = 64, plus two checks at n = 64 for ML-DSA-44 (target s2-t0, and "plain" noise without the BCC shrink). Raw numbers: `experiments/results/*.json`, logs `*.log`.
+- **Result (per ring element, exact recovery with 99% chance, edge-aware estimator; interpolated between grid points, so rough):**
+
+| Parameter set | n | signatures N* | log2 N* | cap | bits above cap | wall | bits above wall |
+|---|---|---|---|---|---|---|---|
+| ML-DSA-44 | 256 | 1.9e5 | 17.5 | 2^13 | 4.5 | 2^15.2 | 2.3 |
+| ML-DSA-65 | 256 | 5.2e5 | 19.0 | 2^14 | 5.0 | 2^16.4 | 2.6 |
+| ML-DSA-87 | 64 only | 5.2e5 | 19.0 | 2^14 | 5.0 | 2^16.2 | 2.8 |
+
+- **Other checks:** target s2-t0 (the harder target that includes t0) needs the same N* at n = 64 (about 2.8e5 at 99%) as plain s2; plain noise instead of BCC changes almost nothing (1.6e5 / 2.8e5). Least squares recovered nothing in any run.
+- **Gate C1 reading:** the edge-aware estimator is about 4 to 5 bits above the cap and 2 to 3 bits above the authors' uniqueness wall in this model, so no break is indicated; the cap holds against this attacker with a measured margin. That also means the authors' wall is roughly consistent with what we measure. Compared with plain least squares (about 3.6e9) the edge idea is worth about 4 orders of magnitude, but it does not reach the cap.
+- **Why this is not final:** (1) 5 trials per point at n = 256 and 10 at n = 64, so success rates are coarse and the 99% numbers are interpolations; (2) ML-DSA-87 only at n = 64, using the observation that -65 gives the same N* at n = 64 and n = 256; (3) recovering the whole secret needs all k = 4, 6 or 8 ring elements to succeed, so the real N* is somewhat above these per-element values; (4) the noise model is our reading of TALUS, not a quoted spec (no hint information, no wrap-around, independent uniform noise); (5) the 1/N law was never cleanly fitted; (6) a stronger attacker (lattice reduction, ILP on the leftover ambiguity, better use of the hints) is not tested.
+- **Next:** more trials around the transition, a full-secret (k ring elements) check, then Stage E (Mithril).

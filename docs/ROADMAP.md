@@ -19,10 +19,10 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [~] Reproduce Niot's estimator: formula checked against table, LS error law validated at ML-DSA-44; full-recovery N is ~12x formula in plain model (see experiments/ilwe_scaling_output.txt); t0 and -65/-87 not done
 - [x] PLAN C0: re-read PW v0.22 main text (6 Oct); the preview writeup does not list per-signature released values or the t0 role, so our channel model is an assumption; see notes/schemes/talus.md
 - [x] Rough prototype of the 1/N idea (n = 8, 16, 32, 3 trials, not saved): edge error ~ 1/N, least squares ~ 1/sqrt(N)
-- [~] Bounded-noise estimator under BCC edges: 30 tests pass; ladder n = 8..128 run (6 Oct): per-element N* (50%/99%) 1.4e5/1.9e5 at n = 128, flattening near 2^17 to 2^18, least squares recovers nothing; provisional: about 3-4 bits above the cap, 1-2 bits above the wall; n = 256 still to run (`docs/RUNBOOK.md`)
-- [ ] Run the n-ladder 8 to 256, fit the law, apply gate C1
+- [x] Bounded-noise estimator under BCC edges: ladder n = 8..256 run (6 Oct); per-element N* (99%): -44 at n = 256 1.9e5 (2^17.5), -65 at n = 256 5.2e5 (2^19.0), -87 at n = 64 5.2e5; s2-t0 and plain noise same as s2/BCC at n = 64; least squares recovers nothing
+- [x] Run the n-ladder 8 to 256, apply gate C1 (6 Oct): above the cap by 4.5 to 5 bits and above the wall by 2.3 to 2.8 bits in our model; no break. Still to do: more trials near the transition, full-secret (k elements) check, -87 at n = 256
 - [ ] Positive control (TALUS v0.1 recovery), negative control (plain ML-DSA), power analysis
-- [ ] Compare against cap (2^13–2^14) and uniqueness wall (2^15–2^16)
+- [x] Compare against cap (2^13-2^14) and uniqueness wall (2^15-2^16): margin table in docs/LEARN.md (6 Oct)
 
 ## 3. Mithril
 - [ ] Accepted-z distribution and Rényi/Fisher loss at q_s = 2^64

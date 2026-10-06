@@ -1,6 +1,6 @@
 # RUNBOOK: TALUS edge-estimator experiment
 
-Status 2026-10-06: all 30 tests pass. Ladder n = 8..128 run (ML-DSA-44, BCC, s2): per-element N* about 1.4e5 (50%) and 1.9e5 (99%) at n = 128, flattening near 2^17 to 2^18. Still to run: n = 256, -65/-87, s2-t0, plain noise. Details in docs/LEARN.md.
+Status 2026-10-06: all tests pass. Ladder run for ML-DSA-44 (n = 8..256), ML-DSA-65 (n = 64, 256), ML-DSA-87 (n = 64), s2-t0 and plain noise (n = 64). Margin table and caveats in docs/LEARN.md. Use `--device gpu` for n = 256 (about 3x faster).
 
 ## What the experiment tests
 Hypothesis H1 (docs/PLAN.md): with hard-edged noise, an edge-aware estimator has error ~ 1/N (least squares: 1/sqrt(N)), so full recovery of the TALUS s2 channel needs roughly 2^18 signatures at ML-DSA-44 instead of 3.6e9. The TALUS v0.22 cap is 2^13 to 2^14, the authors' uniqueness wall about 2^15.2.
