@@ -31,8 +31,28 @@ Theorem 3.2: secure for Q_s = 2 / (K * I_{1-1/phi^2}((n(k+l)+1)/2, 1/2)) signing
 - Not checked: the NIST MPTC preview writeup v1.0 parameters (may differ from the paper), and App. G's version of the bound (it uses (1 + 2 eps/(1-eps))^Q_s, the main text (1 + eps/(M-1))^Q_s).
 - Disclosure: before anything public, contact the authors (CLAUDE.md). This is coursework analysis only.
 
+### 2026-10-08 (later): typical-case Q_s (columns `log2Qs_typ` in `experiments/results/mithril_params.txt`)
+
+- Method: for each session the shift v = (c u1 / nu, c u2) has its own norm; Lemma 2.4 at the published radii (M fixed) gives the smallest eps(||v||). Averaged over the real norm distribution (Gaussian fit and the 2000 raw samples, which agree within 0.3 bits): Q_s = 1 / (K E[eps]).
+- Result: 2^50 or more for most settings: ML-DSA-44 46.7 to 53.5, -65 47.4 to 56.6, -87 53.7 to 60.6. Below 2^50: -44 (4,6) 48.6, (5,6) 47.0, (3,6) 49.9 to 50.2; -65 (4,5) 49.4, (4,6) 47.9, (5,6) 47.6, (6,6) 49.2. These are the sets with the largest K.
+- Reading: the published radii look tuned to the typical case, which roughly delivers the claimed 2^50 (except up to about 3 bits short for the largest-K sets). The 13 to 24 bit gap only appears when Theorem 3.2 is applied literally with the worst-case B the proof needs. So the finding is: (1) the rigorous statement does not cover the claimed Q_s at the published parameters; (2) a typical-case heuristic does, up to about 3 bits short for some (T,N).
+- Why typical case is only a heuristic: it treats the challenge c of every session as random, but Theorem 3.2 needs a bound for every session; an adversary chooses messages (so it can try many c), though it cannot see s, so it cannot easily pick the c with large ||c s||. Making this rigorous (for example a smooth-Renyi argument over the challenge) is the authors' job, or a possible contribution.
+
+### 2026-10-08 (evening): root cause found in the authors' public code
+
+Sources (public): GitHub `GuilhemN/threshold-ml-dsa` (commit 66e269e, 5 Sep 2026), files `params/hyperball.sage` and `implementation/sign/thmldsa/thmldsa44/internal/dilithium.go`; cloned to the scratchpad and read, not run.
+- B in the script is exactly the paper's (1.3 * sqrt(n (k + l/nu^2) ceil(C(N,T-1)/T)) * sig_t * sqrt(tau), sig_t^2 = eta(eta+1)/3). So B is NOT the explanation.
+- phi is fixed by hand: phi = 7, 8, 9 for ML-DSA-44, -65, -87 (variables confusingly named `eta44`, `eta65`, `eta87`). Our recomputation from the tables gave phi = 7.0, 8.0, 9.0: the tables follow the script exactly. The Go code hard-codes the same r, r', K as App. A.
+- The script's security figure is `boundI = (1-1/phi^2)^((l+k)n-1) * (l+k)n * (1-1/phi)`, i.e. the paper's Lemma 2.5 with n = dim. At phi = 7, dim = 2048 this is 2^-50.1 (2^-52.7 for -65, 2^-57.1 for -87): this is where 2^50 comes from.
+- **But the exact value is larger:** I_{1-1/phi^2}((dim+1)/2, 1/2) = 2^-33.5, 2^-35.1, 2^-37.6 (scipy, checked with mpmath at 60 digits). An upper bound cannot be smaller than the exact value, so Lemma 2.5 as printed (exponent n-1) is false at these dimensions. With exponent (n-1)/2 it would be a valid (loose) bound. Asymptotically I_x(a, 1/2) behaves like x^a with a = (dim+1)/2, so the exponent must be about dim/2, not dim. Likely a transcription error of [27, Sec. A.6] (Devevey et al.; original not yet checked, ePrint blocks our download).
+- **Consequence:** the published parameters satisfy Theorem 3.2 for Q_s = 2/(K I) = 2^26 to 2^37 (by parameter set, `log2Qs(B_paper)` column), not 2^50: a shortfall of about 13 to 24 bits in what the theorem guarantees. This replaces the earlier "B was computed differently" hypothesis.
+- **What it is not:** not an attack. The extra leakage is in a proof budget (Renyi divergence), and the typical-case average still gives about 2^50 for most sets (previous section), because real norms are well below the 13-sigma B. Fixing it means a smaller phi (about 5.4 for -44), i.e. slightly larger r'/r, lower acceptance and more communication; not computed yet.
+- **Test:** `test_lemma25_bound_is_not_an_upper_bound_at_mithril_dims`.
+
 ## Next
-- Compute the actual Renyi divergence of HRej at the published radii for ||v|| distributed like ||c s_part|| (numerical, using Lemma 2.4 with phi as a function of ||v||) and integrate over sessions: the honest Q_s under the true norm distribution.
+- Check the original lemma in Devevey et al. [27], Sec. A.6 (user to download ePrint 2023/245).
+- Compute corrected parameters (phi from the exact I for Q_s = 2^50) and the cost in acceptance probability and communication.
+- NIST writeup v1.0 (8 pages, read fully) has no parameters or Q_s statement, so nothing to compare.
 - Hint accounting for T-1 corrupted shares (lattice estimator, Docker Sage).
 - Check the preview writeup v1.0 parameter list against App. A.
 

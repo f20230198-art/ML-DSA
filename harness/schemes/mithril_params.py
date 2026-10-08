@@ -67,6 +67,16 @@ def log2_qs(p, nu, T, N, r, rp, K, B=None, n=N_RING):
     return math.log2(2 / (K * i_val)), phi, log2_m
 
 
+def lemma25_bound_log2(dim, phi):
+    """log2 of the paper's Lemma 2.5 bound (1 - 1/phi^2)^(dim-1) * dim * (1 - 1/phi), as stated and as
+    used (`boundI`) in the authors' params/hyperball.sage. Compare with exact_I_log2."""
+    return (dim - 1) * math.log2(1 - 1 / phi ** 2) + math.log2(dim * (1 - 1 / phi))
+
+
+def exact_I_log2(dim, phi):
+    return math.log2(betainc((dim + 1) / 2, 0.5, 1 - 1 / phi ** 2))
+
+
 def implied_B(p, K, r, rp, log2_target=50, n=N_RING):
     """Largest B for which Thm. 3.2 still gives Q_s >= 2^log2_target with the published r, r', K."""
     dim = n * (p.k + p.l)
@@ -81,6 +91,27 @@ def implied_B(p, K, r, rp, log2_target=50, n=N_RING):
     phi = lo
     # phi B^2 + 2 r B - phi (r'^2 - r^2) = 0
     return (-2 * r + math.sqrt(4 * r * r + 4 * phi * phi * (rp * rp - r * r))) / (2 * phi)
+
+
+def eps_of_norm(p, r, rp, norm, n=N_RING):
+    """Smallest smoothing eps allowed by Lemma 2.4 for one session whose secret-dependent shift has
+    Euclidean norm `norm`, at the published radii (so M = (r'/r)^(n(k+l)) is fixed). 1/2 if none."""
+    dim = n * (p.k + p.l)
+    slack = rp * rp - r * r - norm * norm
+    if slack <= 0:
+        return 0.5
+    phi = max(2 * r * norm / slack, 1.0 + 1e-12)
+    return 0.5 * betainc((dim + 1) / 2, 0.5, 1 - 1 / phi ** 2)
+
+
+def log2_qs_typical(p, K, r, rp, mu, sd, n=N_RING, width=20.0, points=4001):
+    """Heuristic Q_s = 1 / (K * E[eps(||v||)]) with ||v|| ~ Normal(mu, sd) (fit to samples).
+    Treats each session's challenge as random (no grinding), unlike Thm. 3.2's worst case."""
+    x = np.linspace(max(mu - width * sd, 0.0), mu + width * sd, points)
+    w = np.exp(-0.5 * ((x - mu) / sd) ** 2)
+    w /= w.sum()
+    e = np.array([eps_of_norm(p, r, rp, v, n) for v in x])
+    return -math.log2(K * float((w * e).sum()))
 
 
 def sample_norms(p, nu, T, N, trials, rng, n=N_RING):
@@ -98,6 +129,16 @@ def sample_norms(p, nu, T, N, trials, rng, n=N_RING):
     return out
 
 
+def lemma25_report():
+    """Authors' script fixes phi = 7, 8, 9 (variables eta44/eta65/eta87) for ML-DSA-44/65/87."""
+    print("Lemma 2.5 check (bound must be >= exact I for an upper bound):")
+    for name, phi in (("ML-DSA-44", 7), ("ML-DSA-65", 8), ("ML-DSA-87", 9)):
+        p = ALL[name]
+        dim = N_RING * (p.k + p.l)
+        print(f"  {name} dim={dim} phi={phi}: log2 exact I = {exact_I_log2(dim, phi):7.2f}, "
+              f"log2 Lemma 2.5 bound = {lemma25_bound_log2(dim, phi):7.2f}")
+
+
 def main():
     import argparse
     ap = argparse.ArgumentParser()
@@ -105,11 +146,12 @@ def main():
     ap.add_argument("--seed", type=int, default=2026)
     args = ap.parse_args()
     rng = np.random.default_rng(args.seed)
+    lemma25_report()
     for name, (nu, table) in TABLES.items():
         p = ALL[name]
         print(f"\n{name} nu={nu}")
         print("  (T,N)     K  log2M  B_paper  log2Qs(B_paper) | B_for_2^50  emp_mean  emp_sd  z(B_paper)"
-              "  z(B_for_2^50)  frac>B_for_2^50")
+              "  z(B_for_2^50)  frac>B_for_2^50 | log2Qs_typ(fit) log2Qs_typ(emp)")
         for (T, N), (r, rp, K) in sorted(table.items(), key=lambda x: (x[0][1], x[0][0])):
             B = bound_B(p, nu, T, N)
             lq, phi, lm = log2_qs(p, nu, T, N, r, rp, K, B)
@@ -117,7 +159,9 @@ def main():
             norms = sample_norms(p, nu, T, N, args.trials, rng)
             mu, sd = norms.mean(), norms.std()
             print(f"  ({T},{N}) {K:5d} {lm:6.3f} {B:8.1f} {lq:10.2f}       | {b50:9.1f} {mu:9.1f} {sd:7.1f}"
-                  f" {(B - mu) / sd:9.1f} {(b50 - mu) / sd:12.1f} {np.mean(norms > b50):12.3f}")
+                  f" {(B - mu) / sd:9.1f} {(b50 - mu) / sd:12.1f} {np.mean(norms > b50):12.3f}"
+                  f" | {log2_qs_typical(p, K, r, rp, mu, sd):10.2f}"
+                  f" {-math.log2(K * np.mean([eps_of_norm(p, r, rp, v) for v in norms])):10.2f}")
 
 
 if __name__ == "__main__":

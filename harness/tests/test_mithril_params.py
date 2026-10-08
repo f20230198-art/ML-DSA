@@ -27,3 +27,32 @@ def test_more_slack_more_queries():
     small = mp.log2_qs(p, nu, 2, 2, r, rp, K, 300.0)[0]
     large = mp.log2_qs(p, nu, 2, 2, r, rp, K, 400.0)[0]
     assert small > large
+
+
+def test_eps_of_norm_matches_log2_qs():
+    # At a fixed norm B, 1 / (K eps(B)) must equal the Thm. 3.2 value from log2_qs.
+    p, (nu, table) = ALL["ML-DSA-44"], mp.TABLES["ML-DSA-44"]
+    r, rp, K = table[(2, 3)]
+    b = 450.0
+    lq = mp.log2_qs(p, nu, 2, 3, r, rp, K, b)[0]
+    import math
+    assert abs(-math.log2(K * mp.eps_of_norm(p, r, rp, b)) - lq) < 1e-9
+
+
+def test_typical_between_worst_and_mean():
+    # Averaging eps over a spread of norms gives fewer queries than at the mean, more than at mean + 5 sd.
+    import math
+    p, (nu, table) = ALL["ML-DSA-44"], mp.TABLES["ML-DSA-44"]
+    r, rp, K = table[(2, 2)]
+    typ = mp.log2_qs_typical(p, K, r, rp, 298.0, 7.0)
+    at_mean = -math.log2(K * mp.eps_of_norm(p, r, rp, 298.0))
+    at_5sd = -math.log2(K * mp.eps_of_norm(p, r, rp, 333.0))
+    assert at_5sd < typ < at_mean
+
+
+def test_lemma25_bound_is_not_an_upper_bound_at_mithril_dims():
+    # The bound as stated (exponent dim-1) is below the exact value at the dimensions Mithril uses,
+    # so it cannot be an upper bound; it is fine at small dimensions.
+    for dim, phi in ((2048, 7), (2816, 8), (3840, 9)):
+        assert mp.lemma25_bound_log2(dim, phi) < mp.exact_I_log2(dim, phi) - 15
+    assert mp.lemma25_bound_log2(64, 7) > mp.exact_I_log2(64, 7)

@@ -1,0 +1,12 @@
+ML-DSA-44 e_w=on attempts=400000 keys=20 (1239s)
+  z_norm 0.4576  w0_norm 0.3097  -> M_rep = 4.30
+  line 6 failures given line 3 passed: ct0 0.0000  hint 0.0134
+  signatures 91810, failing FIPS 204 verification: 0 (0.00e+00)
+ML-DSA-65 e_w=on attempts=400000 keys=20 (1516s)
+  z_norm 0.3802  w0_norm 0.4243  -> M_rep = 5.12
+  line 6 failures given line 3 passed: ct0 0.0000  hint 0.0040
+  signatures 77862, failing FIPS 204 verification: 0 (0.00e+00)
+ML-DSA-87 e_w=on attempts=400000 keys=20 (2236s)
+  z_norm 0.3368  w0_norm 0.4038  -> M_rep = 3.85
+  line 6 failures given line 3 passed: ct0 0.0000  hint 0.0077
+  signatures 102992, failing FIPS 204 verification: 0 (0.00e+00)

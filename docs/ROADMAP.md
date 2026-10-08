@@ -29,13 +29,19 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 ## 3. Mithril
 - [x] Read full version (ePrint 2026/013): main text, App. A, B, Renyi part of App. G (8 Oct)
 - [x] Q_s accounting from Thm. 3.2 for all 45 published parameter sets (`harness/schemes/mithril_params.py`, 8 Oct): with the paper's B, Q_s = 2^26 to 2^37, not 2^50; published radii imply B only 0 to 7 sd above the mean norm (proof gap, not an attack; unverified against authors' code)
-- [ ] Honest Q_s under the real norm distribution (Renyi divergence when B is exceeded)
-- [ ] Compare with Mithril preview writeup v1.0 parameters; draft a note to the authors before any disclosure
+- [x] Typical-case Q_s under the real norm distribution (8 Oct): 2^50 or more for most sets; up to about 3 bits short for -44 (4,6), (5,6) and -65 (4,5), (4,6), (5,6), (6,6). Heuristic (random challenges), not a proof
+- [x] Root cause from the public code (GuilhemN/threshold-ml-dsa, params/hyperball.sage), 8 Oct: B is the paper's; phi fixed at 7/8/9; Lemma 2.5 (used as `boundI`) is not a valid upper bound at dim 2048-3840 (2^-50 vs exact 2^-33.5 for -44), so Thm. 3.2 covers 2^26-2^37, not 2^50
+- [x] Preview writeup v1.0 read (8 pages): no parameters or Q_s, nothing to compare. Authors cannot be contacted (user, 8 Oct)
+- [ ] Check original lemma in Devevey et al. (ePrint 2023/245, Sec. A.6); needs manual download
+- [ ] Corrected parameters (phi from exact I for Q_s = 2^50) and their cost in acceptance and communication
 - [ ] Accepted-z distribution and Rényi/Fisher loss at q_s = 2^64
 - [ ] Hint accounting with exact T−1 share subset (lattice estimator)
 
 ## 4. Quorus and Trilithium
-- [ ] Quorus reveal-on-reject leakage tests
+- [x] Quorus Algorithm 1 implemented (`harness/schemes/quorus.py`), 8 Oct: M_rep matches Table 2; 0 of 272,664 signatures fail FIPS 204 verification; short proof that the skip-e_w hint optimization is always correct (eta < beta)
+- [x] Quorus leakage, statistical level: nothing detectable by construction (w uniform mod q); lattice-level distinguisher not run
+- [x] Trilithium Sec. 3 read (MLWR argument for rejected w_H), 8 Oct
+- [ ] Trilithium toy-size lattice distinguisher for rejected w_H (H-F2)
 - [ ] Trilithium rejected-partial uniformity test; CRP and declassified-bit analysis
 
 ## 5. Kao predecessor design (arXiv 2601.20917)

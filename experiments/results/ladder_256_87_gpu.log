@@ -2,3 +2,18 @@ n= 256 N=  196326 ok_edge=0.00 ok_ls=0.00 err_edge=0.757 K=0.57 feas=0.00 (83s)
 n= 256 N=  349122 ok_edge=1.00 ok_ls=0.00 err_edge=0.330 K=0.44 feas=1.00 (122s)
 n= 256 N=  620837 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (243s)
 n= 256 N= 1104022 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (559s)
+n= 256 N= 1963260 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (705s)
+ML-DSA-87 noise=bcc target=s2 solver=cp
+
+n=256 tau=60 bound=261768
+        N  ok edge  ok LS  err edge    err LS  K_hat  feas
+   196326     0.00   0.00     0.757     119.7   0.57  0.00
+   349122     1.00   0.00     0.330     112.3   0.44  1.00
+   620837     1.00   0.00     0.000      76.3   0.00  1.00
+  1104022     1.00   0.00     0.000      52.8   0.00  1.00
+  1963260     1.00   0.00     0.000      41.0   0.00  1.00
+  fitted slope log(err)/log(N): edge -9.22, LS -0.50  (1/N law = -1, 1/sqrt(N) law = -0.5)
+  N*(success>=0.5) per ring element: 2.62e+05
+  N*(success>=0.99) per ring element: 3.47e+05
+
+Full-secret recovery over k ring elements needs success^k; see docs/RUNBOOK.md step 5.
