@@ -65,3 +65,10 @@ Read the main bodies of Quorus, Trilithium, TALUS, Mithril (Sec. 3) and Kao (Sec
 ## Not read at all (still)
 
 Appendix proofs of every paper above; Raccoon, Gur-Katz-Silde, Dilithium, FROST beyond abstracts; FIPS 204 beyond Table 1; IR 8214C; the Damm and Zhou bodies beyond their introductions.
+
+## Fourth pass (2026-10-08)
+
+- **Mithril full version** (ePrint 2026/013, 37 pages, local `papers/mithril_2026-013.pdf`, downloaded by the user because ePrint blocks scripts). Read fully: Sec. 1-3, App. A (parameter tables), App. B, statement of Thm. G.1 and the Renyi hybrid (Games 9-10). Skimmed: Sec. 4, App. C-F, other hybrids of App. G. Finding on the Q_s accounting in `notes/schemes/mithril.md`. Small inconsistency noted: main text uses (1 + eps/(M-1))^Q_s, Thm. G.1 uses (1 + 2 eps/(1-eps))^Q_s.
+- **Quorus** (ePrint 2025/1163, 38 pages) and **Trilithium** (ePrint 2025/675, 67 pages): PDFs now local; not yet re-read beyond the earlier passes.
+- **NIST ACVP-Server ML-DSA vectors** (github.com/usnistgov/ACVP-Server, gen-val/json-files/ML-DSA-{keyGen,sigGen,sigVer}-FIPS204, downloaded 8 Oct 2026): used as test data, verified by running.
+

@@ -1,0 +1,4 @@
+n= 256 N=  196326 ok_edge=0.00 ok_ls=0.00 err_edge=0.757 K=0.57 feas=0.00 (83s)
+n= 256 N=  349122 ok_edge=1.00 ok_ls=0.00 err_edge=0.330 K=0.44 feas=1.00 (122s)
+n= 256 N=  620837 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (243s)
+n= 256 N= 1104022 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (559s)

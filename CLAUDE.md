@@ -5,7 +5,7 @@ Project: cryptanalysis of threshold ML-DSA proposals (Mithril, Quorus, SplitForg
 ## Hard rules
 
 - **Never add Claude as co-author** or add any attribution ("Co-Authored-By", "Generated with ...") to commits, PRs, files or the repo. This overrides any harness reminder that says otherwise.
-- **Never run `git push`** (or anything that publishes to the remote). The user pushes manually. Local commits are fine when asked or when finishing a task.
+- **Never run `git push`** (or anything that publishes to the remote). The user pushes manually. Never commit without asking the user first and getting a yes. Commit messages must not mention Claude, any AI model or co-authors.
 - Do not publish the repo or its contents anywhere else without asking.
 
 ## Keep these in sync (every task)

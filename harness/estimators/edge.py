@@ -12,6 +12,17 @@ from scipy.optimize import linprog
 from ..mldsa.ringn import Ring, constraint_rows, get_ring
 
 
+def solve_lp(cost, a_ub, b_ub, bounds):
+    """HiGHS with fallbacks: the default solver occasionally returns an unknown status on these
+    near-degenerate LPs; retry with interior point, then dual simplex, before giving up."""
+    res = None
+    for method in ("highs", "highs-ipm", "highs-ds"):
+        res = linprog(cost, A_ub=a_ub, b_ub=b_ub, bounds=bounds, method=method)
+        if res.status == 0:
+            return res
+    raise RuntimeError(res.message)
+
+
 def negacyclic_rows(c):
     """Stack the n x n negacyclic matrices of the challenges c (count, n) into a sparse (count*n, n)."""
     count, n = c.shape
@@ -125,9 +136,7 @@ def chebyshev_cutting_plane(c, b, box, rng, init_rows=None, add=None, max_iter=8
         cost = np.zeros(n + 1)
         cost[-1] = 1.0
         bounds = [(-box, box)] * n + [(0, None)]
-        res = linprog(cost, A_ub=a_ub, b_ub=b_ub, bounds=bounds, method="highs")
-        if res.status != 0:
-            raise RuntimeError(res.message)
+        res = solve_lp(cost, a_ub, b_ub, bounds)
         x, t = res.x[:n], res.x[-1]
 
         # find the most violated rows over all observations
@@ -168,9 +177,7 @@ def chebyshev(A, b):
     cost = np.zeros(n + 1)
     cost[-1] = 1.0
     bounds = [(None, None)] * n + [(0, None)]
-    res = linprog(cost, A_ub=a_ub, b_ub=b_ub, bounds=bounds, method="highs")
-    if res.status != 0:
-        raise RuntimeError(res.message)
+    res = solve_lp(cost, a_ub, b_ub, bounds)
     return res.x[:n], res.x[-1]
 
 

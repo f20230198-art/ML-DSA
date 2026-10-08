@@ -7,7 +7,7 @@ interface as `edge.chebyshev_cutting_plane`, so results are comparable.
 """
 import numpy as np
 import torch
-from scipy.optimize import linprog
+from .edge import solve_lp
 
 from ..mldsa.ringn import constraint_rows, get_ring
 
@@ -87,9 +87,7 @@ def chebyshev_cutting_plane_gpu(c, b, box, rng, obs=None, init_rows=None, add=No
         b_ub = np.concatenate([-rhs, rhs])
         cost = np.zeros(n + 1)
         cost[-1] = 1.0
-        res = linprog(cost, A_ub=a_ub, b_ub=b_ub, bounds=[(-box, box)] * n + [(0, None)], method="highs")
-        if res.status != 0:
-            raise RuntimeError(res.message)
+        res = solve_lp(cost, a_ub, b_ub, [(-box, box)] * n + [(0, None)])
         x, t = res.x[:n], res.x[-1]
 
         top = 0.0

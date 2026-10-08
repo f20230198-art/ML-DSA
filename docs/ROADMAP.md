@@ -4,13 +4,13 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 
 ## 0. Setup
 - [x] Pick language/tooling (Python + numpy/scipy). Sage and fpylll are NOT installed (checked 6 Oct); Docker is, so a Sage image is an option for the Mithril lattice-estimator stage
-- [x] PLAN Stage A: NTT, SHAKE sampling, hints, full sign/verify with all attempts; byte-identical to dilithium-py oracle for -44/-65/-87 (6 Oct). Official NIST KAT files not yet run
+- [x] PLAN Stage A: NTT, SHAKE sampling, hints, full sign/verify with all attempts; byte-identical to dilithium-py oracle for -44/-65/-87 (6 Oct); passes 81 official NIST ACVP vectors (keyGen, pure sigGen, sigVer; 8 Oct). PreHash and external-mu not implemented
 - [~] PLAN Stage B: scheme-view interface done with two controls (`harness/schemes/base.py`); no scheme-specific views yet, gate B open
 - [x] Fix stale line in DOSSIER and README ("no code has been run")
 - [ ] Verify dossier sources and recheck TCPT3 schedule / phase 3 list
 
 ## 1. Leakage-testing harness
-- [x] ML-DSA reference primitives: params, rounding, ring mult, NTT, hints, SHAKE sampling, full sign/verify (official KAT files still to run)
+- [x] ML-DSA reference primitives: params, rounding, ring mult, NTT, hints, SHAKE sampling, full sign/verify; NIST ACVP vectors pass (8 Oct)
 - [~] Transcript simulator interface: `Attempt` records plus `SchemeView`; positive (y leak) and negative (plain ML-DSA) controls pass
 - [~] Estimators: least squares done (`harness/estimators/ilwe.py`); bounded-noise, ILP, Fisher information todo
 - [ ] Sanity check: reproduce Niot's ILWE attack on TALUS-style transcripts
@@ -20,11 +20,17 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] PLAN C0: re-read PW v0.22 main text (6 Oct); the preview writeup does not list per-signature released values or the t0 role, so our channel model is an assumption; see notes/schemes/talus.md
 - [x] Rough prototype of the 1/N idea (n = 8, 16, 32, 3 trials, not saved): edge error ~ 1/N, least squares ~ 1/sqrt(N)
 - [x] Bounded-noise estimator under BCC edges: ladder n = 8..256 run (6 Oct); per-element N* (99%): -44 at n = 256 1.9e5 (2^17.5), -65 at n = 256 5.2e5 (2^19.0), -87 at n = 64 5.2e5; s2-t0 and plain noise same as s2/BCC at n = 64; least squares recovers nothing
-- [x] Run the n-ladder 8 to 256, apply gate C1 (6 Oct): above the cap by 4.5 to 5 bits and above the wall by 2.3 to 2.8 bits in our model; no break. Still to do: more trials near the transition, full-secret (k elements) check, -87 at n = 256
+- [x] Run the n-ladder 8 to 256, apply gate C1 (6 Oct): above the cap by 4.5 to 5 bits and above the wall by 2.3 to 2.8 bits in our model; no break
+- [x] Firmer numbers (8 Oct): -44 n = 256 with 20 trials: N*99 = 1.45e5 (2^17.1), full secret (k = 4) by 1.46e5; 4.1 bits above cap, 1.9 above wall. -87 n = 256 (5 trials): N*99 between 2^17.6 and 2^18.4, at least 3.6 above cap, 1.4 above wall
+- [ ] More trials for -87 and -65 at n = 256 near the transition
 - [ ] Positive control (TALUS v0.1 recovery), negative control (plain ML-DSA), power analysis
 - [x] Compare against cap (2^13-2^14) and uniqueness wall (2^15-2^16): margin table in docs/LEARN.md (6 Oct)
 
 ## 3. Mithril
+- [x] Read full version (ePrint 2026/013): main text, App. A, B, Renyi part of App. G (8 Oct)
+- [x] Q_s accounting from Thm. 3.2 for all 45 published parameter sets (`harness/schemes/mithril_params.py`, 8 Oct): with the paper's B, Q_s = 2^26 to 2^37, not 2^50; published radii imply B only 0 to 7 sd above the mean norm (proof gap, not an attack; unverified against authors' code)
+- [ ] Honest Q_s under the real norm distribution (Renyi divergence when B is exceeded)
+- [ ] Compare with Mithril preview writeup v1.0 parameters; draft a note to the authors before any disclosure
 - [ ] Accepted-z distribution and Rényi/Fisher loss at q_s = 2^64
 - [ ] Hint accounting with exact T−1 share subset (lattice estimator)
 
@@ -42,7 +48,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [ ] Rerun harness on actual reference code
 
 ## Reading gaps
-- [ ] Full Mithril (ePrint 2026/013), Quorus (2025/1163), Trilithium (2025/675) papers
+- [~] Full Mithril (ePrint 2026/013) read except App. D, E and most of G (8 Oct); Quorus (2025/1163) and Trilithium (2025/675) PDFs now in papers/, not yet read in full
 
 ## Coursework: Phase 1 report
 - [x] Survey of 23 papers, problem formulation, 10-page docx (`report/`)

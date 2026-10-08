@@ -1,0 +1,41 @@
+n= 256 N=   59947 ok_edge=0.00 ok_ls=0.00 err_edge=0.951 K=0.60 feas=0.00 (212s)
+n= 256 N=   74917 ok_edge=0.00 ok_ls=0.00 err_edge=0.742 K=0.58 feas=0.00 (234s)
+n= 256 N=   93625 ok_edge=0.15 ok_ls=0.00 err_edge=0.563 K=0.55 feas=0.15 (209s)
+n= 256 N=  117005 ok_edge=0.75 ok_ls=0.00 err_edge=0.465 K=0.57 feas=0.75 (197s)
+n= 256 N=  146223 ok_edge=1.00 ok_ls=0.00 err_edge=0.335 K=0.52 feas=1.00 (249s)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\shhon\OneDrive - BITS PILANI\Attachments\Cryptography\experiments\talus_edge_scaling.py", line 173, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\shhon\OneDrive - BITS PILANI\Attachments\Cryptography\experiments\talus_edge_scaling.py", line 162, in main
+    ch, rows = run_point(p, n, count, args.trials, args.noise, args.target, args.solver, args.seed, args.device)
+               ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shhon\OneDrive - BITS PILANI\Attachments\Cryptography\experiments\talus_edge_scaling.py", line 55, in run_point
+    xe, info = solve_edge(c, b, ch, solver, rng, obs)
+               ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shhon\OneDrive - BITS PILANI\Attachments\Cryptography\experiments\talus_edge_scaling.py", line 33, in solve_edge
+    x, _, info = edge_gpu.chebyshev_cutting_plane_gpu(c, b, ch.target_max + 1, rng, obs=obs)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shhon\OneDrive - BITS PILANI\Attachments\Cryptography\harness\estimators\edge_gpu.py", line 92, in chebyshev_cutting_plane_gpu
+    raise RuntimeError(res.message)
+RuntimeError: The HiGHS status code was not recognized. (HiGHS Status 15: model_status is Unknown; primal_status is Infeasible)
+n= 256 N=  182737 ok_edge=1.00 ok_ls=0.00 err_edge=0.226 K=0.43 feas=1.00 (435s)
+n= 256 N=  228370 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (475s)
+ML-DSA-44 noise=bcc target=s2 solver=cp
+
+n=256 tau=39 bound=95154
+        N  ok edge  ok LS  err edge    err LS  K_hat  feas
+    59947     0.00   0.00     0.951     106.1   0.60  0.00
+    74917     0.00   0.00     0.742     100.6   0.58  0.00
+    93625     0.15   0.00     0.563      84.4   0.55  0.15
+   117005     0.75   0.00     0.465      75.3   0.57  0.75
+   146223     1.00   0.00     0.335      67.6   0.52  1.00
+   182737     1.00   0.00     0.226      59.0   0.43  1.00
+   228370     1.00   0.00     0.000      53.4   0.00  1.00
+  fitted slope log(err)/log(N): edge -9.16, LS -0.54  (1/N law = -1, 1/sqrt(N) law = -0.5)
+  N*(success>=0.5) per ring element: 1.07e+05
+  N*(success>=0.99) per ring element: 1.45e+05
+
+Full-secret recovery over k ring elements needs success^k; see docs/RUNBOOK.md step 5.

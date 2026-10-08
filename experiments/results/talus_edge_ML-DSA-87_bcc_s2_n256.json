@@ -1,0 +1,68 @@
+{
+ "params": "ML-DSA-87",
+ "noise": "bcc",
+ "target": "s2",
+ "solver": "cp",
+ "points": [
+  {
+   "n": 256,
+   "tau": 60,
+   "bound": 261768,
+   "N": 196326,
+   "trials": 5,
+   "succ_edge": 0.0,
+   "succ_ls": 0.0,
+   "err_edge_med": 0.7571647495096765,
+   "err_ls_med": 119.6939620851132,
+   "K_hat": 0.5678735621322574,
+   "feasible_rounded": 0.0,
+   "true_feasible": 1.0,
+   "seconds": 5.738388967514038
+  },
+  {
+   "n": 256,
+   "tau": 60,
+   "bound": 261768,
+   "N": 349122,
+   "trials": 5,
+   "succ_edge": 1.0,
+   "succ_ls": 0.0,
+   "err_edge_med": 0.3301395057156973,
+   "err_ls_med": 112.26913493400619,
+   "K_hat": 0.4403096043614027,
+   "feasible_rounded": 1.0,
+   "true_feasible": 1.0,
+   "seconds": 6.505800056457519
+  },
+  {
+   "n": 256,
+   "tau": 60,
+   "bound": 261768,
+   "N": 620837,
+   "trials": 5,
+   "succ_edge": 1.0,
+   "succ_ls": 0.0,
+   "err_edge_med": 3.839060846999587e-09,
+   "err_ls_med": 76.2818692368176,
+   "K_hat": 9.10512751393861e-09,
+   "feasible_rounded": 1.0,
+   "true_feasible": 1.0,
+   "seconds": 15.048562145233154
+  },
+  {
+   "n": 256,
+   "tau": 60,
+   "bound": 261768,
+   "N": 1104022,
+   "trials": 5,
+   "succ_edge": 1.0,
+   "succ_ls": 0.0,
+   "err_edge_med": 1.0995281130021795e-08,
+   "err_ls_med": 52.84036251224525,
+   "K_hat": 4.6373247546411025e-08,
+   "feasible_rounded": 1.0,
+   "true_feasible": 1.0,
+   "seconds": 31.722638034820555
+  }
+ ]
+}
