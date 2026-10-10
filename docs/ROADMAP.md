@@ -41,7 +41,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Quorus Algorithm 1 implemented (`harness/schemes/quorus.py`), 8 Oct: M_rep matches Table 2; 0 of 272,664 signatures fail FIPS 204 verification; short proof that the skip-e_w hint optimization is always correct (eta < beta)
 - [x] Quorus leakage, statistical level: nothing detectable by construction (w uniform mod q); lattice-level distinguisher not run
 - [x] Trilithium Sec. 3 read (MLWR argument for rejected w_H), 8 Oct
-- [ ] Trilithium toy-size lattice distinguisher for rejected w_H (H-F2)
+- [~] Trilithium toy-size test for rejected w_H (H-F2): exact enumeration at n = 4 done (10 Oct, `harness/schemes/trilithium_toy.py`): gap to simulator real at toy size, shrinks with gamma1 (branch 3 ~gamma1^-2.7); branch-2 floor at gamma1 = 32-48 unexplained; n = 8 sampling and fixed-ratio scan todo
 - [ ] Trilithium rejected-partial uniformity test; CRP and declassified-bit analysis
 
 ## 5. Kao predecessor design (arXiv 2601.20917)

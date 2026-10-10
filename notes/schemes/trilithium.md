@@ -19,7 +19,22 @@ Source: Dufka et al., Trilithium (ePrint 2025/675, 67 pages), local `papers/tril
 
 ## Experiments and results
 
-None yet.
+### Exact toy-size test of rejected w_H (10 Oct 2026)
+- Code: `harness/schemes/trilithium_toy.py`, `experiments/trilithium_toy.py`; output `experiments/results/trilithium_toy.{txt,json}` (and `_q513`). 5 tests in `harness/tests/test_trilithium_toy.py`.
+- Model: ring Z_q[X]/(X^4+1), k = l = 1, q = 257, gamma2 = 16 (8 HighBits values per coefficient), tau = 2, eta = 1, beta = 2; FIPS 204 Decompose. Every y in [-gamma1+1, gamma1]^4 is enumerated, so all distributions are exact. 5 random (A, s1, s2, c) per gamma1, seed 2026.
+- Compared: real w_H after branch-3 rejection (z out of box) and after branch-2 rejection (z ok, r0 check fails) against the simulator HighBits(A y), y uniform on the box. Also branch 3 for two different s1 with the same A and c (does the rejected w_H depend on the key?). Metric: squared Hellinger H^2; about 1/H^2 samples distinguish.
+
+| gamma1 | P(branch 3) | P(branch 2) | H^2 branch 3 vs sim | H^2 branch 2 vs sim | H^2 branch 3, s1 vs s1' |
+|---|---|---|---|---|---|
+| 4 | 0.98 | 0.011 | 5.1e-3 | 0.86 | 7.8e-3 |
+| 8 | 0.78 | 0.11 | 2.0e-3 | 0.11 | 2.0e-3 |
+| 16 | 0.49 | 0.25 | 1.8e-4 | 1.2e-3 | 1.4e-4 |
+| 32 | 0.28 | 0.36 | 1.7e-5 | 7.1e-5 | 1.3e-5 |
+| 48 | 0.19 | 0.41 | 8.7e-6 | 5.7e-5 | 2.3e-6 |
+
+- Reading: at toy size the rejected w_H is NOT distributed like the simulator's and does depend on s1 (as expected: the box is tiny). Branch 3's gap shrinks steadily, roughly as gamma1^-2.7 between 16 and 48 at fixed n = 4. Branch 2's gap shrinks fast up to gamma1 = 32 and then flattens (7.1e-5 to 5.7e-5). A run with q = 513, gamma2 = 32 did not settle whether that floor is a small-q artefact (it also changes the gamma1/gamma2 ratio, the likely controlling parameter).
+- What this does not show: anything at real size (n = 256, l = 4 to 7, gamma1 = 2^17 or 2^19). Extrapolating from n = 4 is not justified; dimension changes the picture completely. No attack. It is a sanity check that the hypothesis H-F2 is real at toy scale and that the effect shrinks with gamma1, consistent with the authors' heuristic.
+- Next: vary gamma1/gamma2 at fixed ratio to explain the branch-2 floor; try n = 8 by sampling (no longer enumerable) with a likelihood-ratio distinguisher.
 
 ## Reading status
 
