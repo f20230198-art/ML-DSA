@@ -129,6 +129,58 @@ def sample_norms(p, nu, T, N, trials, rng, n=N_RING):
     return out
 
 
+def phi_for_target(dim, K, log2_target=50):
+    """Largest phi with 2 / (K * exact I) >= 2^log2_target (I increases with phi; bisect)."""
+    i_target = 2 / (K * 2.0 ** log2_target)
+    lo, hi = 1.0 + 1e-9, 1e3
+    for _ in range(200):
+        mid = (lo + hi) / 2
+        if betainc((dim + 1) / 2, 0.5, 1 - 1 / mid ** 2) <= i_target:
+            lo = mid
+        else:
+            hi = mid
+    return lo
+
+
+def success_prob(log2_m, T, K):
+    """Chance that at least one of K parallel attempts is accepted by all T parties (each 1/M)."""
+    p = 2.0 ** (-T * log2_m)
+    return -math.expm1(K * math.log1p(-p))
+
+
+def corrected_params(p, nu, T, N, r, rp, K, log2_target=50, n=N_RING):
+    """Keeps r and the paper's B, sets phi from the exact I so Thm. 3.2 gives 2^log2_target, and
+    raises K until the session success probability is at least the published one.
+    Returns (phi, r'_new, log2 M_new, K_new, success_old, success_new)."""
+    dim = n * (p.k + p.l)
+    B = bound_B(p, nu, T, N, n)
+    s_old = success_prob(dim * math.log2(rp / r), T, K)
+    k_new = K
+    for _ in range(100):
+        phi = phi_for_target(dim, k_new, log2_target)
+        rp_new = math.sqrt(r * r + B * B + 2 * r * B / phi)
+        lm = dim * math.log2(rp_new / r)
+        s_new = success_prob(lm, T, k_new)
+        if s_new >= s_old:
+            return phi, rp_new, lm, k_new, s_old, s_new
+        k_new = max(k_new + 1, math.ceil(k_new * math.log1p(-s_old) / math.log1p(-s_new)))
+    raise RuntimeError("K did not converge")
+
+
+def corrected_report():
+    print("\nCorrected parameters (exact I, Q_s = 2^50 by Thm. 3.2, paper's B and r kept):")
+    for name, (nu, table) in TABLES.items():
+        p = ALL[name]
+        print(f"\n{name}")
+        print("  (T,N)   K_pub  log2M_pub  phi_new  r'_pub   r'_new  log2M_new  K_new  K_new/K_pub"
+              "  success_pub  success_new")
+        for (T, N), (r, rp, K) in sorted(table.items(), key=lambda x: (x[0][1], x[0][0])):
+            dim = N_RING * (p.k + p.l)
+            phi, rpn, lm, kn, so, sn = corrected_params(p, nu, T, N, r, rp, K)
+            print(f"  ({T},{N}) {K:6d} {dim * math.log2(rp / r):9.3f} {phi:8.2f} {rp:8d} {rpn:8.0f}"
+                  f" {lm:9.3f} {kn:6d} {kn / K:11.2f} {so:12.3f} {sn:12.3f}")
+
+
 def lemma25_report():
     """Authors' script fixes phi = 7, 8, 9 (variables eta44/eta65/eta87) for ML-DSA-44/65/87."""
     print("Lemma 2.5 check (bound must be >= exact I for an upper bound):")
@@ -144,7 +196,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--trials", type=int, default=2000, help="samples per (T,N) for the norm check")
     ap.add_argument("--seed", type=int, default=2026)
+    ap.add_argument("--corrected", action="store_true", help="only print corrected parameters")
     args = ap.parse_args()
+    if args.corrected:
+        corrected_report()
+        return
     rng = np.random.default_rng(args.seed)
     lemma25_report()
     for name, (nu, table) in TABLES.items():

@@ -371,3 +371,25 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **What we did not find:** any leak. A simple statistical test on rejected transcripts cannot see anything, because the commitment is uniformly spread modulo q; finding a leak would need a lattice attack, which is what Quorus' theorem rules out. We say "no leak detectable by statistics", not "no leak".
 - **Trilithium (reading only):** in its unmodified version it reveals the high bits of A y even for rejected attempts, and relies on an assumption (MLWR) the authors themselves call non-standard for ML-DSA's parameters. Testing that needs a lattice experiment at small sizes; not started.
 - **New idea in simple words:** a *batched OR* is a trick to learn only "did anything fail?" from many secret yes/no checks, without learning which one failed.
+
+### 2026-10-10: Mithril, what fixing the proof would cost
+- **What:** added `corrected_params` to `harness/schemes/mithril_params.py` (run with `--corrected`; output `experiments/results/mithril_corrected.txt`). For each of the 45 published settings it keeps the paper's r and B, picks the tuning number phi from the *exact* formula so that the theorem really covers 2^50 signatures, works out the new outer radius r', and then increases K (the number of parallel attempts per session) until a signing session succeeds at least as often as with the published numbers. 1 new test, 144 pass.
+- **Result in simple words:** phi has to drop (7 to about 5.5 for ML-DSA-44, 8 to about 6.3 for -65, 9 to about 7.4 for -87). The radius r' only grows by a tiny amount (12 to 89 out of about 250,000 to 660,000), but each party's chance of accepting falls, and with T parties that adds up. To keep sessions succeeding as often as before, K must grow 1.3 to 2 times for small groups and up to 8.5 times for the largest (ML-DSA-65 5-of-6: 1200 to 10,234). Communication grows roughly in step with K.
+- **Why:** this turns "the proof has a mistake" into "here is the price of the fix", which is what scheme authors and NIST need in order to judge it.
+- **Honest limits:** uses the paper's own approximation that each party accepts with probability 1/M; we did not rerun the authors' script; a different fix (e.g. changing r) could be cheaper.
+- **Also started:** ML-DSA-87 TALUS run at full size with 20 trials per point (before: 5).
+- **New idea in simple words:** *parallel repetitions (K)*: instead of retrying a failed signing session, the parties run K attempts at once and keep one that works. More K means fewer retries but more data sent.
+
+### 2026-10-10 (later): Firmer TALUS numbers for ML-DSA-65 and -87
+- **What:** reran the edge estimator at full size n = 256 with 20 trials per point (before: 5) at 7 values of N around the transition, for ML-DSA-87 and ML-DSA-65. Raw data: `experiments/results/talus_edge_ML-DSA-{87,65}_bcc_s2_n256_dense.json`, logs `dense_256_{87,65}.log`. Command: `python -m experiments.talus_edge_scaling --params ML-DSA-87 --n 256 --trials 20 --steps 7 --lo 0.25 --hi 0.55 --device gpu` (-65: `--lo 0.22 --hi 0.67`), seed 2026.
+- **Interruption:** the NVIDIA driver crashed at 15:20 while both runs used the GPU at once, and Windows later restarted. The script saves after every point, so both resumed from point 4; afterwards they ran one at a time.
+- **Result (per ring element):**
+
+| Parameter set | 50% at | 99% at | log2 N*99 | cap | bits above cap | wall | bits above wall |
+|---|---|---|---|---|---|---|---|
+| ML-DSA-44 (8 Oct) | 1.07e5 | 1.45e5 | 17.1 | 2^13 | 4.1 | 2^15.2 | 1.9 |
+| ML-DSA-65 | 2.61e5 | 3.58e5 | 18.4 | 2^14 | 4.4 | 2^16.4 | 2.0 |
+| ML-DSA-87 | 2.32e5 | 3.69e5 | 18.5 | 2^14 | 4.5 | 2^16.2 | 2.3 |
+
+- **In simple words:** for all three security levels, our attacker needs about 16 to 22 times more signatures than TALUS allows. The cap holds in our model.
+- **Honest limits:** 20 trials per point give coarse percentages (-87 shows 90% then 80%, which is noise); 99% is interpolated; recovering all k = 6 or 8 ring elements needs slightly more than these per-element values (not separately checked for -65/-87); same model assumptions as before (our reading of TALUS, no stronger lattice attacker).

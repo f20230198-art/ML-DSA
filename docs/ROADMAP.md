@@ -22,7 +22,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Bounded-noise estimator under BCC edges: ladder n = 8..256 run (6 Oct); per-element N* (99%): -44 at n = 256 1.9e5 (2^17.5), -65 at n = 256 5.2e5 (2^19.0), -87 at n = 64 5.2e5; s2-t0 and plain noise same as s2/BCC at n = 64; least squares recovers nothing
 - [x] Run the n-ladder 8 to 256, apply gate C1 (6 Oct): above the cap by 4.5 to 5 bits and above the wall by 2.3 to 2.8 bits in our model; no break
 - [x] Firmer numbers (8 Oct): -44 n = 256 with 20 trials: N*99 = 1.45e5 (2^17.1), full secret (k = 4) by 1.46e5; 4.1 bits above cap, 1.9 above wall. -87 n = 256 (5 trials): N*99 between 2^17.6 and 2^18.4, at least 3.6 above cap, 1.4 above wall
-- [ ] More trials for -87 and -65 at n = 256 near the transition
+- [x] More trials for -87 and -65 at n = 256 near the transition (10 Oct, 20 trials, 7 points each): -87 N*99 = 3.69e5 (2^18.5), 4.5 above cap, 2.3 above wall; -65 N*99 = 3.58e5 (2^18.4), 4.4 above cap, 2.0 above wall. Per ring element; full-secret (k = 6, 8) not separately checked
 - [ ] Positive control (TALUS v0.1 recovery), negative control (plain ML-DSA), power analysis
 - [x] Compare against cap (2^13-2^14) and uniqueness wall (2^15-2^16): margin table in docs/LEARN.md (6 Oct)
 
@@ -33,7 +33,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Root cause from the public code (GuilhemN/threshold-ml-dsa, params/hyperball.sage), 8 Oct: B is the paper's; phi fixed at 7/8/9; Lemma 2.5 (used as `boundI`) is not a valid upper bound at dim 2048-3840 (2^-50 vs exact 2^-33.5 for -44), so Thm. 3.2 covers 2^26-2^37, not 2^50
 - [x] Preview writeup v1.0 read (8 pages): no parameters or Q_s, nothing to compare. Authors cannot be contacted (user, 8 Oct)
 - [ ] Check original lemma in Devevey et al. (ePrint 2023/245, Sec. A.6); needs manual download
-- [ ] Corrected parameters (phi from exact I for Q_s = 2^50) and their cost in acceptance and communication
+- [x] Corrected parameters (10 Oct, `--corrected`, experiments/results/mithril_corrected.txt): phi drops to 5.3-5.6 (-44), 5.9-6.6 (-65), 7.1-7.7 (-87); r' grows by 12 to 89; to keep the same session success rate K grows 1.3x to 8.5x (worst -65 (5,6): 1200 -> 10234). Communication scales with K
 - [ ] Accepted-z distribution and Rényi/Fisher loss at q_s = 2^64
 - [ ] Hint accounting with exact T−1 share subset (lattice estimator)
 

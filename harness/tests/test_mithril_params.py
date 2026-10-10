@@ -56,3 +56,12 @@ def test_lemma25_bound_is_not_an_upper_bound_at_mithril_dims():
     for dim, phi in ((2048, 7), (2816, 8), (3840, 9)):
         assert mp.lemma25_bound_log2(dim, phi) < mp.exact_I_log2(dim, phi) - 15
     assert mp.lemma25_bound_log2(64, 7) > mp.exact_I_log2(64, 7)
+
+
+def test_corrected_params_reach_target_and_keep_success():
+    p = ALL["ML-DSA-44"]
+    nu, table = mp.TABLES["ML-DSA-44"]
+    r, rp, K = table[(4, 6)]
+    phi, rpn, lm, kn, so, sn = mp.corrected_params(p, nu, 4, 6, r, rp, K)
+    lq, _, _ = mp.log2_qs(p, nu, 4, 6, r, round(rpn) + 1, kn)
+    assert lq >= 50 and rpn > rp and kn > K and sn >= so

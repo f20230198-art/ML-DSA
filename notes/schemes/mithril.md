@@ -59,3 +59,9 @@ Sources (public): GitHub `GuilhemN/threshold-ml-dsa` (commit 66e269e, 5 Sep 2026
 ## Reading status
 
 - 2026-10-08: full version read: Sec. 1-3 (scheme, Thm. 3.1, 3.2, a posteriori sharing, parameter selection), App. A (all parameter tables), App. B (partition) and the Renyi part of App. G (Games 9-10, Thm. G.1 statement). Skimmed: Sec. 4 benchmarks, App. D (DKG), E (a posteriori sharing proofs), the remaining hybrids of App. G.
+
+## Corrected parameters (10 Oct 2026)
+- `python -m harness.schemes.mithril_params --corrected`, output in `experiments/results/mithril_corrected.txt`.
+- Method: keep the paper's r and B; choose phi from the exact incomplete beta I so Thm. 3.2 gives Q_s = 2^50; set r'^2 = r^2 + B^2 + 2rB/phi; then raise K until the chance that some of the K parallel attempts is accepted by all T parties (1 - (1 - M^-T)^K) is at least the published value. K and phi are solved together because Q_s depends on K.
+- Result: phi 5.3-5.6 (-44, was 7), 5.9-6.6 (-65, was 8), 7.1-7.7 (-87, was 9). r' grows by only 12-89, but log2 M grows by 0.13-0.74, so M^-T falls. K grows 1.3x (small sets) to 8.5x (-65 (5,6): 1200 -> 10234; -65 (4,6): 804 -> 6256). Communication per session scales roughly with K.
+- Caveats: success model assumes independent per-party acceptance with probability exactly 1/M (the paper's own approximation); we did not rerun the authors' script with the fix; other choices (e.g. larger r instead of K) might be cheaper.

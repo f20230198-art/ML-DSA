@@ -1,0 +1,43 @@
+n= 256 N=  172717 ok_edge=0.00 ok_ls=0.00 err_edge=0.804 K=0.53 feas=0.00 (182s)
+n= 256 N=  207942 ok_edge=0.05 ok_ls=0.00 err_edge=0.670 K=0.53 feas=0.05 (199s)
+n= 256 N=  250352 ok_edge=0.40 ok_ls=0.00 err_edge=0.536 K=0.51 feas=0.40 (256s)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\shhon\OneDrive - BITS PILANI\Attachments\Cryptography\experiments\talus_edge_scaling.py", line 173, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\shhon\OneDrive - BITS PILANI\Attachments\Cryptography\experiments\talus_edge_scaling.py", line 162, in main
+    ch, rows = run_point(p, n, count, args.trials, args.noise, args.target, args.solver, args.seed, args.device)
+               ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shhon\OneDrive - BITS PILANI\Attachments\Cryptography\experiments\talus_edge_scaling.py", line 53, in run_point
+    obs = edge_gpu.GpuObs(c, b)
+  File "C:\Users\shhon\OneDrive - BITS PILANI\Attachments\Cryptography\harness\estimators\edge_gpu.py", line 28, in __init__
+    self.psi = torch.tensor(psi, dtype=torch.complex128, device=self.dev)
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.AcceleratorError: CUDA error: unknown error
+Search for `cudaErrorUnknown' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+n= 256 N=  301412 ok_edge=0.85 ok_ls=0.00 err_edge=0.428 K=0.49 feas=0.85 (281s)
+n= 256 N=  362885 ok_edge=1.00 ok_ls=0.00 err_edge=0.361 K=0.50 feas=1.00 (360s)
+n= 256 N=  436896 ok_edge=1.00 ok_ls=0.00 err_edge=0.264 K=0.44 feas=1.00 (338s)
+n= 256 N=  526001 ok_edge=1.00 ok_ls=0.00 err_edge=0.000 K=0.00 feas=1.00 (443s)
+ML-DSA-65 noise=bcc target=s2 solver=cp
+
+n=256 tau=49 bound=261692
+        N  ok edge  ok LS  err edge    err LS  K_hat  feas
+   172717     0.00   0.00     0.804     163.2   0.53  0.00
+   207942     0.05   0.00     0.670     141.0   0.53  0.05
+   250352     0.40   0.00     0.536     124.0   0.51  0.40
+   301412     0.85   0.00     0.428     122.1   0.49  0.85
+   362885     1.00   0.00     0.361     111.1   0.50  1.00
+   436896     1.00   0.00     0.264      95.3   0.44  1.00
+   526001     1.00   0.00     0.000      91.0   0.00  1.00
+  fitted slope log(err)/log(N): edge -10.49, LS -0.51  (1/N law = -1, 1/sqrt(N) law = -0.5)
+  N*(success>=0.5) per ring element: 2.61e+05
+  N*(success>=0.99) per ring element: 3.58e+05
+
+Full-secret recovery over k ring elements needs success^k; see docs/RUNBOOK.md step 5.
