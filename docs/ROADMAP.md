@@ -46,13 +46,14 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [~] Trilithium toy-size test for rejected w_H (H-F2): exact enumeration at n = 4 done (10 Oct, `harness/schemes/trilithium_toy.py`): gap to simulator real at toy size, shrinks with gamma1 (branch 3 ~gamma1^-2.7); branch-2 floor at gamma1 = 32-48 unexplained; fixed-ratio scan done 11 Oct (q = 257/513/1025): branch-2 floor ~1e-4 for gamma1 >= gamma2 at all q, so not a small-q artefact; edge-cell test (11 Oct): masking r1 = 0 removes it for gamma1 >= 2 gamma2 (30-65x smaller); n = 8 sampling todo
 - [x] Trilithium dimension trend (11 Oct, exact convolution `trilithium_conv.py`, n = 2..6 at q = 17): both gaps fall with n (branch 3 by 2-3 orders from n = 4 to 6); n = 8 still infeasible exactly
 - [x] Declassified rejection bit and CRP read (Sec. 4.6-4.7, 11 Oct): paper's argument mostly holds; H-F3: tampered rej_check can leak about one bit per detected misbehaviour; CRP+Server collusion breaks privacy by design
-- [ ] H-F3: read Sec. 5 / App. F for what the Phone does after detection
+- [x] H-F3 checked (11 Oct, Sec. 5.2, 7, App. F): detection stops all runs, so the leak is bounded by the stopping time (about log2(attempts) bits, once); the unsuccessful-signing simulation does not account for detection probability depending on the real z (possible proof gap, not an attack)
 
 ## 5. Kao predecessor design (arXiv 2601.20917)
 - [x] Confirm or refute P2 masked-commitment claim at |S∖C| = 1 (2026-10-06, Stage D, toy `harness/schemes/kao_p2.py`: algebra confirmed on a toy; the paper already states the |S∖C| >= 2 condition; open point is the N-1 unforgeability claim, see notes/schemes/kao-p2.md)
-- [ ] Ask whether P2 really broadcasts every W_i (then the SUM A*y is public and the attack works at any |S∖C|); needs the Rust code or the authors
+- [x] Does P2 broadcast every W_i? YES per the paper (Fig. 1b, Remark 11, App. M.1), and masks cancel (Lemma 1), so sum W_i = A y is public and s1 follows from one P2 signature at any |S∖C| (11 Oct, text + toy test). Contact the author before disclosure
+- [ ] Draft the author-notification email for the Kao P2 finding (user decides when/if to send)
 - [x] Read App. B.1 key DKG: Feldman-style commitment t(i) = A s1(i) + s2(i) (and the text says Feldman over g^a, i.e. not lattice-native); the specific A*s1,i pattern broken in TALUS is not checked
-- [ ] Read remaining Kao appendices (A, H-M proofs) fully
+- [~] Read remaining Kao appendices: A, I, M.1 read (11 Oct); B.2-H, K, L, N, O still headings only
 
 ## 6. Packages phase (from March 2027)
 - [ ] Rerun harness on actual reference code

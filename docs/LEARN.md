@@ -467,3 +467,17 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Reading the protocol:** each attempt also opens one bit, "passed or failed" (not which check failed). That check is only protected against a cheating server in a weak way. Our reading: a cheating server can learn about one bit and is then caught by the phone; the paper's informal argument seems right, with this small caveat. The helper that hands out correlated randomness (CRP) must be honest; if it teams up with the server, privacy is gone, as the paper says.
 - **New word:** *convolution* = the distribution of a sum of independent random values, computed by adding up shifted copies.
 - **Limits:** toy sizes only (q = 17, n <= 6); protocol caveat is a paper-level reading, not run.
+
+## 2026-10-11: Trilithium, what happens when the server cheats on the pass/fail bit
+
+- **Idea in simple words:** the server can tamper with the pass/fail check. If its tampering makes a bad attempt look "passed", the phone checks the signature, sees it is invalid, and both stop forever. So the server can cheat only once and is caught.
+- **What we found by reading Sec. 5, 7 and App. F:** the paper says exactly this and concludes the cheater learns at most one bit. A small subtlety: the moment of getting caught can depend on the secret (the server can choose a check that trips only on certain rejected values), so the time of the stop leaks a little, at most about log2(number of attempts) bits, once. The security proof's simulator does not seem to account for this. Tiny and not an attack, but a precise point to raise with the authors.
+- **New word:** *selective failure* = making a protocol fail only for certain secret values, so the failure itself leaks information.
+
+## 2026-10-11: Kao's fully distributed mode (P2) leaks the whole key, confirmed from the paper's own text
+
+- **Idea in simple words:** in ML-DSA the commitment w = A y must stay hidden; only its rounded "high bits" are public. If someone learns the full w, then together with the public signature z = y + c s1 they can compute A s1 and then s1, the secret key. Kao's P2 mode hides each party's piece W_i with random masks that cancel when all pieces are added. The paper proves each single piece looks random. But P2 sends every piece to every party, so anyone can add them all up: the masks cancel and the full w appears.
+- **What we did:** we had built this attack on a toy on 6 Oct, but did not know if P2 really broadcasts every piece. Today we downloaded the paper (arXiv allows it) and found three places that say so (Fig. 1b, Remark 11, Appendix M.1). The toy test still recovers the key.
+- **Why it matters:** this would let any single participant, or anyone watching the broadcast, recover the whole key after one signature. It only affects P2, not the other two modes.
+- **Limits:** toy only; the author's code is not public, and an implementation could compute w inside the secure computation instead. We must tell the author privately before saying anything publicly.
+- **Side note:** the paper's own security bound only covers about 16,000 signatures (it loses 0.0066 bits per signature), which is much less than other schemes target.

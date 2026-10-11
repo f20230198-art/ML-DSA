@@ -87,3 +87,6 @@ Appendix proofs of every paper above; Raccoon, Gur-Katz-Silde, Dilithium, FROST 
 - **Correction (11 Oct):** Mithril's [27] is **Devevey, Fawzi, Passelegue, Stehle, "On rejection sampling in Lyubashevsky's signature scheme", ASIACRYPT 2022, LNCS 13794, pp. 34-64, ePrint 2022/1249** (checked in Mithril's bibliography and online 11 Oct). Not yet downloaded. The earlier entry (ePrint 2023/245) was the wrong paper.
 - **Devevey, Fallahpour, Passelegue, Stehle, Xagawa, ePrint 2023/245**: now local (`papers/devevey_2023-245.pdf`, 60 pages); title page checked; searched for a hyperball lemma: none in an A.6. Otherwise not read; not needed for Mithril.
 - **Devevey, Fawzi, Passelegue, Stehle, ePrint 2022/1249**: now local (`papers/devevey_2022-1249.pdf`, 50 pages, title page checked). App. A.6 read fully on 11 Oct; rest not read.
+
+## Sixth pass (2026-10-11)
+- **Kao, "FIPS 204-Compatible Threshold ML-DSA via Shamir Nonce DKG", arXiv 2601.20917v6** (title checked on the arXiv page 11 Oct): now local `papers/kao_2601-20917v6.pdf`, 112 pages. Read fully: Sec. 3.5-3.6 (Alg. 3, Remarks 10-11), Lemmas 1-2, Thm. 2, Cor. 1, App. A, App. I, App. M.1. Rest: headings only.

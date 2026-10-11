@@ -45,3 +45,13 @@ Dossier 4.5: in P2, with |S| = T and T-1 corrupted parties in S, |S minus C| = 1
 
 - arXiv v6 PDF downloaded, 98 pages, extracted with pypdf. Read the parts listed in notes/papers.md row 12.
 - Appendix B.1 key DKG: each party shares local s1(i), s2(i), broadcasts Feldman-style commitment t(i) = A s1(i) + s2(i). The TALUS-type A*s1,i leak pattern is not checked here.
+
+## W_i question answered from the paper text (11 Oct 2026)
+- PDF now local: `papers/kao_2601-20917v6.pdf` (arXiv v6, 112 pages; arXiv allows scripted download). Code still "released upon publication".
+- Read fully on 11 Oct: Algorithm 3 (Sec. 3.6), Remark 11, Lemma 1 and Lemma 2, Theorem 2 and Corollary 1, App. A (A.1, A.2), App. I, App. J headings, App. M.1 (Simulator 17, Phases 0-2).
+- The paper states P2 broadcasts every W_i: Fig. 1(b) "P2: all values broadcast"; Remark 11 profile paragraph "In Profile P2 (no designated coordinator), parties broadcast W_i directly and rely on mask hiding (Lemma 2)"; App. M.1 "in P2, each party broadcasts W_i = lambda_i A y_i + m_i to all other parties".
+- Lemma 1 / Alg. 3 line 17: the masks cancel exactly, sum_i W_i = A y = w. So in P2 every participant (and anyone who sees the broadcast) learns the full w = A y, not just w1 = HighBits(w). With the public signature: A z - w = c A s1, so A s1 = c^{-1}(A z - w), and s1 follows by the left inverse of A that Remark 11 itself uses. Full key recovery from one P2 signature, with any number of honest parties. Our toy `attack_aggregate` (6 Oct) does exactly this; `test_aggregate_attack_recovers_key_for_any_honest_count` passes (rerun 11 Oct).
+- Why the paper's proof misses it: Lemma 2 shows each individual W_i looks uniform when |S minus C| >= 2, which is true; but the sum of all W_i is not hidden. Simulator 17 Phase 2 makes honest W_i from its own simulated nonces, so their sum is A y~, inconsistent with the real signature (A z - sum W~ is not c times a short-plus-public value), which a distinguisher can check.
+- Status: confirmed from the paper's own text plus our toy (small n, no rejection/hints/MPC). Not run on the author's code (not public). Only Profile P2; P1 (TEE) and P3+ send W_i to a coordinator only and are not affected. Possible escape we could not find in the text: an implementation that computes w inside the MPC. COORDINATE WITH THE AUTHOR (Leo Kao) BEFORE ANY DISCLOSURE.
+- Also from Theorem 2 / Corollary 1 (author-stated, not our finding): the proven unforgeability bound is 96 - 0.0066 q_s bits for |S| <= 17, non-vacuous only for q_s < 16,000 signing queries (about 85 bits at q_s = 1,600). Far below the 2^50-2^64 query budgets of Mithril or NIST practice.
+- Still not read: App. B.2-H, K, L, N, O in full (headings only).
