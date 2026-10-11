@@ -13,7 +13,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] ML-DSA reference primitives: params, rounding, ring mult, NTT, hints, SHAKE sampling, full sign/verify; NIST ACVP vectors pass (8 Oct)
 - [~] Transcript simulator interface: `Attempt` records plus `SchemeView`; positive (y leak) and negative (plain ML-DSA) controls pass
 - [~] Estimators: least squares done (`harness/estimators/ilwe.py`); bounded-noise, ILP, Fisher information todo
-- [ ] Sanity check: reproduce Niot's ILWE attack on TALUS-style transcripts
+- [x] Sanity check: Niot's attack 2 least squares on real no-r0-check ML-DSA-44 transcripts (11 Oct, `experiments/niot_sanity.py`): error = 0.97 x his formula gamma2/sqrt(3 tau N) (12 runs); edge estimator needs ~1,500x fewer signatures than his N
 
 ## 2. TALUS v0.22 signing cap
 - [~] Reproduce Niot's estimator: formula checked against table, LS error law validated at ML-DSA-44; full-recovery N is ~12x formula in plain model (see experiments/ilwe_scaling_output.txt); t0 and -65/-87 not done

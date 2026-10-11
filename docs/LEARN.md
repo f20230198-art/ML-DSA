@@ -408,3 +408,11 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Result:** positive control: the key part s2 - t0 recovered in **9 of 9** runs (already at 200k). Negative control: key recovered in **0 of 9** runs; in all 9 the estimator returns -t0 instead, which is harmless. So the tool finds the key when it is there and does not "find" it when it is not.
 - **Limits:** 3 keys only (so the false-positive rate is "0 of 9", not a precise number); one ring element; the positive control is a broken ML-DSA variant, not the historical TALUS v0.1.
 - **New idea in simple words:** *positive / negative control* = a test where you already know the right answer (leak / no leak), used to check the measuring tool itself.
+
+## 2026-10-11: Sanity check of Niot's attack 2 on real signatures
+
+- **Idea in simple words:** Niot's attack uses plain least squares (fitting the hidden key to noisy equations). His note says the error shrinks like gamma2 / sqrt(3 tau N). We checked that this formula holds on signatures from real ML-DSA-44 signing (the no-r0-check variant from the controls), not only on our idealised random data.
+- **What / how:** `experiments/niot_sanity.py`, 3 keys (seed 1386), N = 5k, 20k, 80k, 200k accepted signatures, ring element 0, least squares via `edge.least_squares_fft`. Log: `experiments/results/niot_sanity.log`, raw: `niot_sanity_ML-DSA-44.json`.
+- **Result:** measured error / formula = **0.97 on average (sd 0.04, 12 runs)**, so the formula is right on real transcripts. At 200k signatures the least-squares error is about 19, far from the 0.5 needed to round correctly (only 0-3% of coefficients right). Same signatures, our edge (bounded-noise) estimator already recovers the key (controls entry above). So the smarter estimator needs about **1,500 times fewer** signatures than Niot's own formula (3.1e8) and roughly 10,000 times fewer than full least-squares recovery (about 3.6e9, from our earlier extrapolation), which is the improvement Niot predicted ("bounded noise could cut it substantially").
+- **Why it matters:** confirms both pieces of our pipeline (data and least-squares baseline) against a published number, so our TALUS margin numbers rest on a checked tool.
+- **Limits:** ML-DSA-44 only; one ring element; least squares was not run to full recovery (too many signatures), only checked against the error law.
