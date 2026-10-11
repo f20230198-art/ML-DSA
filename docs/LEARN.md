@@ -423,3 +423,18 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **What / how:** reran the exact enumeration at q = 513 and q = 1025 so each ratio appears at two or three sizes of q. Results in `notes/schemes/trilithium.md` and `experiments/results/trilithium_toy_q1025.*`, `trilithium_toy_q513_g64.*`.
 - **Result:** neither explanation fits cleanly. Once gamma1 >= gamma2 the gap stays at about 1e-4 for every q we tried. So it is a real, stable feature of that failure type at this toy size, not a small-q accident. The other failure type (branch 3) keeps shrinking as expected. Why the floor exists is still an open guess.
 - **Limits:** n = 4 only; nothing here says anything about real ML-DSA size (n = 256). No attack.
+
+## 2026-10-11: Mithril, how much leaks per accepted signature, and what 2^64 signatures would need
+
+- **Idea in simple words:** in Mithril each party's answer z is a random point in a ball, nudged by a secret-dependent shift v, and kept only if it lands inside a fixed smaller ball. Ideally the kept points are spread perfectly evenly in the small ball whatever v is. Because the big ball is only slightly bigger, a thin sliver of the small ball (on the side away from v) can never be reached. That sliver is the leak: tiny per signature, but it adds up over many signatures.
+- **What / how:** wrote down the exact formula (the leak per signature is the sliver's share of the ball, so the "Rényi divergence", a measure of how different two distributions are, is 1/(1 - sliver)). Then reused our earlier numbers to see whether the published parameters would hold for 2^64 signatures (the figure used by other schemes), and added a `--target` option to `harness/schemes/mithril_params.py` to compute the parameters that would.
+- **Result:** Mithril claims 2^50 signatures, and at 2^64 every published set falls short (by 3 to 17 bits even in the optimistic typical case). Fixing it for 2^64 means running 1.7 to 23 times more parallel attempts K (worst ML-DSA-65 (5,6): 1200 to 27,806), so much more communication.
+- **Limits:** formula and parameter arithmetic only; no simulation (the sizes are far too big to compute exactly). The leak would be expensive to exploit, roughly as expensive as the proof says; no attack found.
+- **New word:** *Rényi divergence* = a number saying how distinguishable two distributions are; security proofs multiply it once per signature.
+
+## 2026-10-11: Trilithium toy, the branch-2 floor comes from the "wrap-around" cell
+
+- **Idea in simple words:** ML-DSA's rounding (Decompose) puts the numbers just below q into the same bucket as the numbers around 0, so bucket 0 is a bit wider than the others. We guessed that this uneven bucket causes the gap that would not shrink.
+- **What / how:** recomputed the gap after throwing away every result that touches bucket 0 (`experiments/trilithium_edge_cell.py`, 5 cases).
+- **Result:** with gamma1 at least twice gamma2, the gap drops 30 to 65 times (to about 1e-6) and keeps shrinking. So the floor lives in bucket 0. When gamma1 = gamma2 a smaller gap remains.
+- **Limits:** we removed the whole bucket 0, not just the wrapped numbers, so this shows *where* the effect is rather than proving exactly *why*. Toy size (n = 4) only, no attack.

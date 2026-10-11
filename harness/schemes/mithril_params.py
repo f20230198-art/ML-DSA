@@ -167,8 +167,8 @@ def corrected_params(p, nu, T, N, r, rp, K, log2_target=50, n=N_RING):
     raise RuntimeError("K did not converge")
 
 
-def corrected_report():
-    print("\nCorrected parameters (exact I, Q_s = 2^50 by Thm. 3.2, paper's B and r kept):")
+def corrected_report(log2_target=50):
+    print(f"\nCorrected parameters (exact I, Q_s = 2^{log2_target} by Thm. 3.2, paper's B and r kept):")
     for name, (nu, table) in TABLES.items():
         p = ALL[name]
         print(f"\n{name}")
@@ -176,7 +176,7 @@ def corrected_report():
               "  success_pub  success_new")
         for (T, N), (r, rp, K) in sorted(table.items(), key=lambda x: (x[0][1], x[0][0])):
             dim = N_RING * (p.k + p.l)
-            phi, rpn, lm, kn, so, sn = corrected_params(p, nu, T, N, r, rp, K)
+            phi, rpn, lm, kn, so, sn = corrected_params(p, nu, T, N, r, rp, K, log2_target)
             print(f"  ({T},{N}) {K:6d} {dim * math.log2(rp / r):9.3f} {phi:8.2f} {rp:8d} {rpn:8.0f}"
                   f" {lm:9.3f} {kn:6d} {kn / K:11.2f} {so:12.3f} {sn:12.3f}")
 
@@ -197,9 +197,10 @@ def main():
     ap.add_argument("--trials", type=int, default=2000, help="samples per (T,N) for the norm check")
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--corrected", action="store_true", help="only print corrected parameters")
+    ap.add_argument("--target", type=int, default=50, help="log2 Q_s target for --corrected")
     args = ap.parse_args()
     if args.corrected:
-        corrected_report()
+        corrected_report(args.target)
         return
     rng = np.random.default_rng(args.seed)
     lemma25_report()

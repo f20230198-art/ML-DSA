@@ -53,3 +53,17 @@ Source: Dufka et al., Trilithium (ePrint 2025/675, 67 pages), local `papers/tril
 
 - Branch 3 keeps falling at every q (q = 513, gamma1 = 64: 1.7e-6; q = 1025, gamma1 = 64: 3.9e-6).
 - Reading: the ratio alone does not explain the floor. Once gamma1 >= gamma2, branch 2 sits at about 0.6e-4 to 1.3e-4 for all three q, and it does not fall as q and gamma2 double. So the floor looks like a fixed feature of the branch-2 condition at n = 4, not a small-q artefact. Unverified guess: it comes from the special last HighBits cell (Decompose's q - 1 edge case) or from beta/gamma2 effects, either of which would persist as the box grows. Not tested. At n = 4 a 1e-4 gap needs about 1e4 rejected-in-branch-2 transcripts to see; says nothing about n = 256.
+
+### Edge-cell test for the branch-2 floor (11 Oct 2026)
+- `experiments/trilithium_edge_cell.py`, output `experiments/results/trilithium_edge_cell.{txt,json}`; n = 4, 5 trials, seed 2026 (reseeded per case, so full H^2 differs slightly from the earlier table). Branch-2 H^2 vs simulator, full and after removing every w_H with r1 = 0 in any coordinate (about 57% of mass kept):
+
+| q | gamma2 | gamma1 | H^2 full | H^2 masked |
+|---|---|---|---|---|
+| 257 | 16 | 32 | 8.6e-5 | 3.6e-5 |
+| 257 | 16 | 48 | 5.3e-5 | 1.8e-6 |
+| 513 | 32 | 32 | 1.2e-4 | 3.8e-5 |
+| 513 | 32 | 64 | 8.4e-5 | 1.3e-6 |
+| 1025 | 64 | 64 | 1.2e-4 | 1.5e-5 |
+
+- Reading: for gamma1 >= 2 gamma2 the masked gap is 30-65x smaller (about 1e-6, the size of branch 3) and keeps falling, so the floor comes mostly from the r1 = 0 cell (Decompose folds the values near q - 1 into it, making it wider). At gamma1 = gamma2 a smaller part (1.5e-5 to 3.8e-5) remains that still shrinks with gamma1. Caveat: the mask removes the whole r1 = 0 cell, not only the folded values, so this localises the effect to that cell rather than proving the fold is the cause.
+- Relevance: real ML-DSA has the same folded cell (Decompose's q - 1 case), but at n = 256 with huge gamma1 the rejected w_H is statistically uniform anyway; this is a toy-size explanation, not an attack.

@@ -34,14 +34,14 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Preview writeup v1.0 read (8 pages): no parameters or Q_s, nothing to compare. Authors cannot be contacted (user, 8 Oct)
 - [ ] Check original lemma in Devevey et al. (ePrint 2023/245, Sec. A.6); needs manual download
 - [x] Corrected parameters (10 Oct, `--corrected`, experiments/results/mithril_corrected.txt): phi drops to 5.3-5.6 (-44), 5.9-6.6 (-65), 7.1-7.7 (-87); r' grows by 12 to 89; to keep the same session success rate K grows 1.3x to 8.5x (worst -65 (5,6): 1200 -> 10234). Communication scales with K
-- [ ] Accepted-z distribution and Rényi/Fisher loss at q_s = 2^64
+- [x] Accepted-z distribution and Rényi loss at q_s = 2^64 (11 Oct): closed form (uniform on ball intersection, Rényi = 1/(1-delta) any order, Fisher n/a); at 2^64 all published sets short (Thm: 27-38 bits; typical: 3-17 bits); corrected params for 2^64 need K x1.7 to x23 (`mithril_corrected_2e64.txt`). Not simulated
 - [ ] Hint accounting with exact T−1 share subset (lattice estimator)
 
 ## 4. Quorus and Trilithium
 - [x] Quorus Algorithm 1 implemented (`harness/schemes/quorus.py`), 8 Oct: M_rep matches Table 2; 0 of 272,664 signatures fail FIPS 204 verification; short proof that the skip-e_w hint optimization is always correct (eta < beta)
 - [x] Quorus leakage, statistical level: nothing detectable by construction (w uniform mod q); lattice-level distinguisher not run
 - [x] Trilithium Sec. 3 read (MLWR argument for rejected w_H), 8 Oct
-- [~] Trilithium toy-size test for rejected w_H (H-F2): exact enumeration at n = 4 done (10 Oct, `harness/schemes/trilithium_toy.py`): gap to simulator real at toy size, shrinks with gamma1 (branch 3 ~gamma1^-2.7); branch-2 floor at gamma1 = 32-48 unexplained; fixed-ratio scan done 11 Oct (q = 257/513/1025): branch-2 floor ~1e-4 for gamma1 >= gamma2 at all q, so not a small-q artefact, cause open; n = 8 sampling todo
+- [~] Trilithium toy-size test for rejected w_H (H-F2): exact enumeration at n = 4 done (10 Oct, `harness/schemes/trilithium_toy.py`): gap to simulator real at toy size, shrinks with gamma1 (branch 3 ~gamma1^-2.7); branch-2 floor at gamma1 = 32-48 unexplained; fixed-ratio scan done 11 Oct (q = 257/513/1025): branch-2 floor ~1e-4 for gamma1 >= gamma2 at all q, so not a small-q artefact; edge-cell test (11 Oct): masking r1 = 0 removes it for gamma1 >= 2 gamma2 (30-65x smaller); n = 8 sampling todo
 - [ ] Trilithium rejected-partial uniformity test; CRP and declassified-bit analysis
 
 ## 5. Kao predecessor design (arXiv 2601.20917)
