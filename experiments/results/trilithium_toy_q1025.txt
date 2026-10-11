@@ -1,0 +1,4 @@
+n=4 q=1025 gamma2=64 trials=5 seed=2026 (means over trials)
+gamma1     p_rej3     p_rej2    sd3_sim   h2_3_sim    sd2_sim   h2_2_sim sd_sim_unif    sd3_key   h2_3_key  ~1/H2(3,sim)
+    32      0.278      0.109    0.00646   3.44e-05     0.0241   0.000568    0.00249    0.00482   2.31e-05    2.91e+04
+    64      0.147      0.128    0.00219    3.9e-06     0.0129    0.00011   0.000416    0.00176   2.57e-06    2.57e+05

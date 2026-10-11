@@ -39,3 +39,17 @@ Source: Dufka et al., Trilithium (ePrint 2025/675, 67 pages), local `papers/tril
 ## Reading status
 
 - 2026-10-08: Sec. 3 (zero-knowledge of the identification protocol, Alg. 4, MLWR discussion) read fully; table of contents and Sec. 4 headings mapped. Not read: Sec. 4 protocols in detail, Sec. 5 simulators, App. B proofs, App. D (literature on rejected transcripts).
+
+### Fixed-ratio scan for the branch-2 floor (11 Oct 2026)
+- Runs: q = 1025, gamma2 = 64, gamma1 = 32, 64 (`trilithium_toy_q1025.{txt,json}`); q = 513, gamma2 = 32, gamma1 = 64 (`trilithium_toy_q513_g64.*`). n = 4, 5 trials, seed 2026, exact enumeration as before.
+- Branch-2 H^2 (vs simulator) by ratio gamma1/gamma2:
+
+| gamma1/gamma2 | q = 257 | q = 513 | q = 1025 |
+|---|---|---|---|
+| 0.5 | - | 5.1e-3 | 5.7e-4 |
+| 1 | 1.2e-3 | 1.3e-4 | 1.1e-4 |
+| 2 | 7.1e-5 | 8.6e-5 | - |
+| 3 | 5.7e-5 | - | - |
+
+- Branch 3 keeps falling at every q (q = 513, gamma1 = 64: 1.7e-6; q = 1025, gamma1 = 64: 3.9e-6).
+- Reading: the ratio alone does not explain the floor. Once gamma1 >= gamma2, branch 2 sits at about 0.6e-4 to 1.3e-4 for all three q, and it does not fall as q and gamma2 double. So the floor looks like a fixed feature of the branch-2 condition at n = 4, not a small-q artefact. Unverified guess: it comes from the special last HighBits cell (Decompose's q - 1 edge case) or from beta/gamma2 effects, either of which would persist as the box grows. Not tested. At n = 4 a 1e-4 gap needs about 1e4 rejected-in-branch-2 transcripts to see; says nothing about n = 256.
