@@ -23,7 +23,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Run the n-ladder 8 to 256, apply gate C1 (6 Oct): above the cap by 4.5 to 5 bits and above the wall by 2.3 to 2.8 bits in our model; no break
 - [x] Firmer numbers (8 Oct): -44 n = 256 with 20 trials: N*99 = 1.45e5 (2^17.1), full secret (k = 4) by 1.46e5; 4.1 bits above cap, 1.9 above wall. -87 n = 256 (5 trials): N*99 between 2^17.6 and 2^18.4, at least 3.6 above cap, 1.4 above wall
 - [x] More trials for -87 and -65 at n = 256 near the transition (10 Oct, 20 trials, 7 points each): -87 N*99 = 3.69e5 (2^18.5), 4.5 above cap, 2.3 above wall; -65 N*99 = 3.58e5 (2^18.4), 4.4 above cap, 2.0 above wall. Per ring element; full-secret (k = 6, 8) not separately checked
-- [ ] Positive control (TALUS v0.1 recovery), negative control (plain ML-DSA), power analysis
+- [x] Positive and negative controls from real ML-DSA-44 signing (10 Oct, `harness/schemes/mldsa_controls.py`, `experiments/mldsa_controls.py`): no-r0-check variant -> edge estimator recovers s2 - t0 (key) in 9/9 runs (3 keys x N = 2e5, 4e5, 8e5); genuine ML-DSA -> key in 0/9, returns only -t0 (public-equivalent) in 9/9. TALUS v0.1 itself and a false-positive rate over many seeds still todo
 - [x] Compare against cap (2^13-2^14) and uniqueness wall (2^15-2^16): margin table in docs/LEARN.md (6 Oct)
 
 ## 3. Mithril
