@@ -37,7 +37,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Corrected parameters (10 Oct, `--corrected`, experiments/results/mithril_corrected.txt): phi drops to 5.3-5.6 (-44), 5.9-6.6 (-65), 7.1-7.7 (-87); r' grows by 12 to 89; to keep the same session success rate K grows 1.3x to 8.5x (worst -65 (5,6): 1200 -> 10234). Communication scales with K
 - [x] Accepted-z distribution and Rényi loss at q_s = 2^64 (11 Oct): closed form (uniform on ball intersection, Rényi = 1/(1-delta) any order, Fisher n/a); at 2^64 all published sets short (Thm: 27-38 bits; typical: 3-17 bits); corrected params for 2^64 need K x1.7 to x23 (`mithril_corrected_2e64.txt`). Not simulated
 - [x] Hint accounting with exact T−1 share subset (11 Oct, `harness/schemes/mithril_hint.py`, Python core-SVP substitute): -44 loss 4-7 bits (paper's 12 reproduces with its 0.74), -65 14.6-20.7 bits (above the claimed 7-12), -87 7.6-12.8
-- [ ] Re-run the hint accounting with the real lattice estimator (Docker Sage)
+- [x] Re-run with the real lattice estimator (11 Oct, Docker Sage 10.4, rough mode): -44 loss 4.9-7.7, -65 17.7-23.9, -87 8.6-14.4 bits; paper's 0.74 gives 14.1 for -44
 
 ## 4. Quorus and Trilithium
 - [x] Quorus Algorithm 1 implemented (`harness/schemes/quorus.py`), 8 Oct: M_rep matches Table 2; 0 of 272,664 signatures fail FIPS 204 verification; short proof that the skip-e_w hint optimization is always correct (eta < beta)
@@ -51,12 +51,12 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 ## 5. Kao predecessor design (arXiv 2601.20917)
 - [x] Confirm or refute P2 masked-commitment claim at |S∖C| = 1 (2026-10-06, Stage D, toy `harness/schemes/kao_p2.py`: algebra confirmed on a toy; the paper already states the |S∖C| >= 2 condition; open point is the N-1 unforgeability claim, see notes/schemes/kao-p2.md)
 - [x] Does P2 broadcast every W_i? YES per the paper (Fig. 1b, Remark 11, App. M.1), and masks cancel (Lemma 1), so sum W_i = A y is public and s1 follows from one P2 signature at any |S∖C| (11 Oct, text + toy test). Contact the author before disclosure
-- [ ] Draft the author-notification email for the Kao P2 finding (user decides when/if to send)
+- [x] Draft the author-notification email for the Kao P2 finding: `docs/disclosure_drafts.md` (11 Oct, NOT sent; user decides)
 - [x] Read App. B.1 key DKG: Feldman-style commitment t(i) = A s1(i) + s2(i) (and the text says Feldman over g^a, i.e. not lattice-native); the specific A*s1,i pattern broken in TALUS is not checked
 - [~] Read remaining Kao appendices: A, I, M.1 read (11 Oct); B.2-H, K, L, N, O still headings only
 
 ## 6. Packages phase (from March 2027)
-- [ ] Rerun harness on actual reference code
+- [~] Rerun on actual reference code: Mithril params/hyperball.sage RUN in Sage (11 Oct), reproduces App. A radii and boundI 2^-50.1 vs exact 2^-33.5. Go signing code, Quorus/Trilithium/TALUS/Kao code: not run (Kao code not public)
 
 ## Reading gaps
 - [~] Full Mithril (ePrint 2026/013) read except App. D, E and most of G (8 Oct); Quorus (2025/1163) and Trilithium (2025/675) PDFs now in papers/, not yet read in full
@@ -74,4 +74,4 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [ ] Read final NIST call text (IR 8214C) for rules on public analysis and comments
 - [ ] Ask course instructor if any permission is needed
 - [ ] Plan a fallback deliverable if no attack is found (harness plus measured margins)
-- [ ] Draft author-notification email template for any finding
+- [x] Draft author-notification emails: `docs/disclosure_drafts.md` (Kao P2, Mithril, Devevey et al.), 11 Oct, not sent

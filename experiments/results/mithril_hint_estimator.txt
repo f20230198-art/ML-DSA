@@ -1,0 +1,47 @@
+# lattice-estimator commit 53da598 (2026-08-19), SageMath 10.4 Docker image, LWE.estimate.rough (usvp + dual_hybrid)
+# docker run --rm -e PYTHONPATH=/est -v <lattice-estimator>:/est -v <repo>/experiments:/exp -w /est sagemath/sagemath:10.4 sage /exp/mithril_hint_estimator.sage
+usvp                 :: rop: ≈2^123.8, red: ≈2^123.8, δ: 1.003824, β: 424, d: 2002, tag: usvp
+dual_hybrid          :: rop: ≈2^122.6, red: ≈2^122.6, guess: ≈2^112.7, β: 420, p: 5, ζ: 0, t: 40, β': 420, N: ≈2^85.8, m: 1024
+ML-DSA-44: no hint 122.6 bits
+usvp                 :: rop: ≈2^119.7, red: ≈2^119.7, δ: 1.003914, β: 410, d: 1960, tag: usvp
+dual_hybrid          :: rop: ≈2^117.7, red: ≈2^117.7, guess: ≈2^112.2, β: 403, p: 5, ζ: 0, t: 40, β': 403, N: ≈2^82.8, m: 1024
+   S=2: sd 1.14900000000000: 117.7 bits, loss 4.9
+usvp                 :: rop: ≈2^117.4, red: ≈2^117.4, δ: 1.003968, β: 402, d: 2000, tag: usvp
+dual_hybrid          :: rop: ≈2^115.5, red: ≈2^115.3, guess: ≈2^111.9, β: 395, p: 5, ζ: 0, t: 40, β': 395, N: ≈2^81.5, m: 1024
+   S=6: sd 1.03300000000000: 115.5 bits, loss 7.2
+usvp                 :: rop: ≈2^116.8, red: ≈2^116.8, δ: 1.003982, β: 400, d: 1977, tag: usvp
+dual_hybrid          :: rop: ≈2^114.9, red: ≈2^114.8, guess: ≈2^111.9, β: 393, p: 5, ζ: 0, t: 40, β': 393, N: ≈2^80.2, m: 1024
+   S=20: sd 0.999000000000000: 114.9 bits, loss 7.7
+usvp                 :: rop: ≈2^111.3, red: ≈2^111.3, δ: 1.004118, β: 381, d: 1930, tag: usvp
+dual_hybrid          :: rop: ≈2^108.6, red: ≈2^108.3, guess: ≈2^106.0, β: 371, p: 3, ζ: 10, t: 40, β': 371, N: ≈2^77.0, m: 1024
+   S=paper 0.74: sd 0.740000000000000: 108.6 bits, loss 14.1
+usvp                 :: rop: ≈2^182.2, red: ≈2^182.2, δ: 1.002902, β: 624, d: 2597, tag: usvp
+dual_hybrid          :: rop: ≈2^184.9, red: ≈2^184.8, guess: ≈2^180.4, β: 633, p: 3, ζ: 10, t: 0, β': 633, N: ≈2^130.3, m: 1280
+ML-DSA-65: no hint 182.2 bits
+usvp                 :: rop: ≈2^167.6, red: ≈2^167.6, δ: 1.003083, β: 574, d: 2511, tag: usvp
+dual_hybrid          :: rop: ≈2^164.5, red: ≈2^164.1, guess: ≈2^162.4, β: 562, p: 7, ζ: 10, t: 40, β': 562, N: ≈2^116.4, m: 1280
+   S=2: sd 1.54300000000000: 164.5 bits, loss 17.7
+usvp                 :: rop: ≈2^162.6, red: ≈2^162.6, δ: 1.003151, β: 557, d: 2493, tag: usvp
+dual_hybrid          :: rop: ≈2^159.4, red: ≈2^159.4, guess: ≈2^150.8, β: 546, p: 6, ζ: 10, t: 40, β': 546, N: ≈2^111.4, m: 1280
+   S=6: sd 1.28100000000000: 159.4 bits, loss 22.8
+usvp                 :: rop: ≈2^161.5, red: ≈2^161.5, δ: 1.003167, β: 553, d: 2450, tag: usvp
+dual_hybrid          :: rop: ≈2^158.3, red: ≈2^158.3, guess: ≈2^148.7, β: 542, p: 4, ζ: 10, t: 50, β': 542, N: ≈2^111.3, m: 1280
+   S=20: sd 1.21600000000000: 158.3 bits, loss 23.9
+usvp                 :: rop: ≈2^149.2, red: ≈2^149.2, δ: 1.003352, β: 511, d: 2394, tag: usvp
+dual_hybrid          :: rop: ≈2^144.5, red: ≈2^144.5, guess: ≈2^132.8, β: 495, p: 3, ζ: 10, t: 60, β': 495, N: ≈2^102.0, m: 1280
+   S=paper 0.74: sd 0.740000000000000: 144.5 bits, loss 37.7
+usvp                 :: rop: ≈2^252.0, red: ≈2^252.0, δ: 1.002283, β: 863, d: 3498, tag: usvp
+dual_hybrid          :: rop: ≈2^245.1, red: ≈2^245.0, guess: ≈2^241.3, β: 839, p: 5, ζ: 20, t: 70, β': 839, N: ≈2^172.8, m: 1792
+ML-DSA-87: no hint 245.1 bits
+usvp                 :: rop: ≈2^244.1, red: ≈2^244.1, δ: 1.002338, β: 836, d: 3482, tag: usvp
+dual_hybrid          :: rop: ≈2^236.5, red: ≈2^236.5, guess: ≈2^230.8, β: 810, p: 4, ζ: 20, t: 80, β': 810, N: ≈2^167.1, m: 1792
+   S=2: sd 1.14900000000000: 236.5 bits, loss 8.6
+usvp                 :: rop: ≈2^240.3, red: ≈2^240.3, δ: 1.002366, β: 823, d: 3412, tag: usvp
+dual_hybrid          :: rop: ≈2^232.2, red: ≈2^232.1, guess: ≈2^227.2, β: 795, p: 4, ζ: 20, t: 80, β': 795, N: ≈2^163.7, m: 1792
+   S=6: sd 1.03300000000000: 232.2 bits, loss 12.9
+usvp                 :: rop: ≈2^239.1, red: ≈2^239.1, δ: 1.002374, β: 819, d: 3394, tag: usvp
+dual_hybrid          :: rop: ≈2^230.7, red: ≈2^230.7, guess: ≈2^226.2, β: 790, p: 4, ζ: 20, t: 80, β': 790, N: ≈2^163.7, m: 1792
+   S=20: sd 0.999000000000000: 230.7 bits, loss 14.4
+usvp                 :: rop: ≈2^228.6, red: ≈2^228.6, δ: 1.002455, β: 783, d: 3337, tag: usvp
+dual_hybrid          :: rop: ≈2^218.8, red: ≈2^218.7, guess: ≈2^215.3, β: 749, p: 3, ζ: 20, t: 100, β': 749, N: ≈2^154.7, m: 1792
+   S=paper 0.74: sd 0.740000000000000: 218.8 bits, loss 26.3

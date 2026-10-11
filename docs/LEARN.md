@@ -481,3 +481,14 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Why it matters:** this would let any single participant, or anyone watching the broadcast, recover the whole key after one signature. It only affects P2, not the other two modes.
 - **Limits:** toy only; the author's code is not public, and an implementation could compute w inside the secure computation instead. We must tell the author privately before saying anything publicly.
 - **Side note:** the paper's own security bound only covers about 16,000 signatures (it loses 0.0066 bits per signature), which is much less than other schemes target.
+
+## 2026-10-11: Mithril hint loss, checked with the official lattice estimator
+
+- **What / how:** earlier today we priced the attack with our own small Python formula. Now we ran the community-standard tool (the "lattice estimator" by Albrecht et al., which needs the Sage maths system; we ran Sage inside Docker so nothing had to be installed). It tries two attack families and reports the cheaper one.
+- **Result:** the same picture, slightly worse for the defender (1-3 bits more loss): ML-DSA-44 loses 5-8 bits, ML-DSA-65 18-24 bits (paper says 7-12), ML-DSA-87 9-14 bits. Using the paper's own 0.74 number, even ML-DSA-44 loses 14 bits, a bit above the paper's "at most 12".
+- **New word:** *Docker* = a way to run a complete prepared software environment (here: Sage) in a box on your computer.
+
+## 2026-10-11: Ran the Mithril authors' own script, and drafted (not sent) emails to authors
+
+- **What:** with Sage now working in Docker, we ran the parameter script published by the Mithril authors. It produces exactly the numbers in their paper, and its security figure uses the wrong bound (2^-50 where the true value is 2^-33.5). So our finding no longer rests only on reading their code; we ran it.
+- **Emails:** `docs/disclosure_drafts.md` holds polite private drafts to Kao (P2 key recovery), the Mithril authors (bound and hint loss) and optionally the authors of the original lemma. Nothing has been sent. Responsible practice is to tell authors privately first and give them time to answer; ask the instructor before sending.
