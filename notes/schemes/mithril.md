@@ -50,7 +50,7 @@ Sources (public): GitHub `GuilhemN/threshold-ml-dsa` (commit 66e269e, 5 Sep 2026
 - **Test:** `test_lemma25_bound_is_not_an_upper_bound_at_mithril_dims`.
 
 ## Next
-- Check the original lemma in Devevey et al. [27], Sec. A.6 (user to download ePrint 2023/245).
+- Check the original lemma in Devevey et al. [27], Sec. A.6 (user to download ePrint 2022/1249; 2023/245 was a mix-up, see notes/papers.md).
 - Compute corrected parameters (phi from the exact I for Q_s = 2^50) and the cost in acceptance probability and communication.
 - NIST writeup v1.0 (8 pages, read fully) has no parameters or Q_s statement, so nothing to compare.
 - Hint accounting for T-1 corrupted shares (lattice estimator, Docker Sage).
@@ -71,3 +71,21 @@ Sources (public): GitHub `GuilhemN/threshold-ml-dsa` (commit 66e269e, 5 Sep 2026
 - Consequence at 2^64 (direct from the 8 Oct table): Thm. 3.2 at published parameters covers 2^26-2^37 (27-38 bits short); the typical-case heuristic gives 46.7-60.7, so every set is 3-17 bits short. Mithril only claims 2^50; 2^64 is the del Pino-Niot / NIST-style figure we compare against.
 - Corrected parameters for 2^64 (`python -m harness.schemes.mithril_params --corrected --target 64`, `experiments/results/mithril_corrected_2e64.txt`): phi 4.7-4.95 (-44), 5.3-5.8 (-65), 6.3-6.7 (-87); K grows 1.7x to 23x (worst -65 (5,6): 1200 -> 27806; (4,6): 804 -> 16630), against 1.3x-8.5x for 2^50.
 - What it means: the leakage per accepted z is a thin missing cap of the ball, opposite v. An attacker could in principle use "no z ever lands there" like our TALUS edge estimator, but each session leaks with probability only about eps, so the attack cost tracks 1/(K E[eps]), the same number as the proof. No sign of a cheaper attack; not tested by simulation (r' - r is 50-120 units on radius ~250k in dimension 2048-3840, far beyond exact computation).
+
+## A posteriori key sharing: hint from T-1 corrupted parties (11 Oct 2026)
+- Source: Sec. 3.3 read fully (and the Thm. 3.3 / App. E.3 game list skimmed). Claim: sharing an existing ML-DSA key with share sd sqrt(2) leaks a hint; "effective entropy equals that of a secret with standard deviation 0.74"; lattice estimator: loss "at most 12 bits"; summary "7 to 12 bits". No parameter set or S is named.
+- Code: `harness/schemes/mithril_hint.py` (`python -m harness.schemes.mithril_hint`, output `experiments/results/mithril_hint.txt`), 4 tests. Exact per-coefficient posterior: s uniform on [-eta, eta], S = C(N, T-1) discrete-Gaussian shares conditioned on summing to s; T-1 corrupted parties miss exactly one share (the one of the N-T+1 honest parties), so they learn h = s - x_S. Security: primal uSVP core-SVP (2016 estimate, 0.292 beta), our Python substitute for the lattice estimator (Sage not installed); baselines 424 / 624 / 863 match Dilithium round-3 (423 / 623 / 862).
+- Results (sd_share = sqrt(2), S = 2..20), loss in core-SVP bits using the exact posterior sd (and, in brackets, the sd of a Gaussian with the same entropy, a more pessimistic proxy):
+  - ML-DSA-44: posterior sd 1.15 -> 1.00, loss 4.1-7.0 (7.3-9.6).
+  - ML-DSA-65 (eta = 4): posterior sd 1.54 -> 1.22, loss 14.6-20.7 (18.4-23.7).
+  - ML-DSA-87: loss 7.6-12.8 (13.1-17.8).
+- Where 0.74 comes from (hypothesis): Thm. 3.3's hint sd 2^(-1/2) (1/sigma_ML^2 + (S-1)/(S sigma_share^2))^(-1/2) with sigma_ML = sqrt(2) (eta = 2) gives 0.74 at S = 6. Our exact posterior sd at the same S is 1.03, about sqrt(2) larger; the 2^(-1/2) may be a width-vs-sd convention. Plugging 0.74 into our estimate for ML-DSA-44 gives 12.6 bits: the paper's "at most 12 bits" reproduces for ML-DSA-44 only.
+- Reading: for ML-DSA-44 the paper is conservative (exact loss 4-7 bits). For ML-DSA-65 the loss is larger than "7 to 12 bits" because eta = 4 shares with sd sqrt(2) hide far less of a wider secret (14.6-20.7 bits with the exact posterior); -87 up to about 13. The paper's statement seems to have been computed for eta = 2 only.
+- Caveats: core-SVP primal only (no dual, hybrid or hint-aware estimator); models the hinted secret as Gaussian with the posterior sd after centring on the posterior mean, which the attacker can compute; does not use the non-Gaussian shape of the posterior; sigma_share = sqrt(2) read as a standard deviation (if it were a GPV width s, sd 0.56, losses are larger still: about 15-18 bits for -44). Not run with the real lattice estimator (Docker Sage is possible). Not an attack on the default key generation, only on a posteriori sharing. Contact authors before anything public.
+
+## Lemma 2.5 traced to its source (11 Oct 2026)
+- Source: Devevey, Fawzi, Passelegue, Stehle, ePrint 2022/1249 (local `papers/devevey_2022-1249.pdf`, 50 pages), App. A.6 read fully (Def. A.12, Lemma A.13 and the two bounds after it).
+- The original states the same upper bound as Mithril: I_{1-1/eta^2}((n+1)/2, 1/2) < (1 - 1/eta^2)^(n-1) * n * (1 - 1/eta), justified "by placing the hyperspherical cap into a cylinder of 1-dimensional height 1 - 1/eta". Mithril copied it correctly; the error is in the source.
+- Doing that cylinder argument exactly gives I <= 2 V_{n-1}/V_n * (1 - 1/eta^2)^((n-1)/2) * (1 - 1/eta): the cylinder base has radius sqrt(1 - 1/eta^2), so its (n-1)-volume carries exponent (n-1)/2. `mithril_params.cylinder_bound_log2`, test `test_cylinder_bound_done_exactly_is_a_valid_upper_bound`. Numbers (log2): n = 2048, eta = 7: exact -33.5, printed -50.1 (invalid), corrected -25.5 (valid); the printed bound is already invalid at n = 100 (-10.76 vs exact -10.75).
+- The derived consequence 1/eta^2 < 1 - (eps/n)^(1/(n-1)) in the same appendix inherits the error. Their lower bound (cone, exponent (n-1)/2) looks fine. The ASIACRYPT published version was not checked (only the ePrint).
+- Consequence for Mithril unchanged (already used the exact I): Thm. 3.2 covers 2^26-2^37. New: other works that cite this bound (e.g. hyperball variants of Lyubashevsky / Dilithium) may inherit it; not checked. Contact authors before anything public.

@@ -58,6 +58,12 @@ def test_lemma25_bound_is_not_an_upper_bound_at_mithril_dims():
     assert mp.lemma25_bound_log2(64, 7) > mp.exact_I_log2(64, 7)
 
 
+def test_cylinder_bound_done_exactly_is_a_valid_upper_bound():
+    # Same argument as Devevey et al. 2022 App. A.6, with exponent (dim-1)/2: always above the exact value.
+    for dim, phi in ((10, 3), (100, 3), (2048, 7), (2816, 8), (3840, 9)):
+        assert mp.cylinder_bound_log2(dim, phi) >= mp.exact_I_log2(dim, phi)
+
+
 def test_corrected_params_reach_target_and_keep_success():
     p = ALL["ML-DSA-44"]
     nu, table = mp.TABLES["ML-DSA-44"]

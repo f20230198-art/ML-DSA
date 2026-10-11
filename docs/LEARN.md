@@ -438,3 +438,23 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **What / how:** recomputed the gap after throwing away every result that touches bucket 0 (`experiments/trilithium_edge_cell.py`, 5 cases).
 - **Result:** with gamma1 at least twice gamma2, the gap drops 30 to 65 times (to about 1e-6) and keeps shrinking. So the floor lives in bucket 0. When gamma1 = gamma2 a smaller gap remains.
 - **Limits:** we removed the whole bucket 0, not just the wrapped numbers, so this shows *where* the effect is rather than proving exactly *why*. Toy size (n = 4) only, no attack.
+
+## 2026-10-11: Mithril, how much the corrupted parties learn when an existing key is split
+
+- **Idea in simple words:** Mithril lets you take an ML-DSA key you already have and split it into many small random pieces (shares) that add up to the key. If T-1 parties are dishonest, together they hold every piece except one. Because the pieces are small, the sum of what they hold is already "close" to the secret: this is a *hint*. A hint makes the lattice problem behind the key easier, so the key has fewer bits of security.
+- **What / how:** `harness/schemes/mithril_hint.py` computes, for one coefficient, exactly what the dishonest parties know (the probability of each secret value given their pieces), turns it into an "effective size" of the remaining secret, and feeds that into a standard estimate of the cost of the best lattice attack (primal uSVP, core-SVP). Our cost for the normal key matches the official Dilithium numbers, so the calculator is checked.
+- **Result:** the paper says the loss is 7 to 12 bits. For ML-DSA-44 we get 4 to 7 bits (the paper's 12 reproduces if we use its own, more cautious 0.74 number). For ML-DSA-65 the loss is 15 to 21 bits, more than claimed: its secret coefficients range up to 4 instead of 2, and shares of size about 1.4 hide a wide secret poorly. ML-DSA-87: 8 to 13 bits.
+- **Limits:** a simple Python estimate, not the official lattice estimator (needs Sage); only one attack type; the paper itself calls its number a heuristic sanity check. No attack on normal Mithril key generation.
+- **New words:** *hint* = extra noisy information about the secret; *core-SVP* = a standard way to price a lattice attack, 0.292 x (BKZ block size) bits; *posterior* = what you believe about the secret after seeing the hint.
+
+## 2026-10-11: Wrong paper downloaded (our mistake), corrected
+
+- **What:** we asked for ePrint 2023/245 to check Mithril's Lemma 2.5. Reading Mithril's bibliography showed its reference [27] is a different paper by partly the same authors: ePrint 2022/1249 (ASIACRYPT 2022). The 2023/245 PDF is kept in `papers/` but does not contain the lemma.
+- **Why it matters:** a reminder to check a citation against the citing paper's own reference list, not from memory.
+
+## 2026-10-11: The wrong bound comes from the original paper, not from Mithril
+
+- **Idea in simple words:** Mithril uses a formula (a ceiling on the size of a "cap" cut off a ball) to prove its security. We had found that the ceiling is lower than the true value, so it cannot be a ceiling. Now we read the paper it was copied from (Devevey, Fawzi, Passelegue, Stehle 2022, Appendix A.6): the same wrong formula is there. Mithril copied it faithfully.
+- **How:** the original says "put the cap inside a cylinder". We did that calculation ourselves: the cylinder's base is a smaller ball of radius sqrt(1 - 1/eta^2) in one dimension less, and its volume shrinks with exponent (n-1)/2. The paper wrote n-1, double the right exponent, which makes the ceiling far too small in high dimension. Our corrected ceiling is always above the true value (new test).
+- **Why it matters:** the mistake is upstream, so other schemes that used this bound might also be affected (not checked). For Mithril our earlier numbers stand.
+- **Limits:** we read the ePrint version only, not the published conference version.

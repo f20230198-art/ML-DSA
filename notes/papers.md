@@ -79,3 +79,11 @@ Appendix proofs of every paper above; Raccoon, Gur-Katz-Silde, Dilithium, FROST 
 - **Quorus** (ePrint 2025/1163): Sec. 1.3, 2, 3, 4.1-4.3 read fully on 8 Oct; App. B-D not read.
 - **Trilithium** (ePrint 2025/675): Sec. 3 read fully on 8 Oct; Sec. 4-5 mapped, App. not read.
 - **Zhou, Wang, Sun, Yu, "Rejected Signatures' Challenges Pose New Challenges: Key Recovery of CRYSTALS-Dilithium via Side-Channel Attacks", ePrint 2025/214** (cited by Quorus as ZWSY25; title and authors checked online 8 Oct). Abstract only (from search result).
+
+## Fifth pass (2026-10-11)
+- **Mithril** Sec. 3.3 (a posteriori key sharing) read fully; App. E.3 game list skimmed.
+- **Albrecht, Player, Scott, "On the concrete hardness of Learning with Errors", J. Math. Cryptology 2015** (the lattice estimator, Mithril ref. [3]): from memory, not read, not re-checked online.
+- **Alkim, Ducas, Poppelmann, Schwabe, "Post-quantum key exchange - a new hope", USENIX Security 2016** (source of the 2016 primal uSVP estimate used in `mithril_hint.py`): from memory, not read.
+- **Correction (11 Oct):** Mithril's [27] is **Devevey, Fawzi, Passelegue, Stehle, "On rejection sampling in Lyubashevsky's signature scheme", ASIACRYPT 2022, LNCS 13794, pp. 34-64, ePrint 2022/1249** (checked in Mithril's bibliography and online 11 Oct). Not yet downloaded. The earlier entry (ePrint 2023/245) was the wrong paper.
+- **Devevey, Fallahpour, Passelegue, Stehle, Xagawa, ePrint 2023/245**: now local (`papers/devevey_2023-245.pdf`, 60 pages); title page checked; searched for a hyperball lemma: none in an A.6. Otherwise not read; not needed for Mithril.
+- **Devevey, Fawzi, Passelegue, Stehle, ePrint 2022/1249**: now local (`papers/devevey_2022-1249.pdf`, 50 pages, title page checked). App. A.6 read fully on 11 Oct; rest not read.

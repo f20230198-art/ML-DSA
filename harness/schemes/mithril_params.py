@@ -73,6 +73,14 @@ def lemma25_bound_log2(dim, phi):
     return (dim - 1) * math.log2(1 - 1 / phi ** 2) + math.log2(dim * (1 - 1 / phi))
 
 
+def cylinder_bound_log2(dim, phi):
+    """log2 of the cylinder argument of Devevey-Fawzi-Passelegue-Stehle (ePrint 2022/1249, App. A.6)
+    done exactly: cap volume <= V_{dim-1}(sqrt(1 - 1/phi^2)) * (1 - 1/phi), so
+    I <= 2 V_{dim-1}/V_dim * (1 - 1/phi^2)^((dim-1)/2) * (1 - 1/phi). Exponent (dim-1)/2, not dim-1."""
+    lv = lambda d: (d / 2 * math.log(math.pi) - math.lgamma(d / 2 + 1)) / math.log(2)
+    return 1 + lv(dim - 1) - lv(dim) + (dim - 1) / 2 * math.log2(1 - 1 / phi ** 2) + math.log2(1 - 1 / phi)
+
+
 def exact_I_log2(dim, phi):
     return math.log2(betainc((dim + 1) / 2, 0.5, 1 - 1 / phi ** 2))
 

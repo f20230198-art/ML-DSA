@@ -32,10 +32,12 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Typical-case Q_s under the real norm distribution (8 Oct): 2^50 or more for most sets; up to about 3 bits short for -44 (4,6), (5,6) and -65 (4,5), (4,6), (5,6), (6,6). Heuristic (random challenges), not a proof
 - [x] Root cause from the public code (GuilhemN/threshold-ml-dsa, params/hyperball.sage), 8 Oct: B is the paper's; phi fixed at 7/8/9; Lemma 2.5 (used as `boundI`) is not a valid upper bound at dim 2048-3840 (2^-50 vs exact 2^-33.5 for -44), so Thm. 3.2 covers 2^26-2^37, not 2^50
 - [x] Preview writeup v1.0 read (8 pages): no parameters or Q_s, nothing to compare. Authors cannot be contacted (user, 8 Oct)
-- [ ] Check original lemma in Devevey et al. (ePrint 2023/245, Sec. A.6); needs manual download
+- [x] Check original lemma in Devevey, Fawzi, Passelegue, Stehle (ePrint 2022/1249, Sec. A.6), 11 Oct: same wrong exponent n-1 in the original (cylinder argument done right gives (n-1)/2); Mithril copied it faithfully
+- [ ] Check the ASIACRYPT published version and other works citing this bound
 - [x] Corrected parameters (10 Oct, `--corrected`, experiments/results/mithril_corrected.txt): phi drops to 5.3-5.6 (-44), 5.9-6.6 (-65), 7.1-7.7 (-87); r' grows by 12 to 89; to keep the same session success rate K grows 1.3x to 8.5x (worst -65 (5,6): 1200 -> 10234). Communication scales with K
 - [x] Accepted-z distribution and Rényi loss at q_s = 2^64 (11 Oct): closed form (uniform on ball intersection, Rényi = 1/(1-delta) any order, Fisher n/a); at 2^64 all published sets short (Thm: 27-38 bits; typical: 3-17 bits); corrected params for 2^64 need K x1.7 to x23 (`mithril_corrected_2e64.txt`). Not simulated
-- [ ] Hint accounting with exact T−1 share subset (lattice estimator)
+- [x] Hint accounting with exact T−1 share subset (11 Oct, `harness/schemes/mithril_hint.py`, Python core-SVP substitute): -44 loss 4-7 bits (paper's 12 reproduces with its 0.74), -65 14.6-20.7 bits (above the claimed 7-12), -87 7.6-12.8
+- [ ] Re-run the hint accounting with the real lattice estimator (Docker Sage)
 
 ## 4. Quorus and Trilithium
 - [x] Quorus Algorithm 1 implemented (`harness/schemes/quorus.py`), 8 Oct: M_rep matches Table 2; 0 of 272,664 signatures fail FIPS 204 verification; short proof that the skip-e_w hint optimization is always correct (eta < beta)
