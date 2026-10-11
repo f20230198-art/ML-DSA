@@ -458,3 +458,12 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **How:** the original says "put the cap inside a cylinder". We did that calculation ourselves: the cylinder's base is a smaller ball of radius sqrt(1 - 1/eta^2) in one dimension less, and its volume shrinks with exponent (n-1)/2. The paper wrote n-1, double the right exponent, which makes the ceiling far too small in high dimension. Our corrected ceiling is always above the true value (new test).
 - **Why it matters:** the mistake is upstream, so other schemes that used this bound might also be affected (not checked). For Mithril our earlier numbers stand.
 - **Limits:** we read the ePrint version only, not the published conference version.
+
+## 2026-10-11: Trilithium, does a bigger dimension help, and what the one public bit reveals
+
+- **Idea in simple words:** Trilithium publishes the rounded commitment w_H even for failed signing attempts. On tiny toys these failed w_H were slightly different from random and slightly dependent on the key. The open question: does this get better or worse as the dimension n grows (real ML-DSA has n = 256)?
+- **How:** the old program tried every y, which explodes with n. New trick (`harness/schemes/trilithium_conv.py`): w = A y is a sum of independent pieces, one per coordinate of y, so its exact distribution can be built step by step by adding shifted copies (a "convolution"). Its cost depends on q^n instead, so with a small q (17) we reached n = 6. It gives exactly the same numbers as the old program where both run (new test).
+- **Result:** from n = 4 to n = 6 the gap falls about 100 to 1000 times for one failure type and 15 to 70 times for the other; the dependence on the key also falls. So bigger dimension helps, as the authors argue. n = 8 is still too big to compute exactly.
+- **Reading the protocol:** each attempt also opens one bit, "passed or failed" (not which check failed). That check is only protected against a cheating server in a weak way. Our reading: a cheating server can learn about one bit and is then caught by the phone; the paper's informal argument seems right, with this small caveat. The helper that hands out correlated randomness (CRP) must be honest; if it teams up with the server, privacy is gone, as the paper says.
+- **New word:** *convolution* = the distribution of a sum of independent random values, computed by adding up shifted copies.
+- **Limits:** toy sizes only (q = 17, n <= 6); protocol caveat is a paper-level reading, not run.

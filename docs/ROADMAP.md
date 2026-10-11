@@ -44,7 +44,9 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Quorus leakage, statistical level: nothing detectable by construction (w uniform mod q); lattice-level distinguisher not run
 - [x] Trilithium Sec. 3 read (MLWR argument for rejected w_H), 8 Oct
 - [~] Trilithium toy-size test for rejected w_H (H-F2): exact enumeration at n = 4 done (10 Oct, `harness/schemes/trilithium_toy.py`): gap to simulator real at toy size, shrinks with gamma1 (branch 3 ~gamma1^-2.7); branch-2 floor at gamma1 = 32-48 unexplained; fixed-ratio scan done 11 Oct (q = 257/513/1025): branch-2 floor ~1e-4 for gamma1 >= gamma2 at all q, so not a small-q artefact; edge-cell test (11 Oct): masking r1 = 0 removes it for gamma1 >= 2 gamma2 (30-65x smaller); n = 8 sampling todo
-- [ ] Trilithium rejected-partial uniformity test; CRP and declassified-bit analysis
+- [x] Trilithium dimension trend (11 Oct, exact convolution `trilithium_conv.py`, n = 2..6 at q = 17): both gaps fall with n (branch 3 by 2-3 orders from n = 4 to 6); n = 8 still infeasible exactly
+- [x] Declassified rejection bit and CRP read (Sec. 4.6-4.7, 11 Oct): paper's argument mostly holds; H-F3: tampered rej_check can leak about one bit per detected misbehaviour; CRP+Server collusion breaks privacy by design
+- [ ] H-F3: read Sec. 5 / App. F for what the Phone does after detection
 
 ## 5. Kao predecessor design (arXiv 2601.20917)
 - [x] Confirm or refute P2 masked-commitment claim at |S∖C| = 1 (2026-10-06, Stage D, toy `harness/schemes/kao_p2.py`: algebra confirmed on a toy; the paper already states the |S∖C| >= 2 condition; open point is the N-1 unforgeability claim, see notes/schemes/kao-p2.md)
