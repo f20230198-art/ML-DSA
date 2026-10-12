@@ -55,6 +55,7 @@ def main():
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--device", default="gpu", choices=["cpu", "gpu"])
     ap.add_argument("--seed", type=int, default=2026)
+    ap.add_argument("--controls", nargs="+", default=["positive", "negative"], choices=["positive", "negative"])
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
     p = ALL[args.params]
@@ -69,6 +70,8 @@ def main():
             key = signer.target(0, positive=True)
             t0neg = signer.target(0, positive=False)
             for control, r0_check in (("positive", False), ("negative", True)):
+                if control not in args.controls:
+                    continue
                 todo = [n for n in args.N if (trial, control, n) not in done]
                 if not todo:
                     continue

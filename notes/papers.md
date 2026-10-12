@@ -90,3 +90,8 @@ Appendix proofs of every paper above; Raccoon, Gur-Katz-Silde, Dilithium, FROST 
 
 ## Sixth pass (2026-10-11)
 - **Kao, "FIPS 204-Compatible Threshold ML-DSA via Shamir Nonce DKG", arXiv 2601.20917v6** (title checked on the arXiv page 11 Oct): now local `papers/kao_2601-20917v6.pdf`, 112 pages. Read fully: Sec. 3.5-3.6 (Alg. 3, Remarks 10-11), Lemmas 1-2, Thm. 2, Cor. 1, App. A, App. I, App. M.1. Rest: headings only.
+
+## Seventh pass (2026-10-12)
+- **Devevey et al., ASIACRYPT 2022 version** (iacr.org/archive/asiacrypt2022/137910286/137910286.pdf): download blocked (403) for our tools; NOT read. User to download to papers/ to check whether App. A.6 / the hyperball intersection lemma appears there with exponent n-1.
+- **ePrint 2022/1249 history page** (read 12 Oct): versions 2022-09-20 and 2022-12-05; the revision note fixes the SIS parameters (B < q) and an underestimated hyperball cut in their Python script. It does not mention the A.6 exponent, so the latest ePrint version still carries it (consistent with our local copy).
+- **Citing works seen in search, not read:** Celi et al. (USENIX Security 2026, hyperball partial signatures, cited by Silence Laboratories Pebble threshold ML-DSA paper); Gaertner ePrint 2024/2052; HAETAE spec. Whether any uses the A.6 bound is unchecked.

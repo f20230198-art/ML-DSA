@@ -492,3 +492,16 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 
 - **What:** with Sage now working in Docker, we ran the parameter script published by the Mithril authors. It produces exactly the numbers in their paper, and its security figure uses the wrong bound (2^-50 where the true value is 2^-33.5). So our finding no longer rests only on reading their code; we ran it.
 - **Emails:** `docs/disclosure_drafts.md` holds polite private drafts to Kao (P2 key recovery), the Mithril authors (bound and hint loss) and optionally the authors of the original lemma. Nothing has been sent. Responsible practice is to tell authors privately first and give them time to answer; ask the instructor before sending.
+
+## 2026-10-12: Trilithium at dimension n = 8, by random sampling
+
+- **What:** the exact method (count every possible case) stops at n = 6 because the number of cases explodes. For n = 8 we instead drew 200 million random samples per setting (3 keys each) and measured the distance (squared Hellinger) between the real rejected values and what the paper's simulator would produce. Code: `harness/schemes/trilithium_mc.py`, `experiments/trilithium_mc.py`; results in `experiments/results/trilithium_mc.txt`.
+- **How we trust it:** at n = 6 the sampled numbers match the exact ones. Random sampling always shows a small fake distance even when two distributions are identical (the "bias" column); a "null" run that compares the simulator with itself confirms that this floor is about 3e-7 at n = 8.
+- **Result:** branch 3 (the main rejected value): the measured distance equals the noise floor, so any real gap is smaller than about 1e-7; we cannot see it. Branch 2 still shows a real gap: about 3e-5 at gamma1 = 4, about 7e-7 at gamma1 = 8 and 16. So both gaps keep falling as n grows, matching the n = 2..6 trend. At real sizes (n = 256) this trend suggests the gap is negligible, but that is an extrapolation, not a measurement.
+- **Also:** `experiments/mldsa_controls.py` got a `--controls` option to run only the positive or negative control.
+
+## 2026-10-12: Does the TALUS estimator ever "find" a key that is not there? (false-positive test)
+
+- **What:** a good attack test must not cry wolf. We signed 200,000 messages with genuine ML-DSA-44 (which is safe against this estimator) for 15 fresh keys (seed 2027) and ran the same estimator each time. Log: `experiments/results/mldsa_controls_fp.log`, data: `mldsa_controls_fp_ML-DSA-44.json`.
+- **Result:** the secret key came out 0 times out of 15; every time the estimator returned -t0 instead, a value an attacker can already get from the public key, so it is harmless. Adding the 3 earlier keys: 0 of 18 keys. With 0 hits in 18 independent tries, we can say with 95% confidence that the false-positive rate is below about 15% (1 - 0.05^(1/18)). This is a small sample: it shows the estimator is not obviously fooled, not that it can never be.
+- **Why it matters:** together with the positive control (key found 9/9 when the protection is removed), this shows the estimator detects real leakage and does not invent it.
