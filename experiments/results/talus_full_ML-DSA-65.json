@@ -1,0 +1,23 @@
+{
+ "params": "ML-DSA-65",
+ "noise": "bcc",
+ "target": "s2",
+ "solver": "cp",
+ "points": [
+  {
+   "n": 256,
+   "tau": 49,
+   "bound": 261692,
+   "N": 362887,
+   "trials": 300,
+   "succ_edge": 0.9966666666666667,
+   "succ_ls": 0.0,
+   "err_edge_med": 0.34807344263050854,
+   "err_ls_med": 107.32667469052635,
+   "K_hat": 0.4826717185693768,
+   "feasible_rounded": 0.9966666666666667,
+   "true_feasible": 1.0,
+   "seconds": 9.102325284481049
+  }
+ ]
+}

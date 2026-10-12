@@ -19,6 +19,8 @@ import json
 import math
 import os
 import time
+from collections import deque
+from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
 
@@ -40,13 +42,42 @@ def solve_edge(c, b, ch, solver, rng, obs=None):
     return x, info
 
 
-def run_point(p, n, count, trials, noise, target, solver, seed, device="cpu"):
+def _trial_data(job):
+    """Secret and transcript of one trial; also returns the rng state so the solver continues the same stream."""
+    p, n, count, noise, target, seed, trial = job
+    ch = make_channel(p, n, noise, target)
+    rng = np.random.default_rng([seed, n, count, trial])
+    s = sample_target(rng, ch)
+    c, b = make_transcript(rng, ch, s, count)
+    return s, c, b, rng.bit_generator.state
+
+
+def _trial_stream(jobs, workers):
+    """Yield _trial_data results in order; with workers > 1, build at most workers + 1 ahead in parallel."""
+    if workers <= 1:
+        yield from map(_trial_data, jobs)
+        return
+    with ProcessPoolExecutor(workers) as pool:
+        pending = deque()
+        for job in jobs:
+            pending.append(pool.submit(_trial_data, job))
+            if len(pending) > workers:
+                yield pending.popleft().result()
+        while pending:
+            yield pending.popleft().result()
+
+
+def run_point(p, n, count, trials, noise, target, solver, seed, device="cpu", workers=1):
     ch = make_channel(p, n, noise, target)
     rows = []
-    for trial in range(trials):
-        rng = np.random.default_rng([seed, n, count, trial])
-        s = sample_target(rng, ch)
-        c, b = make_transcript(rng, ch, s, count)
+    jobs = [(p, n, count, noise, target, seed, trial) for trial in range(trials)]
+    t_start = time.time()
+    for trial, (s, c, b, state) in enumerate(_trial_stream(jobs, workers)):
+        rng = np.random.default_rng()
+        rng.bit_generator.state = state
+        if trials >= 50 and (trial + 1) % 25 == 0:
+            ok = sum(r["ok_edge"] for r in rows)
+            print(f"  trial {trial + 1}/{trials}: {ok}/{len(rows)} ok so far ({time.time() - t_start:.0f}s)", flush=True)
         obs = None
         if device == "gpu":
             from harness.estimators import edge_gpu
@@ -136,6 +167,7 @@ def main():
     ap.add_argument("--device", default="cpu", choices=["cpu", "gpu"],
                     help="gpu = CUDA FFT residuals via PyTorch (same algorithm, ~3x faster at n = 256)")
     ap.add_argument("--seed", type=int, default=2026)
+    ap.add_argument("--workers", type=int, default=1, help="processes building transcripts ahead of the solver")
     ap.add_argument("--out", default=None)
     ap.add_argument("--summary", default=None, help="print a summary of a results file and exit")
     args = ap.parse_args()
@@ -159,7 +191,8 @@ def main():
             if (n, count) in done:
                 continue
             t0 = time.time()
-            ch, rows = run_point(p, n, count, args.trials, args.noise, args.target, args.solver, args.seed, args.device)
+            ch, rows = run_point(p, n, count, args.trials, args.noise, args.target, args.solver, args.seed, args.device,
+                                 args.workers)
             q = point_summary(ch, count, rows)
             data["points"].append(q)
             json.dump(data, open(out, "w"), indent=1)

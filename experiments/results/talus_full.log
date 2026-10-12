@@ -1,0 +1,44 @@
+  trial 25/300: 24/24 ok so far (538s)
+  trial 50/300: 49/49 ok so far (1124s)
+  trial 75/300: 74/74 ok so far (1714s)
+  trial 100/300: 99/99 ok so far (2296s)
+  trial 125/300: 124/124 ok so far (2883s)
+  trial 150/300: 149/149 ok so far (3470s)
+  trial 175/300: 174/174 ok so far (3963s)
+  trial 200/300: 198/199 ok so far (4429s)
+  trial 225/300: 223/224 ok so far (4896s)
+  trial 250/300: 248/249 ok so far (5376s)
+  trial 275/300: 273/274 ok so far (5799s)
+  trial 300/300: 298/299 ok so far (6245s)
+n= 256 N=  362887 ok_edge=1.00 ok_ls=0.00 err_edge=0.348 K=0.48 feas=1.00 (6262s)
+ML-DSA-65 noise=bcc target=s2 solver=cp
+
+n=256 tau=49 bound=261692
+        N  ok edge  ok LS  err edge    err LS  K_hat  feas
+   362887     1.00   0.00     0.348     107.3   0.48  1.00
+  N*(success>=0.5) per ring element: 3.63e+05
+  N*(success>=0.99) per ring element: 3.63e+05
+
+Full-secret recovery over k ring elements needs success^k; see docs/RUNBOOK.md step 5.
+  trial 25/300: 24/24 ok so far (461s)
+  trial 50/300: 49/49 ok so far (926s)
+  trial 75/300: 74/74 ok so far (1388s)
+  trial 100/300: 99/99 ok so far (1826s)
+  trial 125/300: 124/124 ok so far (2287s)
+  trial 150/300: 149/149 ok so far (2755s)
+  trial 175/300: 174/174 ok so far (3215s)
+  trial 200/300: 199/199 ok so far (3680s)
+  trial 225/300: 224/224 ok so far (4133s)
+  trial 250/300: 249/249 ok so far (4599s)
+  trial 275/300: 274/274 ok so far (5044s)
+  trial 300/300: 299/299 ok so far (5493s)
+n= 256 N=  378723 ok_edge=1.00 ok_ls=0.00 err_edge=0.294 K=0.43 feas=1.00 (5511s)
+ML-DSA-87 noise=bcc target=s2 solver=cp
+
+n=256 tau=60 bound=261768
+        N  ok edge  ok LS  err edge    err LS  K_hat  feas
+   378723     1.00   0.00     0.294      94.6   0.43  1.00
+  N*(success>=0.5) per ring element: 3.79e+05
+  N*(success>=0.99) per ring element: 3.79e+05
+
+Full-secret recovery over k ring elements needs success^k; see docs/RUNBOOK.md step 5.
