@@ -1,0 +1,36 @@
+{'N': 80000, 'trial': 0, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 2, 'free': 214, 'status': 'optimal', 'seconds': 6.895462274551392}
+{'N': 80000, 'trial': 1, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 3, 'free': 210, 'status': 'optimal', 'seconds': 5.920532703399658}
+{'N': 80000, 'trial': 2, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 3, 'free': 198, 'status': 'optimal', 'seconds': 6.955604791641235}
+{'N': 80000, 'trial': 3, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 2, 'free': 207, 'status': 'optimal', 'seconds': 5.7163307666778564}
+{'N': 80000, 'trial': 4, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 12, 'free': 212, 'status': 'optimal', 'seconds': 7.133230209350586}
+{'N': 80000, 'trial': 5, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 8, 'free': 202, 'status': 'optimal', 'seconds': 5.6305084228515625}
+{'N': 80000, 'trial': 6, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 5, 'free': 198, 'status': 'optimal', 'seconds': 6.807562828063965}
+{'N': 80000, 'trial': 7, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 7, 'free': 206, 'status': 'optimal', 'seconds': 6.059547185897827}
+{'N': 100000, 'trial': 0, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 209, 'status': 'optimal', 'seconds': 6.086501598358154}
+{'N': 100000, 'trial': 1, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 216, 'status': 'optimal', 'seconds': 5.738736391067505}
+{'N': 100000, 'trial': 2, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 205, 'status': 'optimal', 'seconds': 5.870680570602417}
+{'N': 100000, 'trial': 3, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 1, 'free': 196, 'status': 'optimal', 'seconds': 7.297663688659668}
+{'N': 100000, 'trial': 4, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 208, 'status': 'optimal', 'seconds': 5.7289745807647705}
+{'N': 100000, 'trial': 5, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 7, 'free': 204, 'status': 'optimal', 'seconds': 7.386307954788208}
+{'N': 100000, 'trial': 6, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 1, 'free': 214, 'status': 'optimal', 'seconds': 7.3151304721832275}
+{'N': 100000, 'trial': 7, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 2, 'free': 207, 'status': 'optimal', 'seconds': 7.547187566757202}
+{'N': 120000, 'trial': 0, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 198, 'status': 'optimal', 'seconds': 6.133292198181152}
+{'N': 120000, 'trial': 1, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 205, 'status': 'optimal', 'seconds': 6.468926429748535}
+{'N': 120000, 'trial': 2, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 1, 'free': 214, 'status': 'optimal', 'seconds': 7.874856948852539}
+{'N': 120000, 'trial': 3, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 218, 'status': 'optimal', 'seconds': 5.954774379730225}
+{'N': 120000, 'trial': 4, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 211, 'status': 'optimal', 'seconds': 6.679247617721558}
+{'N': 120000, 'trial': 5, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 200, 'status': 'optimal', 'seconds': 6.173944473266602}
+{'N': 120000, 'trial': 6, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 194, 'status': 'optimal', 'seconds': 6.217281103134155}
+{'N': 120000, 'trial': 7, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 205, 'status': 'optimal', 'seconds': 6.024662494659424}
+{'N': 145000, 'trial': 0, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 208, 'status': 'optimal', 'seconds': 6.601133823394775}
+{'N': 145000, 'trial': 1, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 222, 'status': 'optimal', 'seconds': 6.586463689804077}
+{'N': 145000, 'trial': 2, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 211, 'status': 'optimal', 'seconds': 6.667044162750244}
+{'N': 145000, 'trial': 3, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 206, 'status': 'optimal', 'seconds': 6.265678405761719}
+{'N': 145000, 'trial': 4, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 203, 'status': 'optimal', 'seconds': 7.5659754276275635}
+{'N': 145000, 'trial': 5, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 205, 'status': 'optimal', 'seconds': 6.608087539672852}
+{'N': 145000, 'trial': 6, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 203, 'status': 'optimal', 'seconds': 6.874966144561768}
+{'N': 145000, 'trial': 7, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 210, 'status': 'optimal', 'seconds': 6.234054803848267}
+N=80000: round 0.00  ilp 1.00
+N=100000: round 0.50  ilp 1.00
+N=120000: round 0.88  ilp 1.00
+N=145000: round 1.00  ilp 1.00

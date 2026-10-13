@@ -5,9 +5,13 @@ internals such as y) into an `Observation` holding only the fields that scheme r
 modelled adversary. Estimators consume Observations and never touch secrets, so the same
 estimator can be pointed at different schemes, and at a plain ML-DSA control that must leak nothing.
 
-Views here are for CONTROLS. Scheme-specific views (Mithril, Quorus, Trilithium, TALUS) are to be
-written only after the relevant paper section is read (PLAN principle 5); the TALUS s2 channel
-lives in `talus_bcc.py` and `ilwe_transcript.py` as synthetic channels and is not yet wired in here.
+This module holds the interface and the CONTROL views (PlainMLDSAView: negative, YLeakView: positive).
+Scheme views live in `views.py`: TalusBCCView (TALUS v0.22 BCC, released w1 per our model in
+notes/schemes/talus.md) and MithrilView (accepted c, z, w; rejected attempts w only, per
+notes/schemes/mithril.md). `views.observations_to_cb` turns Observations into the (c, b) arrays the
+existing estimators (edge, edge_gpu, ilwe) take, so estimators are unchanged (PLAN gate B).
+Modelled assumptions are listed in each view's docstring. The synthetic channels in `talus_bcc.py`
+and `ilwe_transcript.py` remain for reduced ring sizes.
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field

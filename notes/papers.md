@@ -15,11 +15,11 @@ Updated 2026-10-01 after downloading full texts. Reading depth:
 | 5 | Borin et al., Threshold Signatures Reloaded | ePrint 2025/1166 (withdrawn) | Preliminary Mithril | Abstract (PDF unavailable, withdrawn) |
 | 6 | Celi et al., Poster | ACM CCS 2025 | Early Mithril | Abstract |
 | 7 | Mithril preview writeup v1.0 (2026-01-19) | NIST MPTC | Spec outline, N<=8, no identifiable aborts, float sampler | **Full** |
-| 8 | Bienstock et al., Quorus | USENIX Security 2026; ePrint 2025/1163 | MPC-friendly variant, t<n/2, 16/29 rounds, 150 KB per round | Main body read (Sec. 1-5 incl. all protocols and benchmarks); appendix proofs not read |
-| 9 | Dufka et al., Trilithium (+ SplitKey writeup v0.1) | ePrint 2025/675 | 3 keygen / 14 signing rounds, CRP, UC, MLWR-type assumption | Main body read (Sec. 1-5 start, App. D discussion); security proof appendices not read; SplitKey writeup first half |
+| 8 | Bienstock et al., Quorus | USENIX Security 2026; ePrint 2025/1163 | MPC-friendly variant, t<n/2, 16/29 rounds, 150 KB per round | **Full** (13 Oct 2026, incl. App. A-D; notes/schemes/quorus.md) |
+| 9 | Dufka et al., Trilithium (+ SplitKey writeup v0.1) | ePrint 2025/675 | 3 keygen / 14 signing rounds, CRP, UC, MLWR-type assumption | **Full** paper (13 Oct 2026, incl. App. A-F; notes/schemes/trilithium.md); SplitKey writeup first half |
 | 10 | Kao and Chang, TALUS | arXiv 2603.22109 (v5) | BCC, ~2^30 lower bound, cap ~2^14 | Main text read (Sec. 1-12, App. A-C); App. D-I not read |
 | 11 | TALUS preview writeup v0.22 (2026-08-11) | NIST MPTC | Cap, TEE not proposed, response to Niot | **Full** |
-| 12 | Kao, Shamir Nonce DKG | arXiv 2601.20917 | P2 needs abs(S minus C) >= 2, disclosed; claims N-1 unforgeability | Verified by download 2026-10-06: arXiv:2601.20917v6 (3 Mar 2026), Leo Kao, Codebat Technologies, cs.CR. Read: abstract, Sec. 1-4.3 (Remarks 4, 10, 11, 15, Lemma 1, Lemma 2, Algorithm 3), Sec. 6.1, 6.3-6.4, Cor. 5 proof, App. B.1, M.1 start; the other appendices and all benchmarks not read line by line |
+| 12 | Kao, Shamir Nonce DKG | arXiv 2601.20917 | P2 needs abs(S minus C) >= 2, disclosed; claims N-1 unforgeability | Verified by download 2026-10-06: arXiv:2601.20917v6 (3 Mar 2026), Leo Kao, Codebat Technologies, cs.CR. Read: abstract, Sec. 1-4.3 (Remarks 4, 10, 11, 15, Lemma 1, Lemma 2, Algorithm 3), Sec. 6.1, 6.3-6.4, Cor. 5 proof, App. B.1, M.1 start; App. A.2 end, B.2-O read 13 Oct 2026 (notes/schemes/kao-p2.md); App. P onwards not read |
 | 13 | Niot, Key-recovery attacks on TALUS | ePrint 2026/1386 | Two attacks, sample table | **Full** |
 | 14 | del Pino et al., Threshold Raccoon | EUROCRYPT 2024; ePrint 2024/184 | Non-ML-DSA threshold lattice sig | Abstract (PDF downloaded) |
 | 15 | del Pino et al., lattice TS with identifiable aborts | ePrint 2025/871 (withdrawn) | Short-share DKG | Abstract |
@@ -94,4 +94,12 @@ Appendix proofs of every paper above; Raccoon, Gur-Katz-Silde, Dilithium, FROST 
 ## Seventh pass (2026-10-12)
 - **Devevey et al., ASIACRYPT 2022 version** (iacr.org/archive/asiacrypt2022/137910286/137910286.pdf): download blocked (403) for our tools; NOT read. User to download to papers/ to check whether App. A.6 / the hyperball intersection lemma appears there with exponent n-1.
 - **ePrint 2022/1249 history page** (read 12 Oct): versions 2022-09-20 and 2022-12-05; the revision note fixes the SIS parameters (B < q) and an underestimated hyperball cut in their Python script. It does not mention the A.6 exponent, so the latest ePrint version still carries it (consistent with our local copy).
-- **Citing works seen in search, not read:** Celi et al. (USENIX Security 2026, hyperball partial signatures, cited by Silence Laboratories Pebble threshold ML-DSA paper); Gaertner ePrint 2024/2052; HAETAE spec. Whether any uses the A.6 bound is unchecked.
+- **Citing works checked 13 Oct 2026 (targeted full-text search, not read in full; table in notes/schemes/mithril.md):** only the Mithril line (ePrint 2026/013 = USENIX Security 2026, Celi, del Pino, Espitau, Niot, Prest; the earlier 'Celi et al.' entry here is Mithril itself) uses the A.6 bound. HAETAE (TCHES 2024(3)) cites Lemma A.13 but evaluates the exact incomplete-Beta value numerically, so not affected. G+G (ASIACRYPT 2023), NTRU+Sign (ePrint 2025/106), Gaertner (CRYPTO 2025, ePrint 2024/2052), Polytopes (ePrint 2024/411), Raccoon probing (ePrint 2024/1291), del Pino-Niot Finally! (ePrint 2025/872), SHIELD (IEEE S&P 2026): do not use it. Not obtained: Douteau-Roux-Langlois, Phoenix, Revisiting Preimage Sampling, Xagawa.
+- **Devevey et al. ASIACRYPT 2022 published version** (LNCS 13794, pp. 34-64, DOI 10.1007/978-3-031-22972-5_2), obtained 13 Oct 2026 from Springer: no appendix; Lemma 6 gives only the exact formula. The faulty n-1 bound exists only in the ePrint full version, App. A.6.
+
+## Added 2026-10-13
+
+| # | Paper | Venue / ID | What it gives us | Depth |
+|---|-------|-----------|------------------|-------|
+| 25 | Kao (v1) / Kao and Chang (v2), TALUS early versions (our label "v0.1" = v2) | arXiv 2603.22109v1 (23 Mar 2026), v2 (24 Mar 2026); verified online 13 Oct 2026 | No r0-check (Remark 5); broadcasts A s1_i at keygen and A y_h in preprocessing; basis of harness/schemes/talus_v01.py | Targeted: Sec. 4.3-4.5, Sec. 6 (Prot. 5-10), Prot. 11, preprocessing Round 1, Prot. 16; CarryCompare, proofs, appendices, experiments not read |
+| 26 | Devevey, Fawzi, Passelegue, Stehle, On Rejection Sampling in Lyubashevsky's Signature Scheme | ASIACRYPT 2022, LNCS 13794, pp. 34-64 | Published version has no A.6 bound | Targeted (full text searched, Sec. 4 lemma read) |

@@ -1,0 +1,77 @@
+{
+ "args": {
+  "params": "ML-DSA-44",
+  "N": [
+   100000,
+   200000,
+   400000
+  ],
+  "trials": 2,
+  "workers": 8,
+  "device": "gpu",
+  "seed": 2029,
+  "out": "experiments/results/gate_b_views.json"
+ },
+ "rows": [
+  {
+   "trial": 0,
+   "N": 100000,
+   "attempts_drawn": 1726000,
+   "accept_rate": 0.23234530706836617,
+   "edge_is_key": false,
+   "err_key": 0.6518096451472957,
+   "sign_seconds": 337.0476858615875,
+   "est_seconds": 66.64166283607483
+  },
+  {
+   "trial": 0,
+   "N": 200000,
+   "attempts_drawn": 1726000,
+   "accept_rate": 0.23234530706836617,
+   "edge_is_key": true,
+   "err_key": 0.18367509971767504,
+   "sign_seconds": 337.0476858615875,
+   "est_seconds": 60.9753680229187
+  },
+  {
+   "trial": 0,
+   "N": 400000,
+   "attempts_drawn": 1726000,
+   "accept_rate": 0.23234530706836617,
+   "edge_is_key": true,
+   "err_key": 1.5582827472826466e-08,
+   "sign_seconds": 337.0476858615875,
+   "est_seconds": 45.87188768386841
+  },
+  {
+   "trial": 1,
+   "N": 100000,
+   "attempts_drawn": 1724000,
+   "accept_rate": 0.2330475638051044,
+   "edge_is_key": false,
+   "err_key": 0.589455407662399,
+   "sign_seconds": 308.14843678474426,
+   "est_seconds": 51.61998391151428
+  },
+  {
+   "trial": 1,
+   "N": 200000,
+   "attempts_drawn": 1724000,
+   "accept_rate": 0.2330475638051044,
+   "edge_is_key": true,
+   "err_key": 1.7428646970074624e-08,
+   "sign_seconds": 308.14843678474426,
+   "est_seconds": 57.42864727973938
+  },
+  {
+   "trial": 1,
+   "N": 400000,
+   "attempts_drawn": 1724000,
+   "accept_rate": 0.2330475638051044,
+   "edge_is_key": true,
+   "err_key": 1.614671418792568e-08,
+   "sign_seconds": 308.14843678474426,
+   "est_seconds": 47.724868297576904
+  }
+ ]
+}

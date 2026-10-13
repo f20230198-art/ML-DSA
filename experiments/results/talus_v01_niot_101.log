@@ -1,0 +1,8 @@
+ML-DSA-44, |S|=3, keys(seeds)=[101], N grid=[1000, 3000, 10000, 30000, 100000]
+seed 101: attack1 keygen exact=True, attack1 one-signature exact 20/20; 100000 sigs from 235088 attempts (0.425 per attempt) in 731s
+  N=   1000: rms err   281.42  theory   278.19  coeffs exact 1/1024  max|err| 982.4
+  N=   3000: rms err   164.65  theory   160.61  coeffs exact 5/1024  max|err| 558.7
+  N=  10000: rms err    91.87  theory    87.97  coeffs exact 4/1024  max|err| 252.8
+  N=  30000: rms err    52.22  theory    50.79  coeffs exact 6/1024  max|err| 188.0
+  N= 100000: rms err    28.02  theory    27.82  coeffs exact 14/1024  max|err| 90.1
+theory: rms error 0.25 (most coefficients round correctly) needs N ~ 1.24e+09

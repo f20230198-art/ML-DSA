@@ -100,3 +100,26 @@ Sources (public): GitHub `GuilhemN/threshold-ml-dsa` (commit 66e269e, 5 Sep 2026
 - `experiments/mithril_authors_script.sage` loads `params/hyperball.sage` (GuilhemN/threshold-ml-dsa, commit 66e269e) in SageMath 10.4 (Docker). Output `experiments/results/mithril_authors_script.txt`.
 - boundI from the script: 2^-50.12 / -52.69 / -57.07 (ML-DSA-44/65/87); exact I (mpmath, 60 digits): 2^-33.53 / -35.09 / -37.56. Same as our Python numbers.
 - The script regenerates the published radii: ML-DSA-44 (2,2), K = 2: r = 252778.13, r' = 252833.75 (App. A: 252778, 252833); on load it also prints the ML-DSA-87 N = 6 row, matching App. A. So the earlier caveat "read, not run" is removed: the finding is now confirmed on the reference parameter code.
+
+### Works using the Devevey A.6 bound (13 Oct 2026)
+Search: Semantic Scholar citation list of DFPS22 (DOI 10.1007/978-3-031-22972-5_2; 19 entries on 13 Oct) plus web search. PDFs saved in `papers/a6_citing_20261013/` (treated as data; ePrint and HAL block our tools, so ePrint copies come from web.archive.org). Each PDF searched for: DFPS22/Fawzi, "A.6", "A.13", "cylinder", "incomplete Beta", "hyperspherical". Bibliographic data checked against the PDFs' title pages and the ePrint/DBLP/Semantic Scholar records.
+
+**ASIACRYPT published version: obtained.** `devevey_asiacrypt2022_springer.pdf` (Springer chapter, LNCS 13794, pp. 34-64, 31 pages; iacr.org archive link still 403). It has no appendix: Lemma 6 (Sec. 4) states the exact identity 2 eps = I_{1-1/eta^2}((m+1)/2, 1/2) and says the cap volume and the asymptotics of 1/eta^2 are "in the full version". The faulty cylinder upper bound (exponent n-1) is therefore only in the ePrint full version (App. A.6), not in the proceedings.
+
+| Work | Uses the A.6 upper bound? | Exponent | Parameter impact | What was read |
+|---|---|---|---|---|
+| Devevey et al., ASIACRYPT 2022 (proceedings) | n (only exact Lemma 6; bound deferred to full version) | - | none in the printed paper | full text searched; Sec. 4 lemma read |
+| Celi, del Pino, Espitau, Niot, Prest, "Efficient Threshold ML-DSA", USENIX Security 2026 (= Mithril, ePrint 2026/013) | **y** (Lemma 2.5 "from [25, Section A.6]") | n-1 (same as source) | yes: Q_s = 2^50 claim (Sec. 5/params) rests on it; same issue as the Mithril PW01 finding | Lemma 2.4/2.5 and parameter paragraph (p. 6, p. 12) |
+| HAETAE, TCHES 2024(3) / spec v3.0 (Jul 2024) / NIST round-1 spec / KpqC spec | n: cites [DFPS22, Lemma A.13] for the exact identity, then "numerical computations" | - (exact I evaluated numerically) | none from the bound | sections around the citations; full-text search of 4 versions |
+| Devevey, Passelegue, Stehle, G+G, ASIACRYPT 2023 | n (uses DFPS22 only for size comparison / optimality) | - | none | full-text search |
+| Woo et al., NTRU+Sign, DCC 2025 / ePrint 2025/106 | n (background and comparison) | - | none | full-text search, cited passages |
+| Gaertner, "Compact Lattice Signatures via Iterative Rejection Sampling", CRYPTO 2025 / ePrint 2024/2052 | n (cited for optimality of bimodal) | - | none | full-text search |
+| Bambury, Beguinet, Ricosset, Sageloli, "Polytopes in the FSwA Paradigm", CRYPTO 2024 / ePrint 2024/411 | n (framework / optimality) | - | none | full-text search |
+| del Pino, Katsumata, Prest, Rossi, "Raccoon ... Probing Model", CRYPTO 2024 / ePrint 2024/1291 | n (smooth Renyi divergence definition only) | - | none | full-text search |
+| del Pino, Niot, "Finally!", PKC 2025 / ePrint 2025/872 | n (generic distributions; tightens DFPS22 Renyi bounds, no hyperball cap) | - | none | full-text search |
+| Sedghighadikolaei et al., SHIELD, IEEE S&P 2026 (author PDF) | n (cited once on non-compliance cost) | - | none | full-text search |
+| Ducas, Espitau, Postlethwaite, CRYPTO 2023 (CWI copy) | n (bibliography only) | - | none | full-text search |
+| Block, Polyanskiy, COLT 2023 (arXiv 2302.04658) | n (bibliography only) | - | none | full-text search |
+| Douteau, Roux-Langlois (INDOCRYPT 2025); Jeudy et al. Phoenix (PQCrypto 2024) and "Revisiting Preimage Sampling"; Xagawa (EUROCRYPT 2024); More NTRU+Sign (ePrint 2025/612, no DFPS22 citation found) | unclear (not obtained, HAL blocked) except 2025/612: n | - | unknown | not read (title/abstract metadata only) |
+
+Conclusion: of the works we could open, only the Mithril / Efficient Threshold ML-DSA line (ePrint 2026/013, USENIX Sec 2026, NIST PW01) uses the faulty A.6 upper bound, and there it sets Q_s. HAETAE, the main other hyperball scheme, uses the exact incomplete-Beta value numerically and is not affected. Caveat: Semantic Scholar's citation list is incomplete; works citing only the ePrint may be missing.

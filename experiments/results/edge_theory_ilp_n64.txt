@@ -1,0 +1,35 @@
+== Part 1: theory vs measured ==
+fitted LP constant c per (params, n, tau) from the existing ladder files (binomial MLE, 95% LR interval):
+  ML-DSA-44 n=  8 tau= 1: c =  0.91  [ 0.80,  1.04]  (160 trials total)
+  ML-DSA-44 n= 16 tau= 2: c =  0.94  [ 0.84,  1.05]  (160 trials total)
+  ML-DSA-44 n= 32 tau= 5: c =  1.20  [ 1.08,  1.32]  (160 trials total)
+  ML-DSA-44 n= 64 tau=10: c =  1.94  [ 1.67,  2.25]  (60 trials total)
+  ML-DSA-44 n=128 tau=20: c =  2.76  [ 2.40,  3.16]  (60 trials total)
+  ML-DSA-44 n=256 tau=39: c =  3.64  [ 3.41,  3.88]  (165 trials total)
+  ML-DSA-65 n= 64 tau=12: c =  1.99  [ 1.71,  2.32]  (60 trials total)
+  ML-DSA-65 n=256 tau=49: c =  4.00  [ 3.15,  5.01]  (25 trials total)
+  ML-DSA-87 n= 64 tau=15: c =  2.49  [ 2.13,  2.89]  (60 trials total)
+  power fit over all keys: c ~ 0.76 * tau^0.42
+
+N*99 at n = 256 (per ring element):
+  params  tau  2B+1    LS/CRB (Gauss)     edge oracle c=1   measured   c_eff=measured/oracle
+  ML-DSA-44   39  190309   5.23e+09 (2^32.3)   4.95e+04 (2^15.6)  1.45e+05   2.93
+  ML-DSA-65   49  523385   3.15e+10 (2^34.9)   1.08e+05 (2^16.7)  3.58e+05   3.30
+  ML-DSA-87   60  523537   2.57e+10 (2^34.6)   8.85e+04 (2^16.4)  3.69e+05   4.17
+
+== Part 1b: brute-force midrange check of P_fail = rho (one coefficient) ==
+  B=   50 M=  101: MC 0.3658  theory 0.3661  (+-0.0076 1 s.e., 4000 trials)
+  B=   50 M=  202: MC 0.1298  theory 0.1340  (+-0.0054 1 s.e., 4000 trials)
+  B=  200 M=  805: MC 0.1356  theory 0.1340  (+-0.0054 1 s.e., 4000 trials)
+  B= 1000 M= 3000: MC 0.2215  theory 0.2232  (+-0.0066 1 s.e., 4000 trials)
+
+== Part 2: edge rounding vs edge + ILP finish (ML-DSA-44, BCC, s2; window=1.0; 10 trials/point; seed 2031, rng = default_rng([seed, n, N, trial])) ==
+  n= 64 tau=10 N=   43112: round 0.00  ilp 0.00  median wrong-after-round 27  median free 47  wrong-but-feasible 0/10  ['optimal']  (24s)
+  n= 64 tau=10 N=   60357: round 0.00  ilp 0.00  median wrong-after-round 26  median free 50  wrong-but-feasible 0/10  ['infeasible', 'optimal']  (43s)
+  n= 64 tau=10 N=   86225: round 0.00  ilp 0.30  median wrong-after-round 12  median free 51  wrong-but-feasible 0/10  ['infeasible', 'optimal']  (75s)
+  n= 64 tau=10 N=  120715: round 0.20  ilp 0.70  median wrong-after-round 3  median free 50  wrong-but-feasible 0/8  ['optimal']  (61s)
+  n= 64 tau=10 N=  172450: round 0.70  ilp 1.00  median wrong-after-round 0  median free 51  wrong-but-feasible 0/3  ['optimal']  (83s)
+  n= 64 tau=10 N=  241430: round 1.00  ilp 1.00  median wrong-after-round 0  median free 63  wrong-but-feasible 0/0  ['optimal']  (89s)
+
+N at 50% / 90% success by log-linear interpolation (None = not reached on grid):
+  n= 64: N50 round 1.5e+05 ilp 1.02e+05 (ratio 1.47); N90 round 2.16e+05 ilp 1.53e+05 (ratio 1.41)

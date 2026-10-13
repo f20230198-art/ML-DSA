@@ -5,14 +5,14 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 ## 0. Setup
 - [x] Pick language/tooling (Python + numpy/scipy). Sage and fpylll are NOT installed (checked 6 Oct); Docker is, so a Sage image is an option for the Mithril lattice-estimator stage
 - [x] PLAN Stage A: NTT, SHAKE sampling, hints, full sign/verify with all attempts; byte-identical to dilithium-py oracle for -44/-65/-87 (6 Oct); passes 81 official NIST ACVP vectors (keyGen, pure sigGen, sigVer; 8 Oct). PreHash and external-mu not implemented
-- [~] PLAN Stage B: scheme-view interface done with two controls (`harness/schemes/base.py`); no scheme-specific views yet, gate B open
+- [x] PLAN Stage B (13 Oct): `TalusBCCView`, `MithrilView` and adapter `observations_to_cb` in `harness/schemes/views.py`; estimators unchanged. Gate B passed end to end: real ML-DSA-44 attempts -> TalusBCCView -> edge estimator recovers s2 - t0 for 2/2 keys at N = 2e5 and 4e5 accepted, 0/2 at 1e5 (`experiments/gate_b_views.py`, seed 2029). Mithril view uses synthetic r1, r2 stand-ins
 - [x] Fix stale line in DOSSIER and README ("no code has been run")
 - [ ] Verify dossier sources and recheck TCPT3 schedule / phase 3 list
 
 ## 1. Leakage-testing harness
 - [x] ML-DSA reference primitives: params, rounding, ring mult, NTT, hints, SHAKE sampling, full sign/verify; NIST ACVP vectors pass (8 Oct)
-- [~] Transcript simulator interface: `Attempt` records plus `SchemeView`; positive (y leak) and negative (plain ML-DSA) controls pass
-- [~] Estimators: least squares done (`harness/estimators/ilwe.py`); bounded-noise, ILP, Fisher information todo
+- [x] Transcript simulator interface: `Attempt` records plus `SchemeView`; controls pass; TALUS, TALUS v0.1 and Mithril views added (13 Oct)
+- [x] Estimators (13 Oct): least squares (`ilwe.py`), bounded-noise = Chebyshev LP (`edge.py`, `edge_gpu.py`), ILP finishing (`ilp.py`), theory curves (`fisher.py`: Gaussian CRB derived; uniform-noise 1/N oracle law derived and Monte-Carlo checked; coupling constant c ~ 0.76 tau^0.42 fitted). ILP lowers N50 by 1.0x/1.1x/1.1x/1.5x at n = 8/16/32/64 (`experiments/results/edge_theory_ilp_*`); n = 256 check: see section 2
 - [x] Sanity check: Niot's attack 2 least squares on real no-r0-check ML-DSA-44 transcripts (11 Oct, `experiments/niot_sanity.py`): error = 0.97 x his formula gamma2/sqrt(3 tau N) (12 runs); edge estimator needs ~1,500x fewer signatures than his N
 
 ## 2. TALUS v0.22 signing cap
@@ -23,7 +23,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Run the n-ladder 8 to 256, apply gate C1 (6 Oct): above the cap by 4.5 to 5 bits and above the wall by 2.3 to 2.8 bits in our model; no break
 - [x] Firmer numbers (8 Oct): -44 n = 256 with 20 trials: N*99 = 1.45e5 (2^17.1), full secret (k = 4) by 1.46e5; 4.1 bits above cap, 1.9 above wall. -87 n = 256 (5 trials): N*99 between 2^17.6 and 2^18.4, at least 3.6 above cap, 1.4 above wall
 - [x] More trials for -87 and -65 at n = 256 near the transition (10 Oct, 20 trials, 7 points each): -87 N*99 = 3.69e5 (2^18.5), 4.5 above cap, 2.3 above wall; -65 N*99 = 3.58e5 (2^18.4), 4.4 above cap, 2.0 above wall. Full secret checked 13 Oct (300 trials, seed 2028): -65 299/300 at 2^18.47, -87 300/300 at 2^18.53 -> full-secret success >= ~91% / 92% (95%, union bound)
-- [x] Positive and negative controls from real ML-DSA-44 signing (10 Oct, `harness/schemes/mldsa_controls.py`, `experiments/mldsa_controls.py`): no-r0-check variant -> edge estimator recovers s2 - t0 (key) in 9/9 runs (3 keys x N = 2e5, 4e5, 8e5); genuine ML-DSA -> key in 0/9, returns only -t0 (public-equivalent) in 9/9. false-positive check 12 Oct: 15 more keys (seed 2027, N = 2e5) -> key 0/15, -t0 15/15; 0/18 keys overall, rate < ~15% at 95%. TALUS v0.1 itself still todo (no code)
+- [x] Positive and negative controls from real ML-DSA-44 signing (10 Oct, `harness/schemes/mldsa_controls.py`, `experiments/mldsa_controls.py`): no-r0-check variant -> edge estimator recovers s2 - t0 (key) in 9/9 runs (3 keys x N = 2e5, 4e5, 8e5); genuine ML-DSA -> key in 0/9, returns only -t0 (public-equivalent) in 9/9. false-positive check 12 Oct: 15 more keys (seed 2027, N = 2e5) -> key 0/15, -t0 15/15; 0/18 keys overall, rate < ~15% at 95%. TALUS v0.1 done 13 Oct (`harness/schemes/talus_v01.py`, arXiv 2603.22109v2 read in part): Niot attack 1 recovers s1 exactly from the keygen broadcast (3/3 keys) and from one MPC signature (60/60); attack 2 least squares on real signatures follows theory sigma_e/sqrt(N tau) up to N = 1e5, needs ~1.2e9 for recovery
 - [x] Compare against cap (2^13-2^14) and uniqueness wall (2^15-2^16): margin table in docs/LEARN.md (6 Oct)
 
 ## 3. Mithril
@@ -33,7 +33,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Root cause from the public code (GuilhemN/threshold-ml-dsa, params/hyperball.sage), 8 Oct: B is the paper's; phi fixed at 7/8/9; Lemma 2.5 (used as `boundI`) is not a valid upper bound at dim 2048-3840 (2^-50 vs exact 2^-33.5 for -44), so Thm. 3.2 covers 2^26-2^37, not 2^50
 - [x] Preview writeup v1.0 read (8 pages): no parameters or Q_s, nothing to compare. Authors cannot be contacted (user, 8 Oct)
 - [x] Check original lemma in Devevey, Fawzi, Passelegue, Stehle (ePrint 2022/1249, Sec. A.6), 11 Oct: same wrong exponent n-1 in the original (cylinder argument done right gives (n-1)/2); Mithril copied it faithfully
-- [~] Check the ASIACRYPT published version and other works citing this bound (12 Oct: ePrint revision note does not touch A.6; ASIACRYPT PDF blocked (403), user to download; citing works listed in notes/papers.md, unread)
+- [x] ASIACRYPT published version (Springer, 13 Oct): no appendix, only the exact formula, so the bad bound is ePrint-only. Citing works checked (13 works, targeted search): only Mithril uses it; HAETAE computes the exact value. Table in notes/schemes/mithril.md
 - [x] Corrected parameters (10 Oct, `--corrected`, experiments/results/mithril_corrected.txt): phi drops to 5.3-5.6 (-44), 5.9-6.6 (-65), 7.1-7.7 (-87); r' grows by 12 to 89; to keep the same session success rate K grows 1.3x to 8.5x (worst -65 (5,6): 1200 -> 10234). Communication scales with K
 - [x] Accepted-z distribution and Rényi loss at q_s = 2^64 (11 Oct): closed form (uniform on ball intersection, Rényi = 1/(1-delta) any order, Fisher n/a); at 2^64 all published sets short (Thm: 27-38 bits; typical: 3-17 bits); corrected params for 2^64 need K x1.7 to x23 (`mithril_corrected_2e64.txt`). Not simulated
 - [x] Hint accounting with exact T−1 share subset (11 Oct, `harness/schemes/mithril_hint.py`, Python core-SVP substitute): -44 loss 4-7 bits (paper's 12 reproduces with its 0.74), -65 14.6-20.7 bits (above the claimed 7-12), -87 7.6-12.8
@@ -53,13 +53,14 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Does P2 broadcast every W_i? YES per the paper (Fig. 1b, Remark 11, App. M.1), and masks cancel (Lemma 1), so sum W_i = A y is public and s1 follows from one P2 signature at any |S∖C| (11 Oct, text + toy test). Contact the author before disclosure
 - [x] Draft the author-notification email for the Kao P2 finding: `docs/disclosure_drafts.md` (11 Oct, NOT sent; user decides)
 - [x] Read App. B.1 key DKG: Feldman-style commitment t(i) = A s1(i) + s2(i) (and the text says Feldman over g^a, i.e. not lattice-native); the specific A*s1,i pattern broken in TALUS is not checked
-- [~] Read remaining Kao appendices: A, I, M.1 read (11 Oct); B.2-H, K, L, N, O still headings only
+- [x] Read remaining Kao appendices B.2-O (13 Oct): nothing rescues P2; Cor. 5 proof itself calls (c~, w) the public broadcast; App. O 5-round combiner does not move W_i; Cor. 6 drops the |H| >= 2 condition Simulator 17 needs. Disclosure draft updated. App. P onwards not read
 
 ## 6. Packages phase (from March 2027)
 - [~] Rerun on actual reference code: Mithril params/hyperball.sage RUN in Sage (11 Oct), reproduces App. A radii and boundI 2^-50.1 vs exact 2^-33.5. Go signing code, Quorus/Trilithium/TALUS/Kao code: not run (Kao code not public)
 
 ## Reading gaps
-- [~] Full Mithril (ePrint 2026/013) read except App. D, E and most of G (8 Oct); Quorus (2025/1163) and Trilithium (2025/675) PDFs now in papers/, not yet read in full
+- [~] Full Mithril (ePrint 2026/013) read except App. D, E and most of G (8 Oct)
+- [x] Quorus and Trilithium read in full (13 Oct, notes/schemes/*.md): hypotheses confirmed; our note that A y + e_w is "uniform" holds per coefficient only; paper errors found: Quorus Func. 6 bound gamma2-beta-eta vs gamma2-beta elsewhere (checked in PDF p. 32), Lemma 8 constant; Trilithium H-F3 simulation gap visible in p. 24 text
 
 ## Coursework: Phase 1 report
 - [x] Survey of 23 papers, problem formulation, 10-page docx (`report/`)

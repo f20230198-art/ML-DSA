@@ -13,11 +13,11 @@ Dear Dr. Kao,
 
 I am a student studying threshold ML-DSA proposals for a cryptography course, and I believe I have found an issue in Profile P2 of your paper (arXiv 2601.20917v6). I am writing to you privately before mentioning it anywhere else.
 
-In P2, each party broadcasts W_i = λ_i A y_i + m_i^(w) to all parties (Fig. 1(b), Remark 11, App. M.1). By Lemma 1 the pairwise masks cancel, so any party, or anyone who sees the broadcast, can compute Σ W_i = A y = w exactly, not only w1 = HighBits(w). Together with the public signature (c̃, z) this gives A z − w = c A s1, hence A s1 = c⁻¹(A z − w). The left-inverse argument of Remark 11 then recovers s1. This works from a single P2 signature, whatever the number of honest parties. Lemma 2 hides each individual W_i, but not their sum.
+In P2, each party broadcasts W_i = λ_i A y_i + m_i^(w) to all parties (Fig. 1(b), Remark 11, App. M.1). By Lemma 1 the pairwise masks cancel, so any party, or anyone who sees the broadcast, can compute Σ W_i = A y = w exactly, not only w1 = HighBits(w). Together with the public signature (c̃, z) this gives A z − w = c A s1, hence A s1 = c⁻¹(A z − w). The left-inverse argument of Remark 11 then recovers s1. This works from a single P2 signature, whatever the number of honest parties. Lemma 2 hides each individual W_i, but not their sum. Your own proof of Corollary 5 (p. 65-66) also treats (c̃, w) as the public broadcast in P2, and the 5-round combiner of App. O handles only the r0-check shares, so it does not seem to change this.
 
 We checked the algebra on a small toy model (tiny ring degree, real q, no rejection sampling or MPC). Your code was not available, so we could not check whether an implementation computes w inside the MPC instead. If it does, P2 would not be affected, and we would be glad to hear it.
 
-We also noticed that in Simulator 17 the simulated honest W̃_i sum to A ỹ, which does not match the real signature. That may be where the proof misses the issue.
+We also noticed that in Simulator 17 the simulated honest W̃_i sum to A ỹ, which does not match the real signature. That may be where the proof misses the issue. Corollary 6 states that P2 realizes F_ThreshSig with no |H| >= 2 condition, while Simulator 17 assumes |H| >= 2.
 
 We have not shared this with anyone outside our course team. Please let us know how you would like to proceed, and whether you would object to us describing it in our (non-public) course report.
 
