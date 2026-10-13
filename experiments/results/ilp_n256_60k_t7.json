@@ -1,0 +1,24 @@
+{
+ "args": {
+  "N": [
+   60000
+  ],
+  "trials": 1,
+  "first": 7,
+  "seed": 2032,
+  "time_limit": 300.0,
+  "out": "experiments/results/ilp_n256_60k_t7.json"
+ },
+ "rows": [
+  {
+   "N": 60000,
+   "trial": 7,
+   "round_ok": false,
+   "ilp_ok": false,
+   "wrong_round": 28,
+   "free": 212,
+   "status": "milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)",
+   "seconds": 309.27377939224243
+  }
+ ]
+}

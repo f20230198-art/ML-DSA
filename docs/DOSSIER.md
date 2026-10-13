@@ -34,8 +34,8 @@ Related lattice signatures in the call but not ML-DSA-compatible: Tanuki, Hermin
 
 Timeline:
 
-- TCPT3 preview talks: Sep 30 and Oct 5–7, 2026 (NIST pages disagree on exact days). The phase 3 list had no ML-DSA entry when I checked; recheck.
-- Preliminary packages: Nov 30 – Dec 17, 2026 (expected).
+- TCPT3 preview talks: Sep 30 and Oct 6, 7 and 13, 2026 (rechecked 13 Oct on NIST pages; Oct 13 partly TBA). Phase 3 list (entries 37-59) has no entry named ML-DSA; lattice threshold entries TalonG/P-DualTS, LaTSEC, Thimza not checked. See docs/nist_call_and_sources_check.md.
+- Preliminary packages (optional): Dec 1–31, 2026; full package deadline expected 2027-03-01, not before (NIST, rechecked 13 Oct).
 - Package deadline: not before 2027-03-01.
 
 ## Published attacks on TALUS (Niot, ePrint 2026/1386)
@@ -126,7 +126,7 @@ Not itself a Call submission, but TALUS builds on it and it shows the same patte
 5. **Kao's P2 and DKG claims** as a confirmed-or-refuted note, since they may carry into TALUS's package.
 6. **Packages phase.** When packages appear (from March 2027), rerun the harness on the actual reference code.
 
-If you publish, contact the teams first (standard practice) and post to ePrint (attacks category); NIST's MPTC forum is where the Call's discussion happens.
+If you publish, contact the teams first (our policy and community practice; NIST IR 8214C does not require it, see docs/nist_call_and_sources_check.md) and post to ePrint (attacks category); NIST's MPTC forum is where the Call's discussion happens.
 
 ## What I read and what I did not
 

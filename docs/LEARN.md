@@ -527,3 +527,15 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Kao appendices:** reading the rest did not rescue Kao's fully distributed mode P2; his own proof of Corollary 5 calls the full w "the public broadcast", which is exactly what our attack uses. Two sentences added to the (unsent) email draft.
 - **Quorus and Trilithium full read:** our hypotheses hold. One correction to our own wording: "A*y + e is uniform" is true for each single number but not for the whole vector, so we can only say no simple statistical test sees a leak. We also found small errors in the papers (a bound written as gamma2-beta-eta in one Quorus functionality vs gamma2-beta everywhere else, checked on PDF p. 32; a wrong constant in Quorus Lemma 8; Trilithium's simulation-gap text on p. 24). None is an attack.
 - **Why:** these were the remaining Phase 2 roadmap items. Not done: running the scheme authors' Go/other reference code (packages phase, March 2027; most code not public).
+
+## 2026-10-13: The integer finishing step at full size lowers the TALUS margin by about 1 bit
+
+- **What:** we ran the new ILP step (Part 1, "Integer programming") on the full-size ML-DSA-44 channel (n = 256), 8 trials per point, seed 2032. Script `experiments/ilp_n256.py`; results `experiments/results/ilp_n256*.json`. To save time the slow points ran as parallel processes with the same seeds, so results equal a serial run.
+- **Result:** with the ILP step the key piece came out in 1/8 trials at 50,000 signatures, 5/8 at 60,000, 8/8 at 70,000 and 32/32 from 80,000 up. Plain rounding needed about 145,000 for 99%.
+- **Meaning:** about 70,000 signatures (2^16.1) now suffice: about 3.1 bits above the TALUS cap (was 4.1) and only about 0.9 bits above the authors' uniqueness wall (was 1.9). Still not a break, but the safety margin is thinner than we first reported. Caveats: one ring element, 8 trials per point, ML-DSA-65 and -87 not re-run with ILP.
+
+## 2026-10-13: Report revised with the instructor's feedback and the Phase 2 results
+
+- **What:** `report/build_report.py` (Word) and `report/latex/phase1_report.tex` were rewritten together. The TALUS signing cap (P1) is now the main problem; Mithril, Quorus/Trilithium and Kao are stretch goals. New: Phase 2 results section with the margin table (including the ILP result), controls, TALUS v0.1, Mithril bound gap, Kao P2, Quorus/Trilithium errata; Fig. 1 harness architecture (`experiments/arch_diagram.py`); Fig. 2 least-squares error vs N with theory (`experiments/ls_error_plot.py`, 10 trials per N, seed 2033: measured within 2% of theory at every N); symbols defined at first use; a Phase 3 prototype section. Shamir and Feldman checked on Crossref; the two withdrawn ePrints are listed for history only.
+- **How we kept 10 pages:** cut old plans (milestones, expected outcomes) that the results replace. The Word PDF is exactly 10 pages. The LaTeX was checked by script but not compiled (no LaTeX installed).
+- **Why:** the instructor asked for these changes once Phase 2 was done. The Kao and Mithril findings are written neutrally because the authors have not been told yet.

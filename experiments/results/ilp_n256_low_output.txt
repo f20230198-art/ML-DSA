@@ -1,0 +1,13 @@
+{'N': 50000, 'trial': 0, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 30, 'free': 201, 'status': 'optimal', 'seconds': 49.36633658409119}
+{'N': 50000, 'trial': 1, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 27, 'free': 198, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 305.07643270492554}
+{'N': 50000, 'trial': 2, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 36, 'free': 204, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 304.15635418891907}
+{'N': 50000, 'trial': 3, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 41, 'free': 212, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 305.507199048996}
+{'N': 50000, 'trial': 4, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 37, 'free': 205, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 305.8956575393677}
+{'N': 50000, 'trial': 5, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 45, 'free': 202, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 306.63078594207764}
+{'N': 50000, 'trial': 6, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 29, 'free': 195, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 306.86848497390747}
+{'N': 50000, 'trial': 7, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 32, 'free': 204, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 306.0102951526642}
+{'N': 60000, 'trial': 0, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 22, 'free': 216, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 306.35673570632935}
+{'N': 60000, 'trial': 1, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 24, 'free': 198, 'status': 'optimal', 'seconds': 13.057887077331543}
+{'N': 60000, 'trial': 2, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 19, 'free': 204, 'status': 'optimal', 'seconds': 36.00747776031494}
+{'N': 60000, 'trial': 3, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 29, 'free': 206, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 307.04584074020386}
+{'N': 60000, 'trial': 4, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 11, 'free': 202, 'status': 'optimal', 'seconds': 8.851364374160767}

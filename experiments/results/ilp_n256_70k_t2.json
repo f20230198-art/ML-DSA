@@ -1,0 +1,24 @@
+{
+ "args": {
+  "N": [
+   70000
+  ],
+  "trials": 1,
+  "first": 2,
+  "seed": 2032,
+  "time_limit": 300.0,
+  "out": "experiments/results/ilp_n256_70k_t2.json"
+ },
+ "rows": [
+  {
+   "N": 70000,
+   "trial": 2,
+   "round_ok": false,
+   "ilp_ok": true,
+   "wrong_round": 11,
+   "free": 196,
+   "status": "optimal",
+   "seconds": 12.077900171279907
+  }
+ ]
+}

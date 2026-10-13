@@ -1,0 +1,104 @@
+# NIST Call (IR 8214C) rules, schedule, and dossier source check
+
+Date: 13 Oct 2026. Roadmap items closed: "Verify dossier sources and recheck TCPT3 schedule / phase 3 list" and "Read final NIST call text (IR 8214C)".
+
+## Plain-language summary (what this means for us)
+
+- **Can we publish analysis?** Yes. The Call does not forbid public analysis; it is designed for it. IR 8214C Sec. 1.2 says accepted packages "will form a public body of reference materials, open to subsequent public scrutiny by experts", and Sec. 4.3 (Phase 3) is titled "Public Analysis of Crypto-Systems". The Call contains no rule that restricts outsiders from analysing or publishing about submissions.
+- **Must we tell the authors first?** Not required by NIST. I found no clause in IR 8214C, on the NIST project pages, or on the TCPT3 event page that obliges an outside analyst to notify a team before publishing. The only disclosure language binds the **teams**: Sec. 5.2 (teams "are expected to disclose undocumented vulnerabilities ... that it becomes aware of, during at least three years after their submission. Reasonable delays can be justified for responsible disclosure"). So notifying authors first is our own ethical/professional practice (and our project rule), not a NIST requirement. Note that the TALUS authors already publicly acknowledge outside cryptanalysis (Niot's note; the TCPT event page records a TALUS slide deck revised 2026-09-11 "to update the technique that addresses an otherwise key-recovery attack"), so the community norm is: contact, then post.
+- **Which forum?** NIST's list is the **MPTC-forum** (not pqc-forum). It is an unmoderated mailing list for "public announcements and public conversation about the NIST Multi-Party Threshold Cryptography project"; only members may post (anyone can join); messages are archived publicly at https://groups.google.com/a/list.nist.gov/g/mptc-forum. Sec. 4.3 says teams "can use the MPTC-Forum to announce issues discovered after the submission". The Call also says deadlines and adaptations are announced there. Whether pqc-forum is appropriate for these submissions: not confirmed (it is NIST's PQC-standardisation list, and I found nothing in the Call pointing to it). Also useful: IACR ePrint has an "Attacks and cryptanalysis" category (Niot's note is filed there).
+- **Comments to NIST:** the IR 8214C front matter lists `nistir-8214C-comments@list.nist.gov` as contact, and says "All comments are subject to release under the Freedom of Information Act (FOIA)" (page 4 of the PDF). So anything sent there can become public. No formal comment deadline exists now; the project page says NIST is "welcoming and considering feedback from the community".
+- **Practical timing:** the package phase is still ahead (see schedule). Packages are not public yet, so we can only analyse preview writeups and papers. Phase 3 "Public presentations" (2026 and 2027) is when outside analysis is expected.
+
+## Part 1: NIST Call text and project pages
+
+Sources read: IR 8214C final PDF (https://nvlpubs.nist.gov/nistpubs/ir/2026/NIST.IR.8214C.pdf, 113 pages, downloaded and text-extracted; I read the front matter, Sec. 1.2, 4, 4.1-4.3, 5.2, 5.3 and grep-searched the rest, I did NOT read all 113 pages); https://csrc.nist.gov/Projects/threshold-cryptography (page says updated 2026-10-06); https://csrc.nist.gov/Projects/threshold-cryptography/tcall-1; https://csrc.nist.gov/events/2026/tcpt3; https://csrc.nist.gov/events/2026/tcpt; https://csrc.nist.gov/Projects/threshold-cryptography/email-list; NIST news page; https://csrc.nist.gov/pubs/ir/8214/c/final. The Google Groups archive was only readable as truncated snippets, so individual forum threads were not read in full.
+
+### Document facts
+- IR 8214C, "NIST First Call for Multi-Party Threshold Schemes", authors Luis T. A. N. Brandao and Rene Peralta, DOI 10.6028/NIST.IR.8214C. "Approved by the NIST Editorial Review Board on 2026-01-15"; csrc page history "01/20/26: IR 8214C (Final)"; NIST news item dated 2026-01-20. Earlier drafts: ipd 2023-01-25, 2pd 2025-03-27. Verified.
+
+### Timeline
+IR 8214C Sec. 4, Table 4 (as printed in January 2026), with the status on the project page:
+
+| Item | IR 8214C Table 4 (Jan 2026) | Current NIST web pages (13 Oct 2026) |
+|---|---|---|
+| Preview 1 | writeup by 2026-Jan-12; talk at MPTS 2026 (Jan 26-29) | 26 writeups posted 2026-Jan-22; talks Jan 26-29. Confirmed |
+| Preview 2 | writeup by 2026-Apr-20 | deadline moved to May (forum post "New deadline in May"); 10 writeups posted 2026-Jul-06; TCPT2 talks Jul 7-8. Confirmed (the project page also says "MPTS 2026" for these talks, an apparent page typo) |
+| Preview 3 | writeup by 2026-Jun-22 | TCPT event page: writeups due 2026-Aug-07; TCPT3 talks Sep 30 and Oct 6, 7, 13, 2026 (virtual, free). Confirmed on both the event page and the project page; the Oct 13 session is partly "TBA" and the page itself has internal time inconsistencies |
+| Preliminary package (optional) | Jul 27 - Sep 7, 2026 | "throughout December (Dec 01-31, 2026) teams can submit a preliminary package" (tcall-1 page) |
+| Complete package | by 2026-Oct-19 | "The packages submission deadline is expected to be set to 2027-Mar-01 (it will not be before)." Package template: "To appear (expected October 2026, after TCPT3)." |
+| Public presentations (Phase 3.1) | 2026 and 2027 | unchanged, no dates |
+| NIST-MPTC initial report (3.3) | approx. 2027 | unchanged |
+
+Key quotes from IR 8214C Sec. 4: "Flexibility. The confirmation of deadlines will be communicated via the MPTC-Forum. Adjustments are possible, including adaptations to the timeline, opening a phase for updating packages, and calling for additional submissions within a restricted scope." And in the "Note to the Readers": "the deadlines for each phase will be announced via the MPTC-Forum." That is why the printed Oct-19 date is superseded; the authoritative source is the tcall-1 page and the forum.
+
+Other rules found on the tcall-1 page: "Participation in the Previews phase is a requirement for a subsequent participation in the Packages phase"; "Submitted Preview Writeups may be subject to revision recommendations"; packages need a "Notes on Patent Claims" document.
+
+**Not confirmed:** whether TCPT3's Oct 13 session ran or what it contained (page says TBA; today is Oct 13); the exact preliminary-package window (page says Dec 1-31; a Jul 15 forum snippet mentions "approximately 1 month" for an optional period but was truncated); the final package deadline (only "expected 2027-Mar-01, not before").
+
+### Rules and expectations (with section numbers)
+- **Sec. 1.2 Developing a Public Call:** "Packages that are accepted for posting by NIST-MPTC will form a public body of reference materials, open to subsequent public scrutiny by experts."
+- **Abstract / Sec. 4 intro:** "A subsequent phase of public analysis will support the elaboration of a characterization report..." The "Previews" phase aims "to foster public awareness and discussion".
+- **Sec. 4.1 Previews:** NIST posts writeups publicly; "The preview talk's slides and audiovisual recording will be posted online, for public access." Previews are explicitly "open to adjustments", so criticisms of a writeup may be answered by a later version (e.g. TALUS v0.21 to v0.22).
+- **Sec. 4.2:** after the deadline, "After around 30 days, the accepted packages will be hosted on a NIST public-facing repository".
+- **Sec. 4.3 Phase 3 (Public Analysis):** 3.1 "NIST-MPTC intends to host a seminar series for thorough presentations of the proposed crypto-systems, and to consider comments from the public." 3.2 "Each team can use the MPTC-Forum to announce issues discovered after the submission, and possible updates incorporated into the team's repositories." 3.3 NIST report to "characterize the set of proposed crypto-systems".
+- **Sec. 5.2 Security Guarantees:** teams "are expected to disclose undocumented vulnerabilities ... during at least three years after their submission. Reasonable delays can be justified for responsible disclosure."
+- **Sec. 5.3:** submitted PDFs may be posted by NIST and the public may use them (including commercially). This means quoting and building on the writeups is fine.
+- **Sec. 7 (implementation validation):** "the public scrutiny of submitted implementations is expected to contribute to clarifying suitable testing mechanisms". Public testing of reference code is expected.
+- **Front matter:** contact `nistir-8214C-comments@list.nist.gov`; "All comments are subject to release under the Freedom of Information Act (FOIA)".
+- **MPTC-forum page:** "an unmoderated mailing list"; "Only members are allowed to post messages to the list"; archive public by default. The tcall-1 page recommends subscribing for "opportunities for collaboration, feedback, and workshops".
+- **Not found anywhere:** any embargo, any rule requiring notification of authors before outside publication, any coordinated-disclosure procedure for outsiders, any rule that bars outside analysis of previews. TCPT pages only require abiding by "the Code of Conduct for NIST conferences" for attendees.
+
+### Phase 3 list recheck (tcall-1 page, entries 37-59)
+Named entries seen: ABCDKLs, ark-pq, ATMACA (FALCON), CL, DUOV (UOV), Holocron, Kettle (HAWK), Kryptallage, LaTSEC, MOZI, Octopus, Stoats, TALH, Thimza, TSitH; TBA rows: LHZZ, TORTL, Tulva, two unnamed. The TCPT3 agenda also lists Axolotl, DKLs, Menshen, TapTop/Robot, TalonG and P-DualTS (two-round lattice threshold signatures), AdpTD. **No entry is visibly labelled ML-DSA/FIPS 204 by name**, so the earlier statement "no ML-DSA entry" still holds on the evidence available, with a caveat: I did not read the Phase 3 writeups, and TalonG/P-DualTS, LaTSEC and Thimza are lattice threshold signatures whose relation to ML-DSA is not confirmed. The four ML-DSA submissions (Mithril, Quorus, SplitForge, TALUS) are in Phases 1 and 2.
+
+## Part 2: DOSSIER source and claim check
+
+Method: fetched each URL (WebFetch summaries of the abstract pages), downloaded the four NIST preview-writeup PDFs and extracted their text to compare claims. I did not re-read the full papers; claims about paper internals (e.g. Niot's sample-count table, Kao's remark numbers, Fisher bound ~2^30, the 7-12 bit figure beyond what the PW says) were not re-verified.
+
+| # | Dossier claim / source | Status | Details / fix needed |
+|---|---|---|---|
+| 1 | NIST submissions page, csrc .../tcall-1 | verified | Resolves; lists Mithril, Quorus, SplitForge, TALUS etc. See timeline mismatches below. |
+| 2 | Niot, "Key-Recovery Attacks on TALUS", ePrint 2026/1386 | verified | Title "Key-Recovery Attacks on TALUS: A Cryptanalytic Note", sole author Guilhem Niot (PQShield), received/approved 2026-07-07, category Attacks and cryptanalysis, no withdrawal notice. Abstract confirms: Feldman/A-left-invertible attack, removed s2 check, "a few hundred million signatures", counts not optimized. Version history not visible. Optional: add the full title and date 2026-07-07. |
+| 3 | TALUS PW v0.22 (TALUS-PW02.pdf) | verified | Resolves (9 pp.). "Preview Writeup 0.22 (2026-08-11)", team Leo Kao, Raymond Chang, supersedes 0.21 (2026-06-25). Cap "approx. 2^13/2^14/2^14", q_uniq approx. 2^15.2/2^16.4/2^16.2, cap about two bits below the wall, Sunghyeon Jo mention, quorum-bound single-use nonces: all confirmed in text. Also states 2-round online, honest majority N >= 2T-1, TEE variant "contrasting". Dossier wording "Codebat (Kao, Chang)": the team name in the PW is "TALUS Team"; "Codebat" not confirmed from the sources I read. |
+| 4 | TALUS arXiv 2603.22109 | verified, minor | "TALUS: FIPS-204-Exact Threshold ML-DSA via Boundary Clearance", Leo Kao, Raymond Chang; v1 23 Mar, v2 24 Mar, v3 8 Jul, v4 23 Jul, v5 9 Aug 2026. Lower bound ~2^30 signatures at ML-DSA-65 confirmed in abstract. Dossier says the authors' arXiv note is dated 2026-07-09; arXiv lists v3 on 8 Jul 2026 (note text may carry its own date; not checked). Fix: say "arXiv v3 (8 Jul 2026)" or re-check the note's own date. |
+| 5 | Kao, arXiv 2601.20917 "Threshold ML-DSA via Shamir Nonce DKG" | mismatch (title) + version | Actual title: "FIPS 204-Compatible Threshold ML-DSA via Shamir Nonce DKG", single author Leo Kao. v1 28 Jan 2026, now v6 (3 Mar 2026), 98 pages, "complete UC proofs for Profiles P1, P2, and P3+", Rust implementation. Fix: correct the title; state which version was read (dossier does not say; the current version is v6, and the abstract still says the fully distributed profile "needs at least two non-coordinator parties for mask hiding", consistent with the dossier's |S minus C| >= 2 point). |
+| 6 | Mithril PW (Mithril-PW01.pdf) | verified, minor | Resolves. "Version 1.0 (2026-01-19)". Team: Sofia Celi, Gustavo Delerue, Rafael del Pino, Thomas Espitau, Guilhem Niot, Thomas Prest: matches dossier. Confirmed in text: replicated short shares, hyperball local rejection, three-round signing (about 6 rounds average), static adversary, dishonest majority, no identifiable aborts, 7 to 12 bits a-posteriori loss, adaptive loss at most 5 bits, success probability 1/2 (param set 44, T <= N <= 6 experiments), Go PoC with floating point and fixed-point C planned. Minor: PW abstract says scalability "up to at least N = 8", dossier's "T <= N <= 6 (8 planned)" is a fair reading. The dossier names "PQShield, Brave, Bristol" as teams: PW lists affiliations; ePrint shows Brave Research/University of Bristol and PQShield (Delerue's affiliation not checked). |
+| 7 | Mithril paper, ePrint 2026/013 "Efficient Threshold ML-DSA" | verified | Authors Celi, del Pino, Espitau, Niot, Prest (**Delerue is on the PW team but not an author of the ePrint paper**; do not call the paper's authors the same as the PW team). Received 2026-01-05, approved 2026-01-09; supersedes ePrint 2025/1166 (which the instructor says is withdrawn; this dossier does not cite 2025/1166, good); "Published elsewhere. Major revision", USENIX Security '26; bound of 1 MB per party for up to 6 parties. |
+| 8 | Quorus PW (Quorus-PW01.pdf) | verified | Resolves. "Version 0.1 (2026-01-21)"; team Bienstock, de Castro, Escudero, Polychroniadou, Takahashi; categories N1.4 and N4.3; UC security, up to 64 signers, honest majority: confirmed. Reveal of w1 even when (z,h) rejected, with a claim of no secret leakage: confirmed (lines about "reveal w1 ... instead of outputting bottom"). The PW does not itself cite ZWSY25 as far as my grep showed. |
+| 9 | Quorus ePrint 2025/1163 | verified | "Quorus: Efficient, Scalable Threshold ML-DSA Signatures from MPC", all five authors at J.P. Morgan (AlgoCRYPT / JP Morgan Chase), received 2025-06-19, last of 2 revisions 2026-01-28, USENIX 2026, UF-CMA-bottom proof added. ID 2025/1163 is correct (not 2026). The ePrint title differs slightly from the PW subtitle ("Scalable Threshold ML-DSA from MPC"); use the ePrint title in citations. |
+| 10 | Quorus "16-29 broadcast rounds (per TALUS paper's table)" | partly verified | TALUS PW text says Quorus "requires 16-29 rounds" (sec. 1); the word "broadcast" is not in that sentence. Fix: drop "broadcast" or check Quorus directly. |
+| 11 | SplitForge PW (SplitForge-PW01.pdf) | mismatch (naming/team) | Resolves; "Version 0.1 (2026-01-12)". The PW title is **"SplitKey: Two-party signing and decryption with extra features"**, team "SplitForge" with ten members (Laud, Pankova, Snetkov, Vakarjuk, Muzikant, Kalu, Kus, Kravtsenko, Rebane, Oruaas); Dufka is not on the PW team list. Trilithium is only crypto-system (IV) of four in the PW. Fix: describe the team as the SplitForge team and attribute Trilithium to Dufka, Kravtsenko, Laud, Snetkov (the paper's authors). |
+| 12 | Trilithium ePrint 2025/675 | verified | "Trilithium: Efficient and Universally Composable Distributed ML-DSA Signing"; authors Dufka, Kravtsenko, Laud, Snetkov (Cybernetica); received 2025-04-14, latest revision 2026-06-30 (3 revisions), ESORICS 2026. **Newer version exists**: dossier analyses rely on older text; recheck the heuristic and CRP statements against the 2026-06-30 version. |
+| 13 | "Trilithium: 14 online rounds per attempt" | verified | PW: "3 round-trips ... for key generation, and 14 round-trips for signing". Dossier says "per attempt": the PW sentence does not say per attempt; flag as wording. |
+| 14 | "Trust model: CRP honest" (SplitForge row) | mismatch | PW: the protocol "is secure against a malicious Client or a malicious Server. It can also be made secure against malicious CRP". Fix: "CRP honest in the base version; extension to malicious CRP claimed". |
+| 15 | NIST news / IR 8214C announcement | verified | Resolves; dated 2026-01-20; IR 8214C final page at csrc.nist.gov/pubs/ir/8214/c/final. |
+| 16 | Bootle et al., ILWE, ASIACRYPT 2018 | verified | "LWE Without Modular Reduction and Improved Side-Channel Attacks Against BLISS", Bootle, Delaplace, Espitau, Fouque, Tibouchi; LNCS 11272 pp. 494-524; ePrint 2018/822. Dossier gives only "Bootle et al., ASIACRYPT 2018"; fine. |
+| 17 | "ZWSY25" (key recovery from leaked rejection bit / ILP on rejected challenges) | not confirmed | The dossier gives only this label. Closest match found: Zhou, Wang, Sun, Yu, "Rejected Signatures' Challenges Pose New Challenges: Key Recovery of CRYSTALS-Dilithium via Side-Channel Attacks", ePrint 2025/214 (ILP-based). The label letters fit "Z-W-S-Y". I could not see Quorus's own bibliography entry, so the match is a guess. Fix: look up the Quorus reference list before citing; do not cite from this guess alone. |
+| 18 | "Sunghyeon Jo reported quorum reuse" | verified in TALUS PW | PW sec. 3-ish text mentions Sunghyeon Jo; the underlying report was not read. |
+| 19 | Dossier "TCPT3 preview talks: Sep 30 and Oct 5-7" | **mismatch** | Both the event page and project page say **Sep 30 and Oct 6, 7, 13, 2026**. The forum subject (Sep 28) says "Sep 30, Oct 06-07", so Oct 13 was added later. There is no Oct 5 session. Fix: update. |
+| 20 | Dossier "Preliminary packages Nov 30 - Dec 17, 2026 (expected)" | **mismatch** | tcall-1 page says **Dec 01-31, 2026** (optional, "throughout December"). Source of the old dates not found. |
+| 21 | Dossier "Package deadline not before 2027-03-01" | verified | tcall-1: "expected to be set to 2027-Mar-01 (it will not be before)". Note IR 8214C Table 4 still prints 2026-Oct-19; overridden via MPTC-forum per Sec. 4 "Flexibility". |
+| 22 | Dossier "phase 3 list had no ML-DSA entry" | verified with caveat | See Part 1 recheck. |
+| 23 | Dossier "NIST's MPTC forum is where the Call's discussion happens" | verified | Email-list page and Call Sec. 4.3. |
+| 24 | Dossier "contact the teams first (standard practice)" | not a NIST rule | Good practice only; NIST does not require it (see summary). Suggest rewording to avoid implying it is mandated. |
+| 25 | Dossier header "Four threshold ML-DSA proposals ... in the NIST First Call" | verified | All four have preview writeups on the NIST site. |
+| 26 | Niot sample counts 3.1e8 / 1.9e9 / 1.5e9 (Table); Fisher bound 2^30; Kao remark numbers; Irwin-Hall 0.013 bits | not re-checked | Taken from the earlier full reading; this pass only confirmed the abstracts. |
+
+### Mismatches to fix (short list)
+1. TCPT3 dates: Sep 30 and Oct 6, 7, 13 (not Oct 5-7).
+2. Preliminary packages: Dec 1-31, 2026 (not Nov 30 - Dec 17).
+3. Kao arXiv 2601.20917 title is "FIPS 204-Compatible Threshold ML-DSA via Shamir Nonce DKG"; latest is v6 (3 Mar 2026); say which version was read.
+4. SplitForge PW is titled "SplitKey" with a ten-person team; Trilithium authors are a subset; the CRP is not strictly assumed honest (malicious-CRP variant claimed).
+5. Trilithium ePrint 2025/675 has a 2026-06-30 revision; Quorus ePrint has a 2026-01-28 revision; recheck claims against latest versions.
+6. Mithril paper authors (ePrint 2026/013) do not include Delerue, who is on the PW team.
+7. ZWSY25 is unresolved; probable match ePrint 2025/214 (Zhou, Wang, Sun, Yu), not confirmed.
+8. Date of the TALUS authors' note (2026-07-09 vs arXiv v3 8 Jul); the "Codebat" team name is not in the PW.
+9. Wording: "contact the teams first" is practice, not a NIST rule; IR 8214C Table 4's printed dates (Oct-19 complete package etc.) are superseded.
+
+### Things I could not confirm
+- Contents of individual MPTC-forum threads (Jul 15 TCPT2 post on preliminary packages; Sep 28 TCPT3 post; Apr 2025 "Security of threshold schemes" post), only subject lines and snippets.
+- The final package deadline and package template date (both still "expected").
+- Whether TCPT3 Oct 13 talks happened as planned.
+- Full text of IR 8214C beyond the sections listed; no hidden clause on analysts was found by keyword search (public, comment, disclos, vulnerab, attack, forum, embargo, cryptanaly), but I did not read all 113 pages.
+- Any NIST statement on pqc-forum for these submissions.

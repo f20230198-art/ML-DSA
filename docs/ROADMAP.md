@@ -7,7 +7,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] PLAN Stage A: NTT, SHAKE sampling, hints, full sign/verify with all attempts; byte-identical to dilithium-py oracle for -44/-65/-87 (6 Oct); passes 81 official NIST ACVP vectors (keyGen, pure sigGen, sigVer; 8 Oct). PreHash and external-mu not implemented
 - [x] PLAN Stage B (13 Oct): `TalusBCCView`, `MithrilView` and adapter `observations_to_cb` in `harness/schemes/views.py`; estimators unchanged. Gate B passed end to end: real ML-DSA-44 attempts -> TalusBCCView -> edge estimator recovers s2 - t0 for 2/2 keys at N = 2e5 and 4e5 accepted, 0/2 at 1e5 (`experiments/gate_b_views.py`, seed 2029). Mithril view uses synthetic r1, r2 stand-ins
 - [x] Fix stale line in DOSSIER and README ("no code has been run")
-- [ ] Verify dossier sources and recheck TCPT3 schedule / phase 3 list
+- [x] Verify dossier sources and recheck TCPT3 schedule / phase 3 list (13 Oct, docs/nist_call_and_sources_check.md; dates fixed in DOSSIER; open: recheck Quorus/Trilithium claims against their 2026 ePrint revisions, SplitKey writeup says CRP can be made malicious-secure)
 
 ## 1. Leakage-testing harness
 - [x] ML-DSA reference primitives: params, rounding, ring mult, NTT, hints, SHAKE sampling, full sign/verify; NIST ACVP vectors pass (8 Oct)
@@ -24,6 +24,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Firmer numbers (8 Oct): -44 n = 256 with 20 trials: N*99 = 1.45e5 (2^17.1), full secret (k = 4) by 1.46e5; 4.1 bits above cap, 1.9 above wall. -87 n = 256 (5 trials): N*99 between 2^17.6 and 2^18.4, at least 3.6 above cap, 1.4 above wall
 - [x] More trials for -87 and -65 at n = 256 near the transition (10 Oct, 20 trials, 7 points each): -87 N*99 = 3.69e5 (2^18.5), 4.5 above cap, 2.3 above wall; -65 N*99 = 3.58e5 (2^18.4), 4.4 above cap, 2.0 above wall. Full secret checked 13 Oct (300 trials, seed 2028): -65 299/300 at 2^18.47, -87 300/300 at 2^18.53 -> full-secret success >= ~91% / 92% (95%, union bound)
 - [x] Positive and negative controls from real ML-DSA-44 signing (10 Oct, `harness/schemes/mldsa_controls.py`, `experiments/mldsa_controls.py`): no-r0-check variant -> edge estimator recovers s2 - t0 (key) in 9/9 runs (3 keys x N = 2e5, 4e5, 8e5); genuine ML-DSA -> key in 0/9, returns only -t0 (public-equivalent) in 9/9. false-positive check 12 Oct: 15 more keys (seed 2027, N = 2e5) -> key 0/15, -t0 15/15; 0/18 keys overall, rate < ~15% at 95%. TALUS v0.1 done 13 Oct (`harness/schemes/talus_v01.py`, arXiv 2603.22109v2 read in part): Niot attack 1 recovers s1 exactly from the keygen broadcast (3/3 keys) and from one MPC signature (60/60); attack 2 least squares on real signatures follows theory sigma_e/sqrt(N tau) up to N = 1e5, needs ~1.2e9 for recovery
+- [x] ILP finishing at full size (13 Oct, ML-DSA-44, n = 256, one ring element, seed 2032, `experiments/ilp_n256.py`, results `ilp_n256*.json`): ILP success 1/8 at 5e4, 5/8 at 6e4, 8/8 at 7e4, 32/32 at 8e4-1.45e5 (plain rounding: 0/8 at 8e4, N*99 1.45e5). So N with ILP ~7e4 (2^16.1): about 3.1 bits above the cap and 0.9 above the wall (was 4.1 / 1.9). Still no break. Per element only (8 trials per point); -65/-87 with ILP not run
 - [x] Compare against cap (2^13-2^14) and uniqueness wall (2^15-2^16): margin table in docs/LEARN.md (6 Oct)
 
 ## 3. Mithril
@@ -72,7 +73,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [ ] Final read-through of report abstract and numbers before submitting
 
 ## Ethics / disclosure
-- [ ] Read final NIST call text (IR 8214C) for rules on public analysis and comments
+- [x] Read final NIST call text (IR 8214C), selectively (13 Oct): public analysis allowed and expected; NIST does not require notifying teams first (our own policy); forum is MPTC-forum
 - [ ] Ask course instructor if any permission is needed
 - [ ] Plan a fallback deliverable if no attack is found (harness plus measured margins)
 - [x] Draft author-notification emails: `docs/disclosure_drafts.md` (Kao P2, Mithril, Devevey et al.), 11 Oct, not sent

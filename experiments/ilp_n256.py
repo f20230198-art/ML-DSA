@@ -1,4 +1,4 @@
-"""Does the ILP finishing step lower N* at full size? ML-DSA-44, n = 256, BCC, target s2 (one ring element).
+"""Does the ILP finishing step lower N* at full size? ML-DSA-44 (default; see --params), n = 256, BCC, target s2 (one ring element).
 
 Run: python -m experiments.ilp_n256 --N 60000 80000 100000 120000 --trials 8
 Edge estimate on the GPU (as for the n = 256 ladder), then harness.estimators.ilp.finish with window 1.
@@ -16,17 +16,19 @@ from harness.schemes.talus_bcc import make_channel, make_transcript, sample_targ
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--params", default="ML-DSA-44", choices=sorted(ALL))
     ap.add_argument("--N", type=int, nargs="+", default=[60000, 80000, 100000, 120000])
     ap.add_argument("--trials", type=int, default=8)
+    ap.add_argument("--first", type=int, default=0)
     ap.add_argument("--seed", type=int, default=2032)
     ap.add_argument("--time-limit", type=float, default=60.0)
     ap.add_argument("--out", default="experiments/results/ilp_n256.json")
     args = ap.parse_args()
-    p = ALL["ML-DSA-44"]
+    p = ALL[args.params]
     ch = make_channel(p, 256, "bcc", "s2")
     rows = []
     for N in args.N:
-        for t in range(args.trials):
+        for t in range(args.first, args.first + args.trials):
             rng = np.random.default_rng([args.seed, N, t])
             s = sample_target(rng, ch)
             c, b = make_transcript(rng, ch, s, N)
@@ -37,6 +39,7 @@ def main():
             row = dict(N=N, trial=t, round_ok=bool((r == s).all()), ilp_ok=bool((z == s).all()),
                        wrong_round=int((r != s).sum()), free=info["free"], status=info["status"],
                        seconds=time.time() - t0)
+            row["params"] = args.params
             rows.append(row)
             print(row, flush=True)
             json.dump(dict(args=vars(args), rows=rows), open(args.out, "w"), indent=1)
