@@ -1,0 +1,2 @@
+{'N': 143000, 'trial': 3, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 26, 'free': 224, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 311.1769666671753, 'params': 'ML-DSA-65'}
+N=143000: round 0.00  ilp 0.00

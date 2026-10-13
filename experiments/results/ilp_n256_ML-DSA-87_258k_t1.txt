@@ -1,0 +1,2 @@
+{'N': 258000, 'trial': 1, 'round_ok': True, 'ilp_ok': True, 'wrong_round': 0, 'free': 210, 'status': 'optimal', 'seconds': 11.103251457214355, 'params': 'ML-DSA-87'}
+N=258000: round 1.00  ilp 1.00

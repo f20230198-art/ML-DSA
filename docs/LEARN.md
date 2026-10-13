@@ -532,7 +532,7 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 
 - **What:** we ran the new ILP step (Part 1, "Integer programming") on the full-size ML-DSA-44 channel (n = 256), 8 trials per point, seed 2032. Script `experiments/ilp_n256.py`; results `experiments/results/ilp_n256*.json`. To save time the slow points ran as parallel processes with the same seeds, so results equal a serial run.
 - **Result:** with the ILP step the key piece came out in 1/8 trials at 50,000 signatures, 5/8 at 60,000, 8/8 at 70,000 and 32/32 from 80,000 up. Plain rounding needed about 145,000 for 99%.
-- **Meaning:** about 70,000 signatures (2^16.1) now suffice: about 3.1 bits above the TALUS cap (was 4.1) and only about 0.9 bits above the authors' uniqueness wall (was 1.9). Still not a break, but the safety margin is thinner than we first reported. Caveats: one ring element, 8 trials per point, ML-DSA-65 and -87 not re-run with ILP.
+- **Meaning:** about 70,000 signatures (2^16.1) now suffice: about 3.1 bits above the TALUS cap (was 4.1) and only about 0.9 bits above the authors' uniqueness wall (was 1.9). Still not a break, but the safety margin is thinner than we first reported. Caveats: one ring element, 8 trials per point. **Update (same day):** ML-DSA-65 and -87 re-run with ILP (4 trials per point, run one at a time to spare the laptop): -65 needs about 2^17.45, -87 at most 2^17.18; both about 3.2-3.5 bits above the cap and about 1 bit above the wall. Same picture for all three: thinner margin, no break.
 
 ## 2026-10-13: Report revised with the instructor's feedback and the Phase 2 results
 

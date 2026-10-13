@@ -1,0 +1,18 @@
+ILP finishing at n = 256, BCC, target s2, window 1, time limit 300 s, seed 2032.
+4 trials per point (trials 0..3); small samples, a point at k/4 is only indicative.
+
+ML-DSA-65: plain-rounding N*99 = 3.58e+05 (2^18.4); cap 2^14; uniqueness wall ~2^16.4
+  factor      N   trials  ILP ok  rounding ok  mean s
+  0.4    143000      4   1/4     0/4           311
+  0.5    179000      4   4/4     0/4            15
+  0.6    215000      4   4/4     0/4            16
+  0.7    251000      4   4/4     2/4            14
+  smallest N with 4/4 ILP: 179000 = 2^17.45; +3.45 bits vs cap 2^14; +1.05 bits vs wall 2^16.4
+
+ML-DSA-87: plain-rounding N*99 = 3.69e+05 (2^18.5); cap 2^14; uniqueness wall ~2^16.2
+  factor      N   trials  ILP ok  rounding ok  mean s
+  0.4    148000      4   4/4     0/4            15
+  0.5    184000      4   4/4     0/4            14
+  0.6    221000      4   4/4     0/4            15
+  0.7    258000      4   4/4     2/4            14
+  smallest N with 4/4 ILP: 148000 = 2^17.18; +3.18 bits vs cap 2^14; +0.98 bits vs wall 2^16.2

@@ -1,0 +1,26 @@
+{
+ "args": {
+  "params": "ML-DSA-87",
+  "N": [
+   184000
+  ],
+  "trials": 1,
+  "first": 2,
+  "seed": 2032,
+  "time_limit": 300.0,
+  "out": "experiments/results/ilp_n256_ML-DSA-87_184k_t2.json"
+ },
+ "rows": [
+  {
+   "N": 184000,
+   "trial": 2,
+   "round_ok": false,
+   "ilp_ok": true,
+   "wrong_round": 4,
+   "free": 207,
+   "status": "optimal",
+   "seconds": 14.107056140899658,
+   "params": "ML-DSA-87"
+  }
+ ]
+}

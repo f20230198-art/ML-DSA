@@ -1,0 +1,26 @@
+{
+ "args": {
+  "params": "ML-DSA-65",
+  "N": [
+   143000
+  ],
+  "trials": 1,
+  "first": 3,
+  "seed": 2032,
+  "time_limit": 300.0,
+  "out": "experiments/results/ilp_n256_ML-DSA-65_143k_t3.json"
+ },
+ "rows": [
+  {
+   "N": 143000,
+   "trial": 3,
+   "round_ok": false,
+   "ilp_ok": false,
+   "wrong_round": 26,
+   "free": 224,
+   "status": "milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)",
+   "seconds": 311.1769666671753,
+   "params": "ML-DSA-65"
+  }
+ ]
+}
