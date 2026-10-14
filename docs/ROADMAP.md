@@ -77,3 +77,16 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [ ] Ask course instructor if any permission is needed
 - [ ] Plan a fallback deliverable if no attack is found (harness plus measured margins)
 - [x] Draft author-notification emails: `docs/disclosure_drafts.md` (Kao P2, Mithril, Devevey et al.), 11 Oct, not sent
+
+## 7. Paper (plan in docs/PAPER_PLAN.md, agreed 13 Oct 2026)
+- [x] 1. TALUS: is key rotation a fresh key or a share refresh? Answered 14 Oct from PW v0.22 Sec. 2.3: fresh key generation; the writeup says share refresh does not reset leakage. No hole.
+- [x] 2. TALUS: do rejected attempts release w1? Closed 14 Oct: BCC rejects stay committed offline; residual online failures are rare (arXiv v5 Sec. 6: first attempt succeeds ~98.0/99.6/99.2%, z-norm check never fired, hint weight dominates). Even if uncounted toward the cap, at most ~0.03 bits extra data vs a ~3-bit margin. No hole.
+- [ ] 3. TALUS: corrupt party / coordinator model
+- [ ] 4. Stronger estimator (joint, hint h, lattice finish)
+- [ ] 5. Mithril Go code: run views on real transcripts if available
+- [x] 6. Mithril -65 a-posteriori sharing vs NIST Category 3 (full estimator). Done 14 Oct: baseline 203.8 bits, with hint 189.0/184.3/182.5 (S = 2/6/20), loss 14.8-21.3 (paper: 7-12). Below the baseline's Category 3 level, far above Category 1. Proof-claim gap, not practical. `experiments/results/mithril_hint_estimator_full65.txt`
+- [ ] 7. Kao P2 end-to-end demo on real ML-DSA-44
+- [ ] 8. TALUS statistics (>= 20 trials, CIs, full secret with ILP, scaling fit)
+- [ ] 9. Corrected Devevey A.6 bound with proof
+- [ ] 10-13. Framing, disclosure (ask instructor, send emails), open artifact, venue rewrite
+- Targets: PQCrypto 2027 (paper 24 Nov 2026); USENIX Security '27 cycle 2 (26 Jan 2027) if items 1-3 find a hole

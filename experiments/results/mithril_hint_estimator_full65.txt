@@ -1,0 +1,32 @@
+# 14 Oct 2026. lattice-estimator commit 53da598, SageMath 10.4 Docker image, LWE.estimate (full, arora-gb denied), jobs=1, -m 2g
+# script: experiments/mithril_hint_estimator_full65.sage
+bkw                  :: rop: ≈2^386.0, m: ≈2^371.9, mem: ≈2^372.9, b: 16, t1: 0, t2: 31, ℓ: 15, #cod: 1184, #top: 0, #test: 98, tag: coded-bkw
+usvp                 :: rop: ≈2^206.2, red: ≈2^206.2, δ: 1.002902, β: 624, d: 2597, tag: usvp
+bdd                  :: rop: ≈2^203.8, red: ≈2^203.2, svp: ≈2^202.2, β: 613, η: 648, d: 2603, tag: bdd
+dual                 :: rop: ≈2^212.1, mem: ≈2^141.3, m: 1400, β: 641, d: 2680, ↻: 1, tag: dual
+dual_hybrid          :: rop: ≈2^209.6, red: ≈2^209.4, guess: ≈2^206.0, β: 632, p: 3, ζ: 20, t: 0, β': 627, N: ≈2^119.0, m: 1280
+RESULT ML-DSA-65 no hint: 203.8 bits (best attack bdd), loss 0.0
+bkw                  :: rop: ≈2^340.2, m: ≈2^326.0, mem: ≈2^327.0, b: 14, t1: 0, t2: 33, ℓ: 13, #cod: 1177, #top: 0, #test: 106, tag: coded-bkw
+usvp                 :: rop: ≈2^192.2, red: ≈2^192.2, δ: 1.003083, β: 574, d: 2511, tag: usvp
+bdd                  :: rop: ≈2^189.9, red: ≈2^189.2, svp: ≈2^188.6, β: 563, η: 599, d: 2537, tag: bdd
+dual                 :: rop: ≈2^197.6, mem: ≈2^131.0, m: 1319, β: 589, d: 2599, ↻: 1, tag: dual
+dual_hybrid          :: rop: ≈2^189.0, red: ≈2^188.8, guess: ≈2^186.2, β: 558, p: 6, ζ: 20, t: 40, β': 557, N: ≈2^115.3, m: 1280
+RESULT ML-DSA-65 S=2: 189.0 bits (best attack dual_hybrid), loss 14.8
+bkw                  :: rop: ≈2^317.6, m: ≈2^303.2, mem: ≈2^304.2, b: 13, t1: 1, t2: 37, ℓ: 12, #cod: 1166, #top: 0, #test: 102, tag: coded-bkw
+usvp                 :: rop: ≈2^187.5, red: ≈2^187.5, δ: 1.003151, β: 557, d: 2493, tag: usvp
+bdd                  :: rop: ≈2^185.2, red: ≈2^184.7, svp: ≈2^183.5, β: 547, η: 581, d: 2489, tag: bdd
+dual                 :: rop: ≈2^192.5, mem: ≈2^127.4, m: 1290, β: 571, d: 2570, ↻: 1, tag: dual
+dual_hybrid          :: rop: ≈2^184.3, red: ≈2^184.3, guess: ≈2^177.0, β: 542, p: 4, ζ: 20, t: 50, β': 542, N: ≈2^112.0, m: 1280
+RESULT ML-DSA-65 S=6: 184.3 bits (best attack dual_hybrid), loss 19.4
+bkw                  :: rop: ≈2^317.6, m: ≈2^303.2, mem: ≈2^304.2, b: 13, t1: 1, t2: 37, ℓ: 12, #cod: 1166, #top: 0, #test: 102, tag: coded-bkw
+usvp                 :: rop: ≈2^186.4, red: ≈2^186.4, δ: 1.003167, β: 553, d: 2450, tag: usvp
+bdd                  :: rop: ≈2^184.0, red: ≈2^183.3, svp: ≈2^182.4, β: 542, η: 577, d: 2503, tag: bdd
+dual                 :: rop: ≈2^191.1, mem: ≈2^126.4, m: 1282, β: 566, d: 2562, ↻: 1, tag: dual
+dual_hybrid          :: rop: ≈2^182.5, red: ≈2^182.5, guess: ≈2^175.8, β: 535, p: 6, ζ: 20, t: 40, β': 536, N: ≈2^111.0, m: 1280
+RESULT ML-DSA-65 S=20: 182.5 bits (best attack dual_hybrid), loss 21.3
+Algorithm functools.partial(<function dual at 0x767946d58180>, red_cost_model=<estimator.reduction.MATZOV object at 0x767946e81d00>) on LWEParameters(n=1280, q=8380417, Xs=D(σ=0.74), Xe=D(σ=0.74), m=1536, tag='paper 0.74') failed with Unknown how to exploit sparsity of D(σ=0.74, μ=0.00, n=1280)
+bkw                  :: rop: ≈2^271.9, m: ≈2^257.4, mem: ≈2^258.3, b: 11, t1: 2, t2: 38, ℓ: 10, #cod: 1137, #top: 0, #test: 121, tag: coded-bkw
+usvp                 :: rop: ≈2^174.6, red: ≈2^174.6, δ: 1.003352, β: 511, d: 2394, tag: usvp
+bdd                  :: rop: ≈2^172.4, red: ≈2^171.9, svp: ≈2^170.7, β: 501, η: 535, d: 2427, tag: bdd
+dual_hybrid          :: rop: ≈2^169.3, red: ≈2^168.8, guess: ≈2^167.3, β: 486, p: 3, ζ: 20, t: 70, β': 490, N: ≈2^101.6, m: 1280
+RESULT ML-DSA-65 paper 0.74: 169.3 bits (best attack dual_hybrid), loss 34.5

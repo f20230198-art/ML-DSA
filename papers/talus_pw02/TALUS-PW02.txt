@@ -1,0 +1,287 @@
+“Preview Writeup”: In anticipation of a package submission to the NIST Threshold Call
+Title: TALUS
+Subtitle: FIPS-204-Exact Threshold ML-DSA via Boundary Clearance
+Version: Preview Writeup 0.22 (2026-08-11)1
+Team name: TALUS: TALUS Team
+Team members: Leo Kao, Raymond Chang
+Abstract: We present TALUS, a threshold signing protocol for ML-DSA (FIPS 204) whose 
+signatures are accepted by any unmodified verifier. Its core is the Boundary Clearance Condition 
+(BCC): for a constant fraction of nonces (31.7% at ML-DSA-65; 43.2% at ML-DSA-44), the 
+secondary smallness check on the secret-dependent term 𝑐𝑠2 is geometrically guaranteed to pass, 
+detectable from public information alone, so nonces can be filtered offline and the online 𝑠2
+computation is eliminated. The proposed system, TALUS-MPC, is a fully distributed honest-
+majority protocol with a two-round online phase (a commit-then-open of the nonce commitment, 
+the ordering required for standard-assumption security), analyzed directly under Module-LWE and 
+SelfTargetMSIS for a bounded number of signatures per key, enforced by mandatory key rotation. 
+A TEE-assisted one-round variant is described as a contrasting deployment example for enclave-
+equipped environments, and is not proposed for the threshold setting. The design also addresses the 
+reported cryptanalysis, including ia.cr/2026/1386. Our Rust reference implementation produces 
+FIPS 204 signatures confirmed to verify under the independent open-source dilithium-py ML-DSA 
+implementation; the fully distributed protocol is being finalized for the Package submission.
+Proposed crypto-systems:  (I) Threshold ML-DSA Signing (Categories N1.4); (II) Distributed 
+ML-DSA Key Generation (Categories N4.3).
+Keywords: Threshold Cryptography; NIST Threshold Call; ML-DSA; FIPS 204; Post-Quantum
+Document License: CC BY 4.0 International
+1Revised version superseding version 0.21 (submitted 2026-06-25); reflects the current construction (arXiv v5) and 
+its response to the reported cryptanalysis
+TALUS Preview Writeup (version 0.22)
+Preview writeup. This document is provided to NIST for online publication, to foster public awareness 
+and support public discussion within the scope of the NIST First Call for Multi-Party Threshold Schemes 
+[NIST-IR8214C]. This “preview writeup” represents a good-faith plan for a subsequent “package submission”. 
+However, until the deadline for package submission, the team may still modify its own composition and the sub-
+mission plan, including possible changes to the technical scope, and/or the used techniques or achieved results.
+Team members: Leo Kao i1,a1, Raymond Chang i2,a1
+Open Researcher and Contributor Identifiers (ORCID):
+i1 (0009-0006-2592-1027); i2 (0009-0003-6854-4290)
+Affiliations: a1 Codebat Technologies Inc. @ Canada
+Note on Author Contributions: The technical content, security analysis, and numerical results are 
+the team’s own work, drawn from the full version of the TALUS paper, and were reviewed and verified 
+by the team members. AI tools assisted with typesetting and formatting.
+Main contacts:
+• Team mailing list: leo@codebat.ai
+• Primary technical contact person: Leo Kao, leo@codebat.ai
+• Secondary contact person: Raymond Chang, raymond@codebat.ai
+Produced by humans. The team hereby confirms that the content in this preview writeup: (i) was produced 
+by the team members, and (ii) was not produced by generative artificial intelligence (AI), with the possible ex-
+ception of AI-proposed grammar improvements, minor integrated suggestions, or some well-identified and short 
+localized portions of auxiliary content (e.g., some illustration); and (iii) was proofread by the team members.
+ii
+TALUS Preview Writeup (version 0.22)
+1. Introduction
+Threshold signing for ML-DSA (FIPS 204) [FIPS204; Dilithium] requires multiple online rounds 
+because the secondary rejection check
+‖LowBits(𝑤 − 𝑐𝑠2)‖∞ < 𝛾2 − 𝛽
+involves the full secret key 𝑠2. Here 𝑦 is the ephemeral nonce and 𝑤 = 𝐴𝑦 the commitment 
+it produces with the public matrix 𝐴 (so 𝑤 is not the nonce; 𝑦 is); 𝑐 is the challenge, 𝑠2 the 
+second secret-key vector, and 𝛾2 (rounding granularity) and 𝛽 = 𝜏𝜂 (the maximal magnitude 
+of 𝑐𝑠2) are the remaining parameters. All of these are standard ML-DSA quantities [FIPS204]. In 
+standard (non-threshold) ML-DSA, a signer who fails this check simply resamples a nonce and 
+retries. In the threshold setting, each retry requires a fresh round of interaction among all signers, 
+since the nonce must be jointly generated. Existing schemes address this via multi-round MPC: 
+Mithril [Mithril] uses 3 online rounds (averaging 6 with rejection), while Quorus [Quorus] requires 
+16–29 rounds.
+TALUS [TALUS] is built on a simple observation we call the Boundary Clearance Condition (BCC): 
+for a randomly sampled nonce 𝑦, take the same 𝑤 = 𝐴𝑦 mod 𝑞 that the rejection check tests, 
+and decompose it as 𝑤 = 𝑤1 ⋅ 2𝛾2 + 𝑟0 (high part 𝑤1, low part 𝑟0). If every coefficient of 𝑟0
+satisfies |𝑟(𝑖)
+0 | < 𝛾2 − 𝛽 (i.e., each coefficient has boundary distance greater than 𝛽), then the 
+secondary rejection check on LowBits(𝑤 − 𝑐𝑠2) is guaranteed to pass for any secret 𝑠2 with 
+‖𝑠2‖∞ ≤ 𝜂 and any challenge 𝑐 with ‖𝑐‖1 ≤ 𝜏. Crucially, this condition depends only on 𝑟0, 
+which is computable from public information (𝐴 and 𝑦). Monte Carlo experiments confirm that 
+approximately 31.7% of nonces satisfy BCC for ML-DSA-65 (theory: 31.66%; Monte Carlo: 
+31.61%; 43.2% for ML-DSA-44; 39.1% for ML-DSA-87).
+By filtering nonces offline and keeping only those that satisfy BCC, TALUS removes the 𝑠2-
+dependent check from the online phase entirely. This eliminates the rejection-driven interaction 
+that forces multi-round signing in prior work, shrinking the online phase to two broadcast 
+rounds in the fully distributed protocol (a commit-then-open of 𝑤1, the ordering required for 
+standard-assumption security). Prior work such as FROST [FROST] achieved low-round threshold 
+Schnorr signing; TALUS addresses the distinct challenge of lattice-based rejection sampling. The 
+proposed system is:
+• TALUS-MPC (proposed): A fully distributed protocol with no hardware trust assumptions. 
+Offline preprocessing uses 𝑂(log 𝑁) rounds for BCC verification via secret-shared arithmetic; 
+online signing is two broadcast rounds. Requires honest majority (𝑁 ≥ 2𝑇−1, 𝑇 ≥ 2).
+• TALUS-TEE (contrasting example, not proposed): A coordinator running inside a 
+trusted execution environment holds the aggregate nonce 𝑦 and computes 𝑤1, enabling a 
+one-round online phase; since the enclave is a single trust anchor, we describe this variant 
+only as a contrast to the threshold setting (§2).
+Both variants produce standard FIPS 204 signatures verifiable by any unmodified ML-DSA verifier.
+1
+TALUS Preview Writeup (version 0.22)
+We target categories N1.4 (threshold ML-DSA signing at all three security levels: ML-DSA-44, 
+-65, -87) and N4.3 (distributed key generation) of the NIST Threshold Call [NIST-IR8214C]. The 
+complete DKG specification will be provided in the Package submission.
+2. Specification
+2.1. Organization
+The Package Technical Specification will cover three main components: (1) BCC nonce filtering, 
+the offline procedure that pre-selects nonces so the online phase carries no 𝑠2-dependent rejection; 
+(2) threshold key generation via Shamir secret sharing [Shamir] whose only public lattice output 
+is the hiding sample 𝑡 = 𝐴𝑠1 + 𝑠2, with short-share well-formedness proved in zero knowledge 
+(no invertible per-share commitment is published; §2); and (3) the online signing protocol. The 
+MPC and TEE variants share the same core primitives (BCC filter, partial-signature generation, 
+signature reconstruction) and differ only in how the high-order commitment 𝑤1 = HighBits(𝐴𝑦)
+(the 𝑤1 of §1) is computed. The MPC variant computes and verifies it via secret-shared arithmetic 
+during offline preprocessing, while the TEE coordinator evaluates BCC directly on the aggregate 
+nonce it holds.
+2.2. System Model
+Threshold profile. Both variants support (𝑇, 𝑁)-threshold signing: any 𝑇 of 𝑁 signers can 
+produce a valid signature, while the shares of fewer than 𝑇 signers do not by themselves reconstruct 
+the signing key (the residual insider exposure is the 𝑞𝑠-bounded, per-view channel of §2’s security 
+analysis).
+2.2.1. TALUS-MPC (proposed)
+No hardware trust is assumed; this is the system we propose for the threshold call. During offline 
+preprocessing, signers jointly sample a nonce 𝑦 via a nonce DKG, compute the shared commitment 
+𝑤1 = HighBits(𝐴𝑦) by carry resolution on secret shares, verify BCC on 𝑟0 using secret-shared 
+arithmetic, and place 𝑤1 under a hiding-and-binding commitment; only nonces satisfying BCC are 
+pooled. Online signing takes two broadcast rounds. In Round 1, the commitment to 𝑤1 is opened 
+and each signer locally computes the challenge 𝑐 = H(𝜇‖𝑤1); in Round 2, each signer broadcasts 
+its partial response 𝑧𝑖 = 𝑦𝑖 + 𝑐 ⋅ 𝑠1,𝑖, and the signature is reconstructed by Lagrange interpolation. 
+Keeping 𝑤1 hidden until after the message is fixed removes the pre-message reveal exploited 
+by ROS-style attacks, which is what lets security rest on standard assumptions. A mandatory 
+FIPS 204 Verify check before signature release guards against the rare residual rejections (𝑧-bound, 
+hint weight) not eliminated by BCC. Security model: honest majority (𝑁 ≥ 2𝑇−1, 𝑇 ≥ 2; at 
+𝑇=2 the on-share comparison uses a distributed comparison function, at 𝑇 ≥ 3 a carry-save-adder 
+tree); synchronous broadcast for the online rounds; point-to-point channels for offline preprocessing. 
+2
+TALUS Preview Writeup (version 0.22)
+Online communication: two broadcast rounds; 3.6 KB per signer for 𝑧𝑖 plus the constant-size 
+𝑤1 opening (fixed, independent of 𝑇 and 𝑁).
+2.2.2. TALUS-TEE (contrasting example)
+A coordinator running in a TEE holds the aggregate nonce 𝑦 (refreshed per signature) and 
+the public key. Once the message is known, the coordinator releases 𝑤1 = HighBits(𝐴𝑦); each 
+signer 𝑃𝑖 computes the challenge 𝑐 = H(𝜇‖𝑤1) and broadcasts its partial response 𝑧𝑖 = 𝑦𝑖+𝑐⋅𝑠1,𝑖
+(where 𝑠1,𝑖 is their Shamir share of 𝑠1) in a single round. The coordinator reconstructs 𝑧 via 
+Lagrange interpolation, verifies, and outputs the signature (𝑧, ℎ). The signing key is never 
+reconstructed and the 𝑇-of-𝑁 threshold on 𝑠1 is real; the enclave, however, is a single trust anchor 
+for the confidentiality of the aggregate nonce (a breach yields 𝑠1 = 𝑐−1(𝑧 − 𝑦) by a linear solve), 
+which places this variant closer to a hardware-anchored centralized model than to the intended 
+threshold setting. We therefore describe TALUS-TEE as a contrasting deployment example for 
+environments that already trust enclave hardware, and we do not propose it for consideration 
+in the threshold call. Online communication: one broadcast round; 3.6 KB per signer (fixed, 
+independent of 𝑇 and 𝑁).
+2.3. Security
+TALUS targets EUF-CMA security, analyzed in the random oracle model directly under Module-
+LWE and SelfTargetMSIS, the two assumptions of ML-DSA itself. A black-box reduction to 
+standard (non-threshold) ML-DSA does not apply, because the threshold nonce is a sum of the 
+parties’ shares (an Irwin–Hall distribution rather than the uniform nonce of single-party ML-DSA); 
+the analysis instead bounds the accumulated leakage of the revealed summed nonce. The resulting 
+guarantee is 𝑞𝑠-bounded. A passive attack recovers the key after ≈ 230 signatures under one key 
+(ML-DSA-65), so the system includes a per-key signing cap (≈ 213/214/214 at the three levels) 
+enforced by mandatory key rotation. Below the cap, the analysis certifies roughly 114–121 bits 
+against external adversaries across the three levels, with weaker, explicitly disclosed insider bounds 
+per adversary view. The BCC bit itself is key- and message-independent, hence simulatable from 
+public data.
+2.3.1. External cryptanalysis
+The construction has benefited from independent scrutiny; each reported finding is resolved 
+by design in the current version. Niot [Niot26] (ia.cr/2026/1386) identifies two key-recovery 
+attacks on an earlier version of TALUS. The first exploits Feldman commitments 𝐴𝑠1,𝑖 published 
+during key generation: 𝐴 is left-invertible, so such a commitment reveals the share. The current 
+design eliminates that object. The DKG’s only public lattice output is 𝑡 = 𝐴𝑠1 + 𝑠2 (a hiding 
+Module-LWE sample); short-share well-formedness is proved in zero knowledge, and the blame 
+procedure never opens a post-signature nonce. The second attack targets the residual 𝑠2 channel 
+opened by moving the rejection check offline. Its binding wall is the integer-uniqueness bound 
+3
+TALUS Preview Writeup (version 0.22)
+𝑞uniq ≈ 215.2/216.4/216.2 (the looser continuous 2𝛾2 serves only as a reference), and the signing 
+cap sits about two bits below it (+2.18/+2.4/+2.15 at the three levels). Separately, Sunghyeon 
+Jo (Georgia Tech and QED) kindly shared a related observation about reuse of a pooled nonce 
+across signing quorums on an earlier version. The current construction already prevents it: each 
+preprocessed nonce is bound to a single quorum, used once, and then erased, under globally unique 
+session identifiers. None of these attacks applies to the current version; we thank the analysts for 
+their scrutiny, which materially improved the design. The full treatment appears in the full version 
+of the TALUS paper [TALUS].
+Additional security properties:
+• Blame procedure (interactive optimistic): Each signer commits to its nonce data via a 
+hash commitment (SHAKE256) during preprocessing and authenticates its partial response 
+using pairwise session keys. If signing fails, commitments are opened in one interactive 
+round, enabling identification of the deviating signer. Normal signing adds zero extra rounds; 
+blame triggers mandatory key replacement.
+• Share refresh vs. key rotation: The protocol supports proactive re-sharing of 𝑠1 via 
+a single-round Shamir zero-share refresh without changing the public key, which resists 
+mobile adversaries (full specification in the Package submission); it does not reset the 
+accumulated signature leakage, so the per-key signing cap is discharged by key rotation 
+(fresh key generation).
+• Provable security: EUF-CMA under Module-LWE and SelfTargetMSIS with the 𝑞𝑠-bounded 
+certificate above; the complete reduction and per-view certificates appear in [TALUS], with 
+further detail in the Package Technical Specification.
+3. Open-Source Implementation
+3.1. Code Structure
+The implementation is written in Rust (2021 edition) and organized into four crates: talus-core 
+(pure ML-DSA with BCC filter), talus-tee (TEE coordinator logic), talus-mpc (distributed 
+protocol), and talus-bench (benchmarking harness via Criterion). The ML-DSA implementation 
+is pure Rust with no external cryptographic library dependencies. All NTT arithmetic operates over 
+ℤ𝑞[𝑋]/(𝑋256+1) with 𝑞 = 8,380,417. Dependencies are limited to rand, sha3, and criterion, 
+all under MIT or Apache-2.0 licenses.
+3.2. Progress and Availability
+All three ML-DSA security levels (ML-DSA-44, -65, -87) are implemented. A TALUS signature 
+verifies under the independent open-source dilithium-py [Pop24] ML-DSA-65 implementation 
+(cross-check script in experiments/), confirming that the emitted FIPS 204 signature is accepted 
+by a verifier we did not write. The code is licensed under Apache-2.0 and hosted in a public 
+4
+TALUS Preview Writeup (version 0.22)
+repository. Planned work before the Package submission includes: porting to the Ubuntu 24.04.5 
+baseline platform, adding AVX2 acceleration, and completing the MPC crate.
+3.3. Networking
+Online communication consists of the broadcast rounds of §2: the 𝑤1 opening and one broadcast 
+of 𝑧𝑖 per signer (3.6 KB at ML-DSA-65, fixed regardless of 𝑇 or 𝑁) in the MPC variant. Offline 
+preprocessing uses point-to-point channels for VSS share distribution and broadcast for masked 
+intermediate values. For the baseline platform (single machine, 16 cores, 64 GB RAM), networking 
+is simulated via local threads with message-passing channels.
+3.4. Testing
+Testing covers four areas: (1) cross-verification of emitted signatures against the independent 
+dilithium-py ML-DSA verifier; (2) threshold reconstruction correctness (verifying that 𝑇-of-𝑁
+partial signatures reconstruct to a valid FIPS 204 signature); (3) BCC acceptance-rate validation 
+via Monte Carlo sampling (confirming rates match the theoretical analysis); and (4) fault-detection 
+tests for the online signing path (incorrect 𝑧𝑖, signature verification failure). All tests are 
+reproducible via deterministic PRNG seeds.
+4. Performance and Complexity
+The online phase is two broadcast rounds with no rejection-driven interaction. Because BCC 
+eliminates the secondary rejection check, all rejection-sampling cost is confined to offline, pre-
+computable preprocessing, which sifts roughly 1/0.317 ≈ 3.2 nonce trials per usable signature at 
+ML-DSA-65 (2.3 at ML-DSA-44 and 2.6 at ML-DSA-87). Online communication is 3.6 KB per 
+signer, a single response vector 𝑧𝑖 at ML-DSA-65, fixed independent of 𝑇 and 𝑁.
+The distributed construction is being finalized. Single-machine timing benchmarks on the current 
+construction, baseline-platform benchmarks (Ubuntu 24.04.5, 16 cores), and AVX2 acceleration 
+(typically 3–5× for NTT-based operations) will be reported with the Package submission.
+5. Licensing, Patent Claims, and Funding
+1. Licenses. Core code: Apache-2.0. All dependencies (rand, sha3, criterion) are MIT or 
+Apache-2.0.
+2. Patents. US provisional patent application filed by Codebat Technologies Inc., covering the 
+Boundary Clearance Condition (BCC), Commitment-Embedded Filtering, and the Compact 
+Signing and Coordination Protocol. The application includes 20 claims.
+5
+TALUS Preview Writeup (version 0.22)
+3. Funding. Self-funded by Codebat Technologies Inc. No external research grants or 
+government funding.
+6. Comparison with Other Submissions
+Table 1 compares TALUS with Mithril [Mithril] (PQShield) and Quorus [Quorus] (JP Morgan), 
+the two other known threshold ML-DSA submissions.
+Table 1: High-level comparison of threshold ML-DSA submissions.
+ Scheme  Online rounds  Party scale  Assumptions
+ TALUS (this work)  2  arbitrary 𝑁 (𝑁≥2𝑇−1)  standard
+ Mithril [Mithril]  3 (avg 6) 𝑁≤6  standard
+ Quorus [Quorus]  16–29  large 𝑁 (∼64)  standard
+Based on publicly available descriptions; TALUS figures are for the proposed MPC profile.
+• Key advantages of TALUS. Moving all rejection-driven work into offline, pre-computable 
+preprocessing gives TALUS the lowest online round count at arbitrary 𝑁 under standard 
+assumptions, which suits latency-sensitive applications. The blame mechanism and the 
+key-rotation discipline further strengthen the operational security model.
+• Other schemes. Mithril and Quorus are mature designs that target different points in the 
+design space, such as a compact dishonest-majority committee and large-𝑁 honest-majority 
+signing.
+• Trade-offs. TALUS-MPC needs an honest majority (𝑁 ≥ 2𝑇−1) and a per-key signing cap 
+enforced by key rotation (§2); the TEE variant trades the threshold trust model for hardware 
+trust and is described only as a contrast. The BCC filtering adds offline computational 
+overhead (expected 1/0.317 ≈ 3.2 nonce trials per signature at ML-DSA-65), but this cost 
+is fully amortizable and does not affect online latency.
+6
+TALUS Preview Writeup (version 0.22)
+References
+[Dilithium] Léo Ducas, Eike Kiltz, Tancrède Lepoint, Vadim Lyubashevsky, Peter Schwabe, Gregor
+Seiler, and Damien Stehlé. “CRYSTALS-Dilithium: A Lattice-Based Digital Signature Scheme”. In: 
+IACR Transactions on Cryptographic Hardware and Embedded Systems (TCHES). Vol. 2018. 1. 2018, 
+pp. 238–268. DOI: 10.13154/tches.v2018.i1.238-268. Also at ia.cr/2017/633.
+[FIPS204] National Institute of Standards and Technology. Module-Lattice-Based Digital Signature 
+Standard. Federal Information Processing Standards Publication 204. August 2024. DOI: 10.6028/NIST.
+FIPS.204.
+[FROST] Chelsea Komlo and Ian Goldberg. “FROST: Flexible Round-Optimized Schnorr Threshold 
+Signatures”. In: Selected Areas in Cryptography – SAC 2020. Vol. 12804. Lecture Notes in Computer 
+Science. Springer, 2021, pp. 34–65. DOI: 10.1007/978-3-030-81652-0_2. Also at ia.cr/2020/852.
+[Mithril] Sofía Celi, Rafaël del Pino, Thomas Espitau, Guilhem Niot, and Thomas Prest. Efficient 
+Threshold ML-DSA. Cryptology ePrint Archive, Paper 2026/013. 2026. URL: https://eprint.iacr.org/
+2026/013.
+[Pop24] Giacomo Pope. dilithium-py: Pure Python Implementation of ML-DSA (FIPS 204). https:
+//github.com/GiacomoPope/dilithium-py. Version 1.4.0. 2024.
+[Niot26] Guilhem Niot. Key-Recovery Attacks on TALUS: A Cryptanalytic Note. Cryptology ePrint 
+Archive, Paper 2026/1386. 2026. URL: https://eprint.iacr.org/2026/1386.
+[NIST-IR8214C] Luís T. A. N. Brandão and René Peralta. NIST First Call for Multi-Party Threshold 
+Schemes. (National Institute of Standards and Technology) NIST Internal Report (NISTIR) 8214C. 2026. 
+DOI: 10.6028/NIST.IR.8214C.
+[Quorus] Alexander Bienstock, Leo de Castro, Daniel Escudero, Antigoni Polychroniadou, and Akira
+Takahashi. “Quorus: Efficient, Scalable Threshold ML-DSA Signatures from MPC”. In: USENIX Security 
+2026. USENIX Association, 2026. Also at ia.cr/2025/1163.
+[Shamir] Adi Shamir. “How to Share a Secret”. In: Communications of the ACM 22.11 (1979), pp. 612–
+613. DOI: 10.1145/359168.359176.
+[TALUS] Leo Kao and Raymond Chang. TALUS: FIPS-204-Exact Threshold ML-DSA via Boundary 
+Clearance. arXiv preprint arXiv:2603.22109 (v5). Full version with proofs. 2026. URL: https://arxiv.org/
+abs/2603.22109.
+7
