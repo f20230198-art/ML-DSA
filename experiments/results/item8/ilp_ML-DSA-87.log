@@ -1,0 +1,105 @@
+{'N': 120000, 'trial': 0, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 41, 'free': 202, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 130.50473856925964, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 1, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 30, 'free': 212, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 129.83572602272034, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 2, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 33, 'free': 200, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 128.65842866897583, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 3, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 33, 'free': 199, 'status': 'optimal', 'seconds': 130.0702133178711, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 4, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 53, 'free': 208, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 130.07808661460876, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 5, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 28, 'free': 202, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 128.79682636260986, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 6, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 41, 'free': 190, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 130.00141048431396, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 7, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 23, 'free': 201, 'status': 'optimal', 'seconds': 49.24875354766846, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 8, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 18, 'free': 208, 'status': 'optimal', 'seconds': 11.807042598724365, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 9, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 27, 'free': 202, 'status': 'optimal', 'seconds': 69.78959488868713, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 10, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 25, 'free': 200, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 128.53154182434082, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 11, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 22, 'free': 208, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 128.82051014900208, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 12, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 26, 'free': 218, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 129.33299279212952, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 13, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 26, 'free': 209, 'status': 'optimal', 'seconds': 70.4795732498169, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 14, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 27, 'free': 202, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 128.78811979293823, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 15, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 31, 'free': 211, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 129.85133624076843, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 16, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 41, 'free': 204, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 130.38262152671814, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 17, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 40, 'free': 216, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 128.55143904685974, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 18, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 41, 'free': 212, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 130.5101718902588, 'params': 'ML-DSA-87'}
+{'N': 120000, 'trial': 19, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 28, 'free': 193, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 130.11413383483887, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 0, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 13, 'free': 211, 'status': 'optimal', 'seconds': 13.48051404953003, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 1, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 15, 'free': 209, 'status': 'optimal', 'seconds': 19.168874263763428, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 2, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 27, 'free': 203, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 130.96355819702148, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 3, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 22, 'free': 208, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 129.50949430465698, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 4, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 26, 'free': 197, 'status': 'optimal', 'seconds': 126.76539945602417, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 5, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 32, 'free': 207, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 129.1535506248474, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 6, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 15, 'free': 208, 'status': 'optimal', 'seconds': 17.95968270301819, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 7, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 10, 'free': 202, 'status': 'optimal', 'seconds': 11.989421129226685, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 8, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 31, 'free': 208, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 130.57982993125916, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 9, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 22, 'free': 205, 'status': 'optimal', 'seconds': 36.41639590263367, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 10, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 24, 'free': 207, 'status': 'optimal', 'seconds': 46.224467039108276, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 11, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 16, 'free': 207, 'status': 'optimal', 'seconds': 17.849358797073364, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 12, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 23, 'free': 208, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 130.88351011276245, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 13, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 18, 'free': 201, 'status': 'optimal', 'seconds': 15.535170793533325, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 14, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 30, 'free': 208, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 129.14767575263977, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 15, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 15, 'free': 209, 'status': 'optimal', 'seconds': 12.003203630447388, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 16, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 22, 'free': 212, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 129.12160110473633, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 17, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 24, 'free': 206, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 129.55657958984375, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 18, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 29, 'free': 208, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 129.482323884964, 'params': 'ML-DSA-87'}
+{'N': 135000, 'trial': 19, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 19, 'free': 213, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 130.86002111434937, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 0, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 14, 'free': 196, 'status': 'optimal', 'seconds': 12.629086971282959, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 1, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 19, 'free': 198, 'status': 'optimal', 'seconds': 19.068657398223877, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 2, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 15, 'free': 209, 'status': 'optimal', 'seconds': 12.595693111419678, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 3, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 8, 'free': 209, 'status': 'optimal', 'seconds': 12.516799926757812, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 4, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 12, 'free': 201, 'status': 'optimal', 'seconds': 11.935821533203125, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 5, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 27, 'free': 211, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 131.2939417362213, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 6, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 19, 'free': 208, 'status': 'optimal', 'seconds': 18.310763835906982, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 7, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 18, 'free': 198, 'status': 'optimal', 'seconds': 12.143981456756592, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 8, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 21, 'free': 200, 'status': 'optimal', 'seconds': 12.816600322723389, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 9, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 9, 'free': 203, 'status': 'optimal', 'seconds': 11.131968975067139, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 10, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 12, 'free': 207, 'status': 'optimal', 'seconds': 17.690743684768677, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 11, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 14, 'free': 200, 'status': 'optimal', 'seconds': 13.794613599777222, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 12, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 10, 'free': 205, 'status': 'optimal', 'seconds': 11.655803918838501, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 13, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 13, 'free': 206, 'status': 'optimal', 'seconds': 11.276771068572998, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 14, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 19, 'free': 207, 'status': 'optimal', 'seconds': 13.764748334884644, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 15, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 16, 'free': 206, 'status': 'optimal', 'seconds': 12.505538702011108, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 16, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 25, 'free': 199, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 131.75821733474731, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 17, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 9, 'free': 206, 'status': 'optimal', 'seconds': 10.932347774505615, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 18, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 22, 'free': 210, 'status': 'optimal', 'seconds': 15.08931040763855, 'params': 'ML-DSA-87'}
+{'N': 148000, 'trial': 19, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 12, 'free': 206, 'status': 'optimal', 'seconds': 27.173672914505005, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 0, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 9, 'free': 196, 'status': 'optimal', 'seconds': 13.72848129272461, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 1, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 16, 'free': 213, 'status': 'optimal', 'seconds': 15.047332763671875, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 2, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 8, 'free': 199, 'status': 'optimal', 'seconds': 13.582809925079346, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 3, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 8, 'free': 198, 'status': 'optimal', 'seconds': 11.677262783050537, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 4, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 6, 'free': 202, 'status': 'optimal', 'seconds': 13.172744989395142, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 5, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 7, 'free': 197, 'status': 'optimal', 'seconds': 11.657454252243042, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 6, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 16, 'free': 215, 'status': 'optimal', 'seconds': 14.810011148452759, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 7, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 8, 'free': 214, 'status': 'optimal', 'seconds': 13.614596128463745, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 8, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 11, 'free': 209, 'status': 'optimal', 'seconds': 13.095095872879028, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 9, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 7, 'free': 202, 'status': 'optimal', 'seconds': 12.922715425491333, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 10, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 13, 'free': 198, 'status': 'optimal', 'seconds': 11.600712537765503, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 11, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 4, 'free': 218, 'status': 'optimal', 'seconds': 11.490794897079468, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 12, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 15, 'free': 205, 'status': 'optimal', 'seconds': 12.050269842147827, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 13, 'round_ok': False, 'ilp_ok': False, 'wrong_round': 17, 'free': 208, 'status': 'milp: Time limit reached. (HiGHS Status 13: model_status is Time limit reached; primal_status is None)', 'seconds': 132.39542388916016, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 14, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 16, 'free': 205, 'status': 'optimal', 'seconds': 13.132916450500488, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 15, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 11, 'free': 205, 'status': 'optimal', 'seconds': 13.867350578308105, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 16, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 10, 'free': 205, 'status': 'optimal', 'seconds': 12.410360097885132, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 17, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 7, 'free': 202, 'status': 'optimal', 'seconds': 11.497584819793701, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 18, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 3, 'free': 199, 'status': 'optimal', 'seconds': 11.581633567810059, 'params': 'ML-DSA-87'}
+{'N': 165000, 'trial': 19, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 10, 'free': 204, 'status': 'optimal', 'seconds': 12.807512521743774, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 0, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 5, 'free': 194, 'status': 'optimal', 'seconds': 14.690562963485718, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 1, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 3, 'free': 210, 'status': 'optimal', 'seconds': 12.422555208206177, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 2, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 8, 'free': 215, 'status': 'optimal', 'seconds': 14.461766719818115, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 3, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 2, 'free': 203, 'status': 'optimal', 'seconds': 14.619600534439087, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 4, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 8, 'free': 201, 'status': 'optimal', 'seconds': 12.405085802078247, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 5, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 12, 'free': 206, 'status': 'optimal', 'seconds': 14.496179819107056, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 6, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 4, 'free': 200, 'status': 'optimal', 'seconds': 12.273359537124634, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 7, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 1, 'free': 200, 'status': 'optimal', 'seconds': 14.098375082015991, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 8, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 8, 'free': 198, 'status': 'optimal', 'seconds': 14.272983074188232, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 9, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 10, 'free': 220, 'status': 'optimal', 'seconds': 12.931565284729004, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 10, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 6, 'free': 208, 'status': 'optimal', 'seconds': 14.20711636543274, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 11, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 5, 'free': 210, 'status': 'optimal', 'seconds': 14.0015869140625, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 12, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 1, 'free': 197, 'status': 'optimal', 'seconds': 14.9797945022583, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 13, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 3, 'free': 214, 'status': 'optimal', 'seconds': 14.402940273284912, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 14, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 9, 'free': 213, 'status': 'optimal', 'seconds': 11.826757192611694, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 15, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 4, 'free': 212, 'status': 'optimal', 'seconds': 13.696957349777222, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 16, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 4, 'free': 207, 'status': 'optimal', 'seconds': 13.547327995300293, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 17, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 4, 'free': 203, 'status': 'optimal', 'seconds': 13.722306251525879, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 18, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 7, 'free': 206, 'status': 'optimal', 'seconds': 13.593681335449219, 'params': 'ML-DSA-87'}
+{'N': 184000, 'trial': 19, 'round_ok': False, 'ilp_ok': True, 'wrong_round': 8, 'free': 210, 'status': 'optimal', 'seconds': 13.765900611877441, 'params': 'ML-DSA-87'}
+N=120000: round 0.00  ilp 0.25
+N=135000: round 0.00  ilp 0.50
+N=148000: round 0.00  ilp 0.90
+N=165000: round 0.00  ilp 0.95
+N=184000: round 0.00  ilp 1.00
