@@ -87,6 +87,6 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] 6. Mithril -65 a-posteriori sharing vs NIST Category 3 (full estimator). Done 14 Oct: baseline 203.8 bits, with hint 189.0/184.3/182.5 (S = 2/6/20), loss 14.8-21.3 (paper: 7-12). Below the baseline's Category 3 level, far above Category 1. Proof-claim gap, not practical. `experiments/results/mithril_hint_estimator_full65.txt`
 - [ ] 7. Kao P2 end-to-end demo on real ML-DSA-44
 - [~] 8. TALUS statistics. Done 14 Oct for one ring element: 20 trials per point, Clopper-Pearson CIs, logistic fit; 95% success at 2^16.01 / 2^17.40 / 2^17.30 (-44/-65/-87), +3.0/+3.4/+3.3 bits over the cap, +0.8/+1.0/+1.1 over the wall (`experiments/results/item8/summary.txt`). Still open: full-secret recovery with ILP at 20 trials.
-- [ ] 9. Corrected Devevey A.6 bound with proof
+- [x] 9. Corrected Devevey A.6 bound with proof. Done 14 Oct: `docs/a6_corrected_bound.md` (part a: cylinder, exponent (n-1)/2; part b: sharp, within 0.04 bits of exact at Mithril sizes); 320-point check, 0 violations, printed bound invalid at 149 (`experiments/a6_corrected_bound.py`)
 - [ ] 10-13. Framing, disclosure (ask instructor, send emails), open artifact, venue rewrite
 - Targets: PQCrypto 2027 (paper 24 Nov 2026); USENIX Security '27 cycle 2 (26 Jan 2027) if items 1-3 find a hole

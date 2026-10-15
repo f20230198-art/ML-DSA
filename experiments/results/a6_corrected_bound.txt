@@ -1,0 +1,13 @@
+grid: 20 dims x 16 phis = 320 points
+cylinder bound below exact (violations): 0
+closed form below cylinder (violations): 0
+printed A.6 bound below exact (invalid points): 149
+largest slack closed - exact: 11.96 bits
+sharp form below exact (violations): 0; largest slack sharp - exact: 6.35 bits
+
+Mithril dimensions dim = 256(k + l) with the script's phi (ML-DSA-44/65/87), plus n = 100
+    n  phi   exact   printed  cylinder  closed   sharp
+  2048    7   -33.53   -50.12   -25.49   -25.49   -33.49
+  2816    8   -35.09   -52.69   -26.77   -26.77   -35.06
+  3840    9   -37.56   -57.07   -28.94   -28.94   -37.53
+   100    7    -2.74     3.48     1.30     1.32    -2.31
