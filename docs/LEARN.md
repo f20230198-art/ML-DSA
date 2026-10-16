@@ -609,3 +609,10 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **What:** `docs/PAPER_OUTLINE.md`: the claim of the paper, the threat model, a scorecard table with one row per tested channel, and the section plan.
 - **Idea in simple words:** a paper needs one clear sentence about what is new. Ours: a first systematic check of how much each threshold ML-DSA proposal leaks, with a test kit that has known-leaky and known-safe controls. The scorecard puts every result next to its margin (how many bits of safety remain) and the file that proves it.
 - **Honest state:** no break of an official submission. The strongest findings are the incorrect printed bound in Mithril's proof, the Kao P2 broadcast issue (not yet demonstrated on real ML-DSA-44), and the thin 3-bit margin for TALUS' outsider view.
+
+## 2026-10-16: one-command reproduction (paper plan item 12)
+
+- **What:** `experiments/reproduce.py`. `python -m experiments.reproduce` lists every table and figure with the command, cost and output file; `--fast` reruns the quick ones; `--run ID` runs one.
+- **Why:** venues like USENIX require an artifact that lets a reviewer redo the results. A listed command per result also makes our own claims checkable.
+- **Check:** the fast items (insider walls, m = 2 Fisher check, A.6 bound, TALUS success table, architecture figure) rerun in about 25 s and give output identical to the stored files (git shows no changes).
+- **Not covered:** heavy items (the GPU ILP trials, Sage hint estimator, Mithril Go transcripts) are listed with their commands but not rerun by `--fast`.
