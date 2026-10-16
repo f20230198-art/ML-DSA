@@ -18,6 +18,7 @@ ITEMS = [
     ("m2-fisher", "Scorecard: exact m = 2 Fisher check", ["-m", "experiments.talus_m2_fisher"], "fast", f"{R}/talus_m2_fisher.txt", True),
     ("a6-bound", "Mithril App. A.6 corrected bound (320-point check)", ["-m", "experiments.a6_corrected_bound"], "fast", f"{R}/a6_corrected_bound.txt", True),
     ("item8-summary", "TALUS success table with CIs and logistic fit", ["-m", "experiments.item8_analysis"], "fast", f"{R}/item8/summary.txt", True),
+    ("item8-full", "TALUS whole-secret extrapolation from the fitted per-element curve", ["-m", "experiments.item8_full_secret"], "fast", f"{R}/item8/full_secret.txt", True),
     ("arch-diagram", "Figure: harness architecture", ["-m", "experiments.arch_diagram"], "fast", f"{R}/harness_architecture.png", False),
     ("ls-error-plot", "Figure: least-squares error vs N with theory curve", ["-m", "experiments.ls_error_plot"], "fast-ish", f"{R}/ls_error_vs_N.png", False),
     ("coordinator-tail", "Scorecard: TALUS coordinator out-of-box tail probabilities", ["-m", "experiments.talus_coordinator_tail"], "fast", f"{R}/talus_coordinator_tail.txt", True),

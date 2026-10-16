@@ -638,3 +638,10 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Coordinator result:** the TALUS authors say a coordinator that sees a rejected answer almost never learns anything extra: a value beyond the box shows up about once per 2^33-2^37 attempts. We recomputed this exactly and got 2^-33.1 / 2^-35.5 / 2^-37.3 against their 2^-32.5 / 2^-34.7 / 2^-36.6, within about one bit. Over the whole allowed signing budget that is less than a 2^-20 chance, so no hole.
 - **Caveats:** tiny ring (n = 8) for the simulation; the coordinator check confirms their probabilities, not their wider argument.
 - **New basic:** *maximum likelihood* = choose the secret that makes the data you saw most likely; it is the best you can do when you know the noise shape.
+
+## 2026-10-16: from one ring element to the whole secret (paper plan item 8, open part)
+
+- **What:** `experiments/item8_full_secret.py`, result `experiments/results/item8/full_secret.txt`.
+- **Idea in simple words:** our trials recover one of the k polynomials of s2 at a time. The real key has k of them (4, 6, 8), and an attacker needs all of them from the same signatures. If each succeeds independently with probability p, all succeed with probability p^k. So for a 95% chance on the whole key each polynomial needs about 98.7-99.4%, which needs slightly more signatures.
+- **Result (extrapolated from the fitted curve, not run):** whole-secret 95% needs 2^16.09 / 2^17.51 / 2^17.51 signatures for ML-DSA-44/65/87, i.e. 3.1 / 3.5 / 3.5 bits above the cap (one polynomial alone: 3.0 / 3.4 / 3.3). So the cap still leaves about 3 bits of room.
+- **Caveats:** independence is assumed (the polynomials share the same challenges, so reality is probably a bit easier for the attacker); the far tail of the fitted curve is model-dependent; no full-secret ILP run was done.

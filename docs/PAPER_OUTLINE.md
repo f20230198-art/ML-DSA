@@ -9,7 +9,7 @@ Passive observer of signing transcripts (outsider), plus the insider/coordinator
 
 | Scheme | Channel tested | Result | Margin / status | Evidence |
 |---|---|---|---|---|
-| TALUS (arXiv v5, PW v0.22) | s2 via bounded noise, outsider | full-secret ILP recovery at 95% needs 2^16.01 / 2^17.40 / 2^17.30 signatures (-44/-65/-87), one ring element, 20 trials | +3.0 / +3.4 / +3.3 bits over the cap | `experiments/results/item8/summary.txt` |
+| TALUS (arXiv v5, PW v0.22) | s2 via bounded noise, outsider | full-secret ILP recovery at 95% needs 2^16.01 / 2^17.40 / 2^17.30 signatures (-44/-65/-87), one ring element, 20 trials | +3.0 / +3.4 / +3.3 bits over the cap; whole s2 (k elements, extrapolated, independence assumed) +3.1 / +3.5 / +3.5 | `experiments/results/item8/summary.txt` |
 | TALUS | key rotation | rotation is fresh keygen; share refresh would not reset leakage but is not what is specified | no hole | `notes/schemes/talus.md` (14 Oct) |
 | TALUS | rejected attempts | first attempt succeeds ~98.0 / 99.6 / 99.2%; z-norm check never fired | extra data <= ~0.03 bits | `notes/schemes/talus.md` |
 | TALUS | MPC insider (m >= T >= 2) | rough wall 2^24.8-2^29.7; m = 2 Fisher number re-checked exactly (within 1%) | 12-16 bits above cap; simulated at n = 8: attacker needs 1.5-2x (50%) / 4-6x (95%) the formula, so margin stands (`experiments/results/talus_m2_sim.txt`) | `experiments/results/talus_insider_wall.txt`, `talus_m2_fisher.txt` |
