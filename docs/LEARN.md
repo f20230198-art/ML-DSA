@@ -595,3 +595,11 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Idea in simple words:** how fast an attacker learns the secret from noisy samples depends on how steeply the noise's probability changes from one value to the next. For a triangle we can add up that steepness exactly instead of approximating it.
 - **Result:** the exact sum agrees with the hand formula within 1% (ratio 0.991 to 0.996). The wall for T = 2 stays at 2^25.0 / 2^28.5 / 2^28.3, i.e. 12-14 bits above the cap. Still no hole. Still open: a full simulation of the attack and the corrupt-coordinator view.
 - **New basic:** *Fisher information* = a number saying how much one noisy sample tells you about the hidden value; more information means fewer samples are needed.
+
+## 2026-10-16: how much of the secret does the edge estimator get below the wall? (paper plan item 4, step 1)
+
+- **What:** `experiments/partial_recovery.py`, result `experiments/results/partial_recovery.json`. ML-DSA-44, one ring element (256 coefficients of s2), TALUS bounded-noise channel, 2 trials each.
+- **Idea in simple words:** full recovery needs about 2^16 signatures, but the cap is 2^13. Below full recovery the estimator still gets part of the answer right. If we knew a good part of s2 exactly, the public key t = A s1 + s2 would turn that into exact equations on s1 and leave a smaller lattice problem (a "lattice finish").
+- **Result:** at N = 2^13 (the cap) about 43% of the coefficients round to the right value (random guessing: 20%); at 2^14 about 47%. Picking only the coefficients that sit close to an integer raises precision only to about 50-65%, with 15-30% kept. So at the cap we get a soft hint, not certain knowledge.
+- **What this means:** a lattice finish needs hard (certain) coordinates or a proper per-coordinate probability. Neither is available yet, so no attack under the cap is shown. A real test needs the posterior for each coordinate (sampling inside the set of secrets consistent with all signatures) and an LWE-with-soft-hints estimate. Not done.
+- **Caveats:** 2 trials per point; the LP picks a corner of the consistent set, which is a biased point guess. Joint solving across ring elements adds nothing by itself: the elements are independent given the challenges.
