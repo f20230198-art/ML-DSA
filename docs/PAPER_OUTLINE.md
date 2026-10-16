@@ -12,10 +12,10 @@ Passive observer of signing transcripts (outsider), plus the insider/coordinator
 | TALUS (arXiv v5, PW v0.22) | s2 via bounded noise, outsider | full-secret ILP recovery at 95% needs 2^16.01 / 2^17.40 / 2^17.30 signatures (-44/-65/-87), one ring element, 20 trials | +3.0 / +3.4 / +3.3 bits over the cap | `experiments/results/item8/summary.txt` |
 | TALUS | key rotation | rotation is fresh keygen; share refresh would not reset leakage but is not what is specified | no hole | `notes/schemes/talus.md` (14 Oct) |
 | TALUS | rejected attempts | first attempt succeeds ~98.0 / 99.6 / 99.2%; z-norm check never fired | extra data <= ~0.03 bits | `notes/schemes/talus.md` |
-| TALUS | MPC insider (m >= T >= 2) | rough wall 2^24.8-2^29.7; m = 2 Fisher number re-checked exactly (within 1%) | 12-16 bits above cap; no simulation yet | `experiments/results/talus_insider_wall.txt`, `talus_m2_fisher.txt` |
+| TALUS | MPC insider (m >= T >= 2) | rough wall 2^24.8-2^29.7; m = 2 Fisher number re-checked exactly (within 1%) | 12-16 bits above cap; simulated at n = 8: attacker needs 1.5-2x (50%) / 4-6x (95%) the formula, so margin stands (`experiments/results/talus_m2_sim.txt`) | `experiments/results/talus_insider_wall.txt`, `talus_m2_fisher.txt` |
 | TALUS | TEE coalition (m = 1) | below cap from T = 7 / 11 / 9 | authors concede; TEE not proposed | same |
 | TALUS | below-wall partial recovery | 43-48% of s2 right at the cap (2 trials) | soft hint only, no attack shown | `experiments/results/partial_recovery.json` |
-| TALUS | corrupt coordinator | not checked | open | ROADMAP 7.3 |
+| TALUS | corrupt coordinator (rejected z) | authors' out-of-box tail probabilities reproduced by exact convolution: per session 2^-33.1 / 2^-35.5 / 2^-37.3 (paper 2^-32.5 / -34.7 / -36.6) | empty view except with prob 2^-9 over the key lifetime; checks their numbers, not their conclusion | `experiments/results/talus_coordinator_tail.txt` |
 | Mithril (ePrint 2026/013) | s2 in hidden part, real Go transcripts (ML-DSA-44, (2,3)) | slope 0.004 +/- 0.10 on 39461 kept sessions | no s2 leak; only c t0 | `experiments/results/mithril_real_transcripts.txt` |
 | Mithril | -65 a-posteriori sharing vs Category 3 | 203.8 bits baseline, 182.5-189.0 with hint; hint loss 14.8-21.3 (paper: 7-12) | proof-claim gap, not practical | `experiments/results/mithril_hint_estimator_full65.txt` |
 | Mithril | Devevey et al. App. A.6 bound | printed bound invalid (below exact at 149 of 320 checked points); corrected bound proved | sessions 2^26-2^37 rather than 2^50 | `docs/a6_corrected_bound.md` |

@@ -1,0 +1,7 @@
+TALUS coordinator out-of-box tail, our exact convolution vs paper (nu = 3)
+ML-DSA-44: per-coordinate p_edge 2^-43.1; per-session (x n l) 2^-33.1 [paper 2^-32.5]; over Q_cap=2^13: expected 2^-20.1
+      z-norm region: once per 2^21.9 sessions [paper: 2^22-2^25]
+ML-DSA-65: per-coordinate p_edge 2^-45.8; per-session (x n l) 2^-35.5 [paper 2^-34.7]; over Q_cap=2^14: expected 2^-21.5
+      z-norm region: once per 2^23.6 sessions [paper: 2^22-2^25]
+ML-DSA-87: per-coordinate p_edge 2^-48.1; per-session (x n l) 2^-37.3 [paper 2^-36.6]; over Q_cap=2^14: expected 2^-23.3
+      z-norm region: once per 2^25.3 sessions [paper: 2^22-2^25]
