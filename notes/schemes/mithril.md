@@ -123,3 +123,12 @@ Search: Semantic Scholar citation list of DFPS22 (DOI 10.1007/978-3-031-22972-5_
 | Douteau, Roux-Langlois (INDOCRYPT 2025); Jeudy et al. Phoenix (PQCrypto 2024) and "Revisiting Preimage Sampling"; Xagawa (EUROCRYPT 2024); More NTRU+Sign (ePrint 2025/612, no DFPS22 citation found) | unclear (not obtained, HAL blocked) except 2025/612: n | - | unknown | not read (title/abstract metadata only) |
 
 Conclusion: of the works we could open, only the Mithril / Efficient Threshold ML-DSA line (ePrint 2026/013, USENIX Sec 2026, NIST PW01) uses the faulty A.6 upper bound, and there it sets Q_s. HAETAE, the main other hyperball scheme, uses the exact incomplete-Beta value numerically and is not affected. Caveat: Semantic Scholar's citation list is incomplete; works citing only the ePrint may be missing.
+
+### 2026-10-15: real transcripts from the reference Go code (paper plan item 5)
+
+Ran (not only read) `GuilhemN/threshold-ml-dsa` commit 66e269e, ML-DSA-44, (T,N) = (2,3), key seed 1, Go 1.27. Dumper `harness/mithril_go/dump_test.go` (package internal, reads shares as ground truth), reader `harness/schemes/mithril_go.py`, analysis `experiments/mithril_real_transcripts.py`, output `experiments/results/mithril_real_transcripts.txt`.
+- Our ExpandA reproduces t = A s1 + s2 of the reference key exactly.
+- Per-party hyperball rejection about 42% per slot; 39461 of 110000 slots have no party rejecting. A rejecting party sends an all-zero z for the slot, so per-party rejection is visible to everyone (expected; w_i is revealed anyway).
+- Slots with no party rejecting can still have |z|_inf above gamma1 - beta (max seen about 142000 vs 130994); Combine skips those. Our "accepted" means no party rejected, not Combine success.
+- Main result: u = A z - c t - w = -z2. Slope of u on -c s2 is 0.004 +/- 0.10 (view model predicted 1). After acceptance z2 does not depend on s2, as the hyperball rejection argument intends. So b = A z - 2^d c t1 - w = c t0 - z2 carries c t0 only. t0 leakage is tolerated by ML-DSA's analysis. No attack here; the earlier MithrilView model (s2 - t0 channel) was wrong and is corrected.
+- Not tested: ML-DSA-65/-87, other (T,N), per-party (not aggregated) responses, the rejection events as a side channel.

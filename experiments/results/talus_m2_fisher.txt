@@ -1,0 +1,11 @@
+m = 2: exact discrete bulk Fisher information vs first-pass formula 2 ln(a)/a^2
+  w=    64  exact 2.013e-03  first-pass 2.031e-03  ratio exact/first-pass 0.991
+  w=   256  exact 1.681e-04  first-pass 1.692e-04  ratio exact/first-pass 0.993
+  w=  1024  exact 1.315e-05  first-pass 1.322e-05  ratio exact/first-pass 0.995
+  w=  4096  exact 9.872e-07  first-pass 9.916e-07  ratio exact/first-pass 0.996
+  w= 16384  exact 7.203e-08  first-pass 7.230e-08  ratio exact/first-pass 0.996
+
+Wall for MPC profile, m = T = 2 only (nu = 3), using the exact bulk information (no edge help):
+  ML-DSA-44: w=87381, I=2.971e-09, wall 2^25.0, margin +12.0 bits
+  ML-DSA-65: w=349525, I=2.084e-10, wall 2^28.5, margin +14.5 bits
+  ML-DSA-87: w=349525, I=2.084e-10, wall 2^28.3, margin +14.3 bits

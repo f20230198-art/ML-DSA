@@ -1,0 +1,61 @@
+TALUS insider walls (log2 signatures) vs cap; rough, see docstring
+
+ML-DSA-44 (cap 2^13)
+  MPC insider, nu = 2T-1, t = T-1, m = T:
+    T=2: wall 2^ 25.0  margin +12.0 bits
+    T=3: wall 2^ 26.1  margin +13.1 bits
+    T=4: wall 2^ 25.5  margin +12.5 bits
+    T=5: wall 2^ 25.1  margin +12.1 bits
+    T=6: wall 2^ 24.8  margin +11.8 bits
+  TEE coalition, nu = T, m = 1:
+    T= 2: wall 2^ 14.6  margin  +1.6 bits
+    T= 3: wall 2^ 14.1  margin  +1.1 bits
+    T= 4: wall 2^ 13.6  margin  +0.6 bits
+    T= 5: wall 2^ 13.3  margin  +0.3 bits
+    T= 6: wall 2^ 13.1  margin  +0.1 bits
+    T= 7: wall 2^ 12.8  margin  -0.2 bits  BELOW CAP
+    T= 8: wall 2^ 12.6  margin  -0.4 bits  BELOW CAP
+    T= 9: wall 2^ 12.5  margin  -0.5 bits  BELOW CAP
+    T=10: wall 2^ 12.3  margin  -0.7 bits  BELOW CAP
+    T=11: wall 2^ 12.2  margin  -0.8 bits  BELOW CAP
+    T=12: wall 2^ 12.1  margin  -0.9 bits  BELOW CAP
+
+ML-DSA-65 (cap 2^14)
+  MPC insider, nu = 2T-1, t = T-1, m = T:
+    T=2: wall 2^ 28.5  margin +14.5 bits
+    T=3: wall 2^ 29.7  margin +15.7 bits
+    T=4: wall 2^ 29.2  margin +15.2 bits
+    T=5: wall 2^ 28.8  margin +14.8 bits
+    T=6: wall 2^ 28.5  margin +14.5 bits
+  TEE coalition, nu = T, m = 1:
+    T= 2: wall 2^ 16.4  margin  +2.4 bits
+    T= 3: wall 2^ 15.8  margin  +1.8 bits
+    T= 4: wall 2^ 15.4  margin  +1.4 bits
+    T= 5: wall 2^ 15.0  margin  +1.0 bits
+    T= 6: wall 2^ 14.8  margin  +0.8 bits
+    T= 7: wall 2^ 14.6  margin  +0.6 bits
+    T= 8: wall 2^ 14.4  margin  +0.4 bits
+    T= 9: wall 2^ 14.2  margin  +0.2 bits
+    T=10: wall 2^ 14.0  margin  +0.0 bits
+    T=11: wall 2^ 13.9  margin  -0.1 bits  BELOW CAP
+    T=12: wall 2^ 13.8  margin  -0.2 bits  BELOW CAP
+
+ML-DSA-87 (cap 2^14)
+  MPC insider, nu = 2T-1, t = T-1, m = T:
+    T=2: wall 2^ 28.2  margin +14.2 bits
+    T=3: wall 2^ 29.4  margin +15.4 bits
+    T=4: wall 2^ 28.9  margin +14.9 bits
+    T=5: wall 2^ 28.5  margin +14.5 bits
+    T=6: wall 2^ 28.2  margin +14.2 bits
+  TEE coalition, nu = T, m = 1:
+    T= 2: wall 2^ 16.1  margin  +2.1 bits
+    T= 3: wall 2^ 15.5  margin  +1.5 bits
+    T= 4: wall 2^ 15.1  margin  +1.1 bits
+    T= 5: wall 2^ 14.8  margin  +0.8 bits
+    T= 6: wall 2^ 14.5  margin  +0.5 bits
+    T= 7: wall 2^ 14.3  margin  +0.3 bits
+    T= 8: wall 2^ 14.1  margin  +0.1 bits
+    T= 9: wall 2^ 14.0  margin  -0.0 bits  BELOW CAP
+    T=10: wall 2^ 13.8  margin  -0.2 bits  BELOW CAP
+    T=11: wall 2^ 13.7  margin  -0.3 bits  BELOW CAP
+    T=12: wall 2^ 13.5  margin  -0.5 bits  BELOW CAP

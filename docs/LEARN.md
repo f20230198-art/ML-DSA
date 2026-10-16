@@ -570,3 +570,28 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Check:** 320 combinations of dimension and parameter: the new bounds are never below the true value; the old formula was below it at 149.
 - **Why it matters:** with the correct ceiling, Mithril's proof gives about 2^26-2^37 signing sessions rather than 2^50, as already found. Now the paper can offer the fix as well as the problem.
 - **New basic (Part 1 material):** the *regularised incomplete Beta function* I_x(a, b) is the standard way to write "what fraction of a ball lies in a cap". Gautschi's inequality is a simple bound on a ratio of Gamma functions, used here to turn ball volumes into a plain square-root formula.
+
+## 2026-10-15: Mithril on real transcripts (paper plan item 5)
+
+- **What:** the Mithril authors' public repository (GuilhemN/threshold-ml-dsa) contains their Go signing code. We installed Go, added a small dumper that records real signing sessions (with the secret kept as the answer key), and ran our Mithril view on 110000 of them. Files: `harness/mithril_go/dump_test.go`, `harness/schemes/mithril_go.py`, `experiments/mithril_real_transcripts.py`, result `experiments/results/mithril_real_transcripts.txt`.
+- **Question:** our model assumed the published data gives a noisy copy of c times the secret part s2. Is that true in the real code?
+- **Idea in simple words:** Mithril throws away a signing try if the combined answer lands too far out (rejection sampling). The check covers both the public part z and a hidden part z2 = c s2 + noise. Rejection sampling is designed so that kept answers look the same whatever the secret is. If it works, the hidden part z2 carries no trace of s2, and the only secret-looking thing left is c t0 (t0 = low bits of the public key, which ML-DSA already assumes may leak).
+- **How we tested:** a regression (fit a straight line through a cloud of points) of the leftover u on -c s2. Slope 1 would mean s2 leaks as modelled; slope 0 means it does not.
+- **Result:** slope 0.004 +/- 0.10 from 39461 kept sessions. So 1 is ruled out (about 10 standard errors away). Our earlier model was too pessimistic; we corrected it. No attack on Mithril from this channel. Also confirmed: our ML-DSA code rebuilds Mithril's public key exactly.
+- **Why it matters:** the paper can say the Mithril channel was tested on the authors' own code, not only on our model.
+- **New basic:** *standard error* = how much an estimate would wobble if you repeated the experiment; "10 standard errors away" means essentially impossible by chance.
+
+## 2026-10-15: TALUS with a corrupt insider (paper plan item 3, first pass)
+
+- **What:** read the insider part of the latest TALUS paper (arXiv v5, App. D) and estimated how many signatures a corrupt party would need (`experiments/talus_insider_wall.py`).
+- **Idea in simple words:** in TALUS the secret random number y used in each signature is the sum of several parties' random pieces. An outsider sees z = y + c s1 with y a sum of many pieces, which looks "smooth". A corrupt party knows its own pieces and subtracts them, so for it the leftover noise is a sum of fewer pieces: narrower and with sharper edges. Sharp edges leak the secret faster (the same reason the s2 channel leaks).
+- **Result:** in the proposed version (MPC), at least T honest pieces always remain, because the committee has an honest majority. Our estimate says the insider still needs about 2^25-2^30 signatures, which is 12-16 bits more than the key-rotation cap allows. No hole found. In the TEE version (not proposed), a group of T-1 corrupt signers leaves only one honest piece: a flat noise with a sharp edge. There the attack fits under the cap from about T = 7, as the authors themselves admit.
+- **Caveat:** rough formulas, no simulation yet; the corrupt-coordinator view is not checked.
+- **New basic:** *Irwin-Hall distribution IH(m)* = the sum of m independent uniform random numbers. m = 1: flat box; m = 2: triangle; large m: close to a bell curve. Fewer summands = sharper edges = more leakage.
+
+## 2026-10-16: check of the m = 2 insider number (paper plan item 3, follow-up)
+
+- **What:** the earlier insider estimate for two honest pieces (a triangle-shaped noise) used a hand-cut formula. We replaced it with an exact count (`experiments/talus_m2_fisher.py`, result `experiments/results/talus_m2_fisher.txt`).
+- **Idea in simple words:** how fast an attacker learns the secret from noisy samples depends on how steeply the noise's probability changes from one value to the next. For a triangle we can add up that steepness exactly instead of approximating it.
+- **Result:** the exact sum agrees with the hand formula within 1% (ratio 0.991 to 0.996). The wall for T = 2 stays at 2^25.0 / 2^28.5 / 2^28.3, i.e. 12-14 bits above the cap. Still no hole. Still open: a full simulation of the attack and the corrupt-coordinator view.
+- **New basic:** *Fisher information* = a number saying how much one noisy sample tells you about the hidden value; more information means fewer samples are needed.

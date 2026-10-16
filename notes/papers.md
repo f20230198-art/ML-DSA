@@ -72,7 +72,7 @@ Appendix proofs of every paper above; Raccoon, Gur-Katz-Silde, Dilithium, FROST 
 - **Quorus** (ePrint 2025/1163, 38 pages) and **Trilithium** (ePrint 2025/675, 67 pages): PDFs now local; not yet re-read beyond the earlier passes.
 - **NIST ACVP-Server ML-DSA vectors** (github.com/usnistgov/ACVP-Server, gen-val/json-files/ML-DSA-{keyGen,sigGen,sigVer}-FIPS204, downloaded 8 Oct 2026): used as test data, verified by running.
 
-- **Mithril code** (GitHub GuilhemN/threshold-ml-dsa, commit 66e269e, 5 Sep 2026): `params/hyperball.sage` read fully; Go parameter table in `thmldsa44/internal/dilithium.go` read (matches App. A). Not run.
+- **Mithril code** (GitHub GuilhemN/threshold-ml-dsa, commit 66e269e, 5 Sep 2026): `params/hyperball.sage` read fully; Go parameter table in `thmldsa44/internal/dilithium.go` read (matches App. A). Signing code (thmldsa44 internal) read and run on 15 Oct 2026 for real transcripts (item 5).
 - **Mithril preview writeup v1.0** (NIST MPTC, 2026-01-19, 8 pages, csrc.nist.gov Mithril-PW01.pdf): read fully; no parameter tables or Q_s statement.
 - **Devevey, Fallahpour, Passelegue, Stehle, Xagawa, "A Detailed Analysis of Fiat-Shamir with Aborts", CRYPTO 2023, ePrint 2023/245** (authors, title, venue checked online 8 Oct): Mithril's reference [27] for the hyperball lemmas. NOT read (ePrint returns 403 to our tools); needed to check Lemma 2.5 (Sec. A.6).
 
@@ -103,3 +103,5 @@ Appendix proofs of every paper above; Raccoon, Gur-Katz-Silde, Dilithium, FROST 
 |---|-------|-----------|------------------|-------|
 | 25 | Kao (v1) / Kao and Chang (v2), TALUS early versions (our label "v0.1" = v2) | arXiv 2603.22109v1 (23 Mar 2026), v2 (24 Mar 2026); verified online 13 Oct 2026 | No r0-check (Remark 5); broadcasts A s1_i at keygen and A y_h in preprocessing; basis of harness/schemes/talus_v01.py | Targeted: Sec. 4.3-4.5, Sec. 6 (Prot. 5-10), Prot. 11, preprocessing Round 1, Prot. 16; CarryCompare, proofs, appendices, experiments not read |
 | 26 | Devevey, Fawzi, Passelegue, Stehle, On Rejection Sampling in Lyubashevsky's Signature Scheme | ASIACRYPT 2022, LNCS 13794, pp. 34-64 | Published version has no A.6 bound | Targeted (full text searched, Sec. 4 lemma read) |
+
+- **TALUS arXiv 2603.22109v5** (verified, downloaded 15 Oct 2026, 43 pages): Sec. 8 Theorem 4 paragraph and App. D insider/malicious passages read; rest not read in full.

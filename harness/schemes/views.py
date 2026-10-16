@@ -98,9 +98,11 @@ class MithrilView(SchemeView):
         the broadcast can sum them; per-party structure is not used by the (c, b) adapter).
       * rejected attempts: only w (no c, no z); they are kept as non-accepted Observations so a
         later estimator can use them, but the (c, b) adapter skips them.
-      * the second part z2 = c s2 + r2 is not transmitted; the adapter therefore yields
-        b = -c (s2 - t0) - r2, a noisy channel whose noise r2 comes from the hyperball sample.
-        We do not claim this is exploitable; it only shows the interface carries Mithril.
+      * the second part z2 = c s2 + r2 is not transmitted; the adapter yields
+        b = c t0 - z2. Checked on the reference Go code (15 Oct 2026,
+        experiments/mithril_real_transcripts.py, 39461 accepted slots): after acceptance z2 is
+        independent of s2 (slope 0.004 +/- 0.10), so b carries c t0 only, not s2. Earlier versions of
+        this docstring modelled b = -c (s2 - t0) - r2 with r2 secret-independent; that was wrong.
     """
     name = "mithril"
 

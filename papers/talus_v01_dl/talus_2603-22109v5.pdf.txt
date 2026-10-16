@@ -1,0 +1,2384 @@
+TALUS: FIPS-204-Exact Threshold ML-DSA via
+Boundary Clearance
+Leo Kao and Raymond Chang
+Codebat Technologies Inc.
+Abstract.We present TALUS, a threshold signing protocol for ML-DSA (FIPS 204)
+that supports anarbitrarynumber of parties, outputs a stock FIPS-204 public key and
+signatures accepted by any unmodified ML-DSA verifier, and reduces, for a bounded number
+of signatures per key, to ML-DSA’s own assumptions (Module-LWE and SelfTargetMSIS).
+Its core is theBoundary Clearance Condition(BCC): for a constant fraction of nonces (31.7%
+at ML-DSA-65), the secret vectors2 provably cannot cross a rounding boundary, so the
+s2-dependent rejection check can be enforced offline on preprocessed nonces. This removes
+the interaction that forces multi-round signing in prior schemes, yielding a TEE-assisted
+one-round profile and a fully distributed honest-majority MPC profile with two online rounds,
+both built on a Carry Elimination Framework for the commitmentHighBits(A y), a step we
+show is unavoidable (the MPC profile computes it on secret shares, the TEE profile inside
+the enclave).
+We prove a lower bound: any FIPS-204-exact threshold scheme revealing a summed (Irwin–
+Hall) nonce admits an efficient key-recovery attack after about230 signatures under one key
+(at ML-DSA-65), so noqs-independent unforgeability is possible for this class. A matching
+qs-bounded analysis certifies over105bits at the operational signing cap for the external view,
+with insider ceilings disclosed per view. Moving thes2-rejection offline leaves a residuals2
+channel; we identify and price its strongest key-recovery ourselves—a meet-in-the-middle over
+the public-cokernel syndrome—and place a mandatory key-rotation cap (≈214 signatures)
+so that this channel islattice-shielded: its strongest known attack is modeled to cost the
+standard Module-LWE bound, with an unconditional meet-in-the-middle floor of≈258/249
+proven below it. A Rust implementation across all three FIPS 204 levels demonstrates
+practicality.1
+Keywords:threshold signatures·ML-DSA·FIPS 204·post-quantum cryptography·
+lattice-based cryptography·boundary clearance·carry elimination
+1 Introduction
+Post-quantum migration is turning ML-DSA (FIPS 204 [Nat24]) into the default signature for
+high-assurance deployments: certificate authorities, hardware security modules, and enterprise
+key custody. Many of these settings needthresholdsigning (splitting the signing key acrossN
+parties so that anyT can sign while fewer thanT shares alone do not reconstruct it) while still
+emitting signatures that existing verifiers accept without modification. Threshold ML-DSA is
+therefore both practically pressing and technically awkward: unlike Schnorr, ML-DSA’s signing
+loop contains asecret-dependent rejection check, and evaluating it on secret shares is what makes
+prior FIPS-compatible threshold schemes multi-round.2 These schemes trade the online round
+count against the party scale they reach. The low-round options cap at a handful of parties, while
+the ones that scale to many parties pay many online rounds per signature (Table 1). TALUS
+E-mail:leo@codebat.ai(Leo Kao)
+1Single-machine microbenchmarks isolate the arithmetic at low single-digit milliseconds per signature; deploy-
+ment wall-clock is dominated by the one or two network round-trips, which we do not measure. What is proven in
+this paper versus deferred to the extended version is stated precisely in §1.
+2This version supersedes the earlier preprint; §11 records its relationship to concurrent cryptanalysis [Nio26].
+arXiv:2603.22109v5  [cs.CR]  9 Aug 2026
+2 TALUS: Threshold ML-DSA
+Table 1:Online round count and party scale of FIPS-204-compatible threshold ML-DSA schemes.
+Rounds trade off against party scale, so the meaningful comparison is the pair. TALUS holds a
+low online round count at arbitraryN; the security cost of doing so is aqs-bounded guarantee
+(§8). Beyond the lattice assumptions shown, TALUS-TEE additionally assumes a trusted enclave
+and TALUS-MPC an honest majority (N≥2T−1).
+Scheme Online rounds Party scale Assumption
+Quorus [BdCE+26]16–29largeNstandard, honest maj.
+Efficient Thr. ML-DSA [CdPE+26]3/ attemptN≤6standard
+Trilithium [DKLS25]14/ attemptN= 2standard
+T ALUS(this work)TEE 1·MPC 2arbitraryNstandard (MLWE, SelfTargetMSIS)
+reaches both a low online round count andarbitraryN, and pays for the combination with a
+qs-bounded guarantee rather than a party-count ceiling or extra interaction.
+The observation.ML-DSA signsz=y+ cs1 and accepts only if two norm bounds hold; the
+one that involves the second secret vectors2 is a check on the low bitsr0 ofw=Ay. Prior
+threshold schemes evaluate thiss2-dependent check distributively on every rejection-sampling
+attempt, and that distributed evaluation is the source of their round complexity. We observe that
+the check is frequentlyredundant: since∥cs2∥∞≤β=τη, a coefficient ofr0 that sits more than
+βfrom its rounding boundary cannot be moved across the boundary byanyadmissibles2 and
+challengec. We call the condition thateverycoefficient clears its boundary byβthe Boundary
+Clearance Condition (BCC). The per-coefficient geometry is exactly the hint-correctness lemma
+of Dilithium [DKL+18, Nat24]; our contribution is the two observations layered on top of it: BCC
+iskey- and message-independent, hence checkable in preprocessing, and enforcing it lets a scheme
+deletethe distributeds 2 rejection-checkrather than perform it on shares. For ML-DSA-65 it
+holds for≈31.7%of nonces, so a usable nonce is found after≈3.15offline trials; the onlines 2
+MPC is what moves offline, and theqs-boundeds 2 residual this leaves in the emitted signature is
+quantified in §8.
+BCC has no benefit for a single signer: there, ther0 check is free (one resamplesylocally), so
+pre-selecting nonces only wastes work. The value is intrinsic to the threshold setting, where that
+same check otherwise costs a multi-round MPC ons2. Offline nonce selection for single-party
+Dilithium has been explored [YLW25], but for a different rejection condition and by filtering the
+keyat key generation in a way that changes the key distribution; BCC filtersnonces, keeps the
+exact FIPS-204 nonce rangeγ1 and the key distribution, and eliminates the onlines2 computation
+entirely. The impossibility of a homomorphic one-round shortcut (that some carry resolution is
+unavoidable) rests onHighBits being non-homomorphic, a fact traceable to [CS19, PMS26] that
+we formalize for this setting rather than claim as new.
+The cost of exactness.Keeping FIPS-204-exact outputs and verifier compatibility has a price
+that we make precise rather than hide. In the threshold setting the nonce is asumof the parties’
+shares, so its distribution is Irwin–Hall, more concentrated than the uniform nonce of single-party
+ML-DSA. This concentration is the principal distributional difference from ML-DSA; moving the
+s2-shaping offline adds a second,qs-bounded departure (the residuals2 channel of §8). Neither
+is free: we show (§8) that any FIPS-204-exact threshold scheme thatrevealssuch a summed
+nonce leaks a constant amount of Fisher information abouts1 per signature, giving an efficient
+key-recovery attack afterqs≈4/(Iτ)signatures under a single key. No assumption removes this
+bound; it is intrinsic to the combination of exact FIPS output and a revealed sum-of-shares nonce.
+Schemes that avoid it do so by revealing an internallyuniformnonce (via more interaction) or
+by changing the distribution (non-FIPS); TALUS instead accepts aqs-bounded guarantee and
+pairs it with a mandatory keyrotation(fresh key generation to a new public key) that caps a
+key’s signing lifetime with margin below every wall in the accounting of §8. We regard this lower
+bound as a contribution: it delineates the design space that any FIPS-exact threshold ML-DSA
+3
+must live in.
+Contributions.
+• The Boundary Clearance Condition (§4).A key- and message-independent predicate on
+the nonce that makes ML-DSA’ss2-dependentmiddlerejection check redundant, moving that
+s2 evaluation (and the online rounds it costs) into preprocessing. We prove the redundancy
+(building on the Dilithium hint lemma), characterize the≈31.7%acceptance rate, and disclose
+theq s-boundeds 2 residual it leaves in the emitted signature.
+• A lower bound for FIPS-exact threshold ML-DSA (§8).An efficient, assumption-free
+key-recovery attack showing that any FIPS-204-exact scheme revealing a summed nonce is
+qs-bounded, with the wall atqs≈4/(Iτ). This is the technical boundary separating TALUS
+from schemes (Quorus [BdCE+26], Trilithium [DKLS25]) that reveal an internally uniform
+nonce.
+• Two practical profiles and a carry framework (§6–§7).A TEE-assisted profile with
+one online round for anyT-of-N; a fully distributed MPC profile with two online rounds under
+an honest majority (identifiable abort for preprocessing faults, online attribution deferred);
+and a Carry Elimination Framework that computesw1 = HighBits(Ay)on shares without
+revealing the nonce, together with the impossibility result motivating it.
+• Implementation (§10).A Rust implementation across all three FIPS 204 levels, with single-
+machine compute microbenchmarks. All outputs are accepted by an unmodified ML-DSA
+verifier.
+Scope of the security claims.We are explicit about what is and is not proven. The
+signaturesandthe public key are byte-identical to FIPS-204 (the stock(ρ,t1)), accepted by any
+unmodified verifier; thesigning distributiondeparts from single-party ML-DSA inqs-bounded
+ways: the nonce concentration quantified above, and the residuals2 channel that moving the
+onlines 2-shaping offline introduces. Its strongest key-recovery (a syndrome meet-in-the-middle
+over the public cokernel) we identify and price ourselves, then lattice-shield with the rotation
+cap (§8); that shield is model-supported, not proven (the unconditional floor is≈258/249, below
+the128-bit target, with the gap resting on the residual-entropy model). Security is analyzed
+directly against ML-DSA’s own assumptions (Module-LWE for key hiding, SelfTargetMSIS for
+unforgeability), not by treating single-party ML-DSA as a black box. The summed nonce is
+not ML-DSA-distributed, so such a reduction does not apply. The guarantee isqs-bounded as
+the lower bound forces. EUF-CMA unforgeability is proven against malicious adversaries in the
+FDKG-hybrid model (Theorem 4, Remark 2;FDKG is realized by Quorus GEN, Appendix I): the
+game sequence operates on honest-party randomness, with the insider ceilingλ/m(m =ν−t
+honest nonce shares; conjectured form≥2, the TEEm=1coalition excluded, §D). Simulation-
+based transcript privacy is proven in the semi-honest model (Proposition 3); its malicious lift
+(requiring ZK-extractable inputs in the DKG and nonce generation) is developed in the extended
+version; the DKG is specified and proven (proof-sketch) in Appendix I, its full UC composition
+with signing deferred. We flag each such boundary in place.
+2 Preliminaries
+2.1 Notation
+Let q = 8380417and Rq = Zq[X]/(X 256 + 1). Bold lower-case letters denote vectors overRq
+and bold upper-case letters matrices;∥·∥∞is the coefficient-wiseℓ∞norm. For a setS, x←$S
+is a uniform draw. We write[k] ={1,...,k}. The public matrix isA∈Rk×ℓ
+q with k≥ℓ; the
+secret is(s 1, s2)with ∥s1∥∞,∥s2∥∞≤η; the public key is the stock ML-DSApk = (ρ,t1), where
+t=As 1 +s 2 splits ast=t 1·2d +t 0 witht 0 kept in the secret key as in standard ML-DSA;
+TALUS forms the hint withoutt0 (§10). We writenℓ= 256ℓand nk = 256k for the number of
+integer coefficients in anℓ-vector and ak-vector overRq.
+4 TALUS: Threshold ML-DSA
+2.2 ML-DSA (FIPS 204)
+We recall the parameters used throughout at security level 3 (ML-DSA-65); levels 2 and 5 are
+analogous and stated where they matter.
+•γ1 = 219 (nonce range),γ2 = (q−1)/32 = 261,888(rounding granularity),α= 2γ2 = (q−1)/16
+(stripe width),τ= 49,η= 4, henceβ=τη= 196;(k,ℓ) = (6,5),ω= 55,d= 13.
+All three levels are tabulated in Table 2; every per-level security number in this paper is computed
+from these FIPS-204 parameters.
+Table 2:FIPS-204 parameters for the three security levels (q= 8,380,417,d= 13throughout).
+Level(k,ℓ)γ 1 γ2 α= 2γ2 τ η β ω n ℓ nk
+ML-DSA-44(4,4) 2 17 95,232 190,464 39 2 78 80 1024 1024
+ML-DSA-65(6,5) 2 19 261,888 523,776 49 4 196 55 1280 1536
+ML-DSA-87(8,7) 2 19 261,888 523,776 60 2 120 75 1792 2048
+Rounding. Decompose(w,α) = (w1,r 0)writes w =w1·α+r0 with r0∈(−α/2,α/2](with
+the FIPS-204 boundary convention);HighBits(w,α) = w1 and LowBits(w,α) = r0. The hint
+functions MakeHint and UseHint let a verifier recoverHighBits(w)from an approximation, and
+satisfy the Dilithium hint-correctness property recalled in §4.
+Signing (single-party, simplified).Sampley←$[−γ1+1,γ1]nℓ, setw=A yand(w 1,r 0) =
+Decompose(w,α), compute, forthemessagerepresentative µ, thechallengec = SampleInBall(H(µ∥w1))
+(a polynomial inRq with exactlyτcoefficients in{−1, +1}and the rest zero) and the response
+z=y+cs 1.Reject(resample) unless
+∥z∥∞<γ1−β,∥r0−cs2∥∞<γ2−β,∥ct0∥∞<γ2,wt(h)≤ω,(1)
+where the hint ish= MakeHint(−ct0, w−cs2 +ct0, α). The third condition,∥ct0∥∞<γ2, is
+what makes theMakeHint/UseHint round-trip valid, so that a verifier recoversw1; it is vacuous
+whenever τ·2d−1< γ2 (ML-DSA-65/87) and non-trivial at ML-DSA-44 (job 1b, §3). The
+signature is(c,z,h).
+Verification.Recover w′
+1 = UseHint(h, Az−ct1·2d, α)and accept iff ∥z∥∞< γ1−β,
+wt(h)≤ω, and c =H( µ∥w′
+1). A signature accepted by this procedure is accepted by any
+unmodified FIPS-204 verifier.
+The secret-dependent check.Of the four rejection conditions in(1), three (thez-norm, the
+t0 round-trip condition∥ct0∥∞< γ2, and the hint-weight condition) depend on the message
+(through c) and are enforced online in every threshold scheme (in TALUS thet0-condition is
+enforced implicitly, by the online self-verification of §7 that recoversw′
+1 = UseHint(h,·)and
+re-derivesc; §3). The remaining condition,∥r0−cs2∥∞<γ2−β, is the one that touchess2, and
+evaluating it distributively is the source of prior schemes’ online round cost. It is this condition,
+and only this one, that BCC makes redundant (§4); thet0-condition is separate and remains
+online.
+2.3 Shamir sharing and the nonce
+We use standard Shamir [Sha79]( T,N )sharing over Rq:[ [x] ]denotes a degree-(T−1)sharing,
+and anyT parties reconstructx by Lagrange interpolation whileT−1learn nothing. The signing
+keys 1 is Shamir-shared and never reconstructed during signing.
+5
+The summed nonce.In the distributed profile no party holds the nonce; each contributes
+a share, and the effective noncey=∑
+h yh is summed over theνparties that contribute one.
+Becauseyis asumof νindependent bounded terms, its per-coefficient law is adiscreteIrwin–Hall
+law: the distribution of a sum ofνdiscrete uniforms, not the continuous Irwin–Hall density. We
+write IH(γ1,ν)for it, keeping the name by analogy. The countνis profile-dependent (ν≈T
+signer shares for the TEE profile,ν= 2T−1for the MPC committee; §7), and this law is more
+concentrated than the uniform law of the single-party nonce. This concentration is the principal
+distributional difference between TALUS signatures and single-party ML-DSA signatures; moving
+thes 2-shaping offline adds a second,qs-bounded one (the residuals2 channel), and both security
+costs are quantified in §8.
+2.4 Security definitions
+Definition 1(qs-bounded EUF-CMA, threshold).For a query boundqs, a(T,N )-threshold
+signature isqs-bounded EUF-CMAsecure againststaticcorruption if no PPT adversary that
+statically corrupts up toT−1parties, and interacts with the honest parties in at mostqs signing
+sessions on adaptively chosen messages, produces a valid signature on a fresh message except
+with negligible probability. Standard EUF-CMA is the special case whereqs ranges over all
+polynomials; the TALUS guarantee is theqs-bounded notion (§8 shows the unbounded notion is
+unattainable in this class). The adversary’s view includes the full protocol transcript of every
+session it participates in, including any values revealed to corrupt parties before a message is
+chosen.
+We treat static corruption throughout; adaptive corruption is left open. Definition 1 explicitly
+grants the adversary the pre-message transcript, so that a proof under it must handle values
+(such as an offline commitment) that are fixed before the message, the setting relevant to §8.
+Assumptions.Key hiding rests on Module-LWE and unforgeability on the SelfTargetMSIS
+problem, the same pair underlying ML-DSA’s own security [DKL+18, KLS18, Nat24]. We state
+both in Appendix A. We donotreduce to single-party ML-DSA as a black box: the summed
+nonce is not ML-DSA-distributed, so such a reduction does not apply (§8).
+MPC primitives and threat model.The distributed profile uses standard honest-majority
+MPC building blocks (secret-shared multiplication, opening) overRq; we specify them together
+with the carry framework in Appendix B. The MPC profile assumes an honest majority (N≥
+2T−1) and provides identifiable abort on the optimistic path; EUF-CMA unforgeability is proven
+against malicious adversaries in theFDKG-hybrid model (§8); simulation-based transcript privacy
+is proven in the semi-honest model, with the malicious lift in the extended version (§11).
+3 The Boundary: Two Jobs of the Rejection Check
+Threshold ML-DSA inherits a single hard constraint from FIPS-204, and every design decision in
+this paper is a response to it. We state it first, as one theorem, because it explains what BCC
+can and cannot buy, why the security analysis takes the shape it does, and where the honest
+limit of the construction lies.
+The rejection check does two separable jobs.ML-DSA’s middle rejection condition
+∥LowBits(w−cs2)∥∞<γ2−β(§2) performs two logically distinct tasks:
+1. correctness (thes 2 half, “job 1a”): it certifiesHighBits(w−cs2) = HighBits(w) =w1, so
+the offline-committedw1 is the true high part and the emitted hint is the one an unmodified
+verifier expects;
+2. secrecy (“job 2”): as a rejection-sampling step it re-centres the accepted transcript so that
+the emitted signature is statisticallyindependent ofs2.
+6 TALUS: Threshold ML-DSA
+Fullverifier-acceptanceneedsonefurtheringredientthisconditiondoesnotsupply: the MakeHint/UseHint
+round-trip is valid only when∥ct0∥∞<γ2, a separate FIPS-204 condition(1) (“job 1b”). Any
+threshold scheme that emits FIPS-204 signatures must reproduce job 1 inbothparts; whether it
+reproduces job 2 is a design choice, and it has a price.
+A nonce-only predicate can do only thes2 half of correctness.The Boundary Clearance
+Condition of §4 is a predicate on(A, y)alone; it is blind tos 2 and toc. It can therefore be
+enforced offline to certify job 1a, but it cannot perform job 2 (an operationons2), nor can it certify
+job 1b: the quantityct0 depends on the online challengec, so∥ct0∥∞<γ2 is not a predicate
+on the nonce. Job 1b is insteadautomaticat ML-DSA-65/87, where ∥ct0∥∞≤τ2d−1< γ2
+can never fail, and is enforcedonlineat ML-DSA-44, where τ2d−1= 159744 > γ2 = 95232
+makes the corner reachable (about2−24per attempt), by the self-verification of Alg. 2 (line 9):
+it recoversw′
+1 = UseHint(h,·), re-derivesc =H( µ∥w′
+1), and returns⊥on any mismatch, so a
+ct0-corner attempt whose round-trip breaks is resampled and never emitted. Replacing the
+onlines 2-rejection by an offline BCC filter thus keeps correctness (job 1a offline via BCC; job 1b
+automatic, or online via self-verify) while dropping thes2-shaping (job 2): each emitted signature
+then carries a residual, secret-dependent quantity.
+The two channels, both forced by the byte-exact corner.A byte-exact threshold scheme
+reveals an aggregate noncey=∑
+h yh that is asumof bounded shares, hence Irwin–Hall rather
+than uniform. WriteI≈2
+γ2
+1
+ln(γ1/β)for the β-truncated Fisher information of that summed
+per-coordinate marginal about a location shift;I >0exactly because the sum is non-uniform,
+and I = 0only when the revealed marginal is uniform (a single term, or an MPC-assembled
+uniform nonce). Two facts of the byte-exact threshold design, the revealed non-uniform summed
+nonce and BCC’s dropping of thes2-shaping (job 2), opentwoleakage channels:
+• thes 1 channel (inherent to any summed nonce).The responsez=y+ cs1 is a location
+observation ofs 1 with per-coordinate informationI; a passive, assumption-free estimator
+recoverss 1 once qs ≳ 4/(Iτ)(§8.1, Theorem 3). At ML-DSA-65,I = 5.74×10−11and this
+wall is≈230.
+• thes 2 channel (introduced by dropping job 2).Once the onlines2-rejection is removed, the
+emitted hint revealsO= r0 +c(t0−s2)with r0 = LowBits(A y); sincet0−s2 =As 1−t12d,
+recoveringOyieldsAs 1, hence the key. The noiser0 is the BCC-cleared low part:uniform,
+with a sharp edge. A bounded-noise estimator exploits that edge at a rate linear (not
+quadratic) in the noise range, giving a per-key wall at the integer-uniqueness threshold
+quniq = (2γ2) ln(2nk)/τ≈215.2/216.4/216.2at ML-DSA-44/65/87 (belowquniq the channel’s
+observations do not determines2; the continuous-relaxation range2γ2 = 2 17.5/219/219 is
+a looser reference wall). The observableOneeds not 0 and is computable from public
+data (O=Az −ct12d−αw1), so the sharp-edge observable is the actual channel, not an
+idealization.
+The two channels are governed bydifferentconstants: thes1 wall by the nonce Fisher information
+I, thes 2 wall by the range2γ2 of the BCC-cleared low part (FIPS-fixed). But they are governed
+by asingle cause: keeping the output byte-exactwith an efficient one-round online phase(no
+per-attempt MPC assembly of a uniform nonce) forces both a revealed summed nonce (I >0)
+and a BCC that cannot reproduce thes2-shaping. Byte-exactness alone does not forceI >0: a
+scheme that assembles a uniform nonce in MPC attainsI = 0(Quorus [BdCE+26]) but pays the
+interaction the trilemma below charges. Reshaping the nonce (wider or Gaussian) would relax
+thes 1 side by loweringI, but forfeits byte-exactness and leaves the FIPS-fixedγ2 untouched.
+Two prices at our corner (byte-exact with an efficient online phase).
+Theorem 1(The FIPS-exact threshold boundary; informal).Let a threshold scheme emit
+FIPS-204-exact ML-DSA signatures whose revealed nonce is a sum of≥2bounded shares (Fisher
+information I >0). Then its per-key security is capped: thes1 channel alone forcesqs ≲ 4/(Iτ)
+(≈230 at ML-DSA-65), and if the scheme additionally omits thes2-output-shaping thes 2 channel
+adds a per-key wall of orderγ2 (the integer-uniqueness thresholdquniq = (2γ2) ln(2nk)/τ≈
+215.2/216.4/216.2 for the sharp-edge observable, computable from public data with not0; the
+7
+operative cap-placement bound is the lattice-shielded meet-in-the-middle of §8). No such scheme
+hasq s-independent unforgeability under any assumption.
+The resulting trilemma.Theorem 1 says a byte-exact threshold ML-DSA cannot have
+all three of {FIPS-204-exact output, an efficient online phase, an uncapped/tight reduction}:
+it may have any two. Schemes that reveal an internally uniform nonce (Quorus [BdCE+26],
+Trilithium [DKLS25]) buy I = 0with heavier interaction; flooding schemes (Raccoon lin-
+eage [dPKPR24]) buy it by reshaping the nonce, and are not FIPS-exact. TALUS keeps
+byte-exactnessandan efficient online phase, and pays with aqs-capped reduction. We regard
+characterising that price precisely as a contribution in its own right: an explicit attack (§8.1), an
+optimized upper bound whose remaining distance to the attack is an exact per-level constant we
+argue no black-box reduction closes (§8.2), and an honestly placed operational cap (§8.3). The
+rest of the paper does exactly that.
+4 The Boundary Clearance Condition
+This section defines BCC, proves that it makes the secret-dependent rejection check redundant,
+and records its acceptance rate. The per-coefficient geometry is the Dilithium hint-correctness
+lemma; the contribution is the observation that the resulting condition is key- and message-
+independent, hence enforceable offline, and that enforcing it lets a threshold scheme delete the
+distributeds 2 computation rather than perform it.
+4.1 Definition
+Definition 2(Boundary Clearance Condition).Fix publicAand a noncey, and let r0 =
+LowBits(A y,α). The nonce satisfiesBCCif
+∥(r0)j∥∞<γ2−βfor every coefficientj, β=τη.
+BCC is a predicate on(A, y)alone: it does not depend on the secret key(s1, s2, t0)or on the
+messageµ. This is the property that makes it useful, and we return to it in §4.3.
+4.2 Redundancy of the secret-dependent check
+The middle rejection condition of(1) is∥r0−cs2∥∞<γ2−β, equivalentlyHighBits(w−cs2) =
+HighBits(w) = w1. The following is the standard Dilithium hint-correctness lemma [DKL+18,
+Nat24], restated for our use.
+Lemma 1(Clearance implies invariance).Letw=A yand r0 = LowBits(w,α). If∥(r0)j∥∞<
+γ2−βfor allj, then for every admissible challengec (with τnonzero±1coefficients) and every
+secret with∥s2∥∞≤η,
+HighBits(w−cs2,α) =HighBits(w,α).
+Proof. Coefficient-wise,∥cs2∥∞≤τη= β, so each coefficient ofcs2 moves the corresponding
+coefficient ofwby at most β. Under BCC the low part(r0)j is more thanβfrom either stripe
+boundary±γ2, so adding a shift of magnitude≤βcannot cross a boundary; the high part is
+unchanged. This is exactly the argument by which the Dilithium hint is correct; we use it in the
+opposite direction, to certify when the low-bits check is automatically satisfied.
+Corollary 1(Thes 2-check is redundant under BCC).For any BCC-passing nonce,HighBits(w−
+cs2) =w1 for every admissiblec, s2 (Lemma 1), equivalently∥r0−cs2∥∞<γ2. A scheme that
+signs only with BCC-passing nonces therefore substitutes BCC for this middle rejection condition
+and never evaluates it, ands2 affects neither the high bitsw1, the challengec =H(µ∥w1), nor the
+responsez=y+ cs1. This isnotthe ML-DSA norm condition∥r0−cs2∥∞<γ2−β: TALUS’s
+middle accept-region is acs2-shifted variant of ML-DSA’s, accepting a thinβ-shell that ML-DSA
+rejects and rejecting one it accepts; this shell is the source of the residuals2-channel of §8. BCC
+removes only this middle check;s2 still enters the online hint-weight rejection.
+8 TALUS: Threshold ML-DSA
+Corollary 1 is what removess2 from the online protocol: the one rejection condition that
+a threshold scheme would otherwise evaluate on secret shares is, on the BCC-passing subset,
+satisfied unconditionally. This redundancy concerns theonline computation ofs2, which BCC
+removes; it is not a claim ofs2-secrecy for the emitted signature. The hint still carries a residual
+s2-dependence, a qs-bounded leakage channel accounted for in §8. Thus BCC provides the
+s2-boundary invarianceHighBits(w−cs2) =w1 (job 1a of §3), nots2-independence of the output.
+It doesnotby itself certify full hint-correctness: the UseHint round-trip additionally requires
+∥ct0∥∞<γ2 (job 1b, §3), automatic at ML-DSA-65/87 and enforced online by the self-verification
+of Alg. 2 at ML-DSA-44.
+4.3 Key- and message-independence, and where the value lies
+BCC depends only onA y. Both inputs are independent of the long-term secret:Ais public, and
+yis a fresh ephemeral nonce, uncorrelated with(s1, s2). Hence the BCC bit is key-independent,
+and, being independent ofµ, can be evaluated before any message is known. This is what lets
+BCC filtering run in preprocessing. We emphasize thatyitself is secret; it is BCC’s independence
+from the key and message, not any publicity ofy, that makes it a sound offline filter.
+BCC is a predicate on the aggregate, evaluated privately.A point that matters in the
+distributed profile: BCC is a predicate on theaggregatenoncey= ∑
+h yh, not on any party’s
+individual share. It is not, and cannot be, checked per-party:r0 = LowBits(A y)is a non-linear
+function ofy, so BCC(yh)says nothing about BCC(∑
+h yh). Since no party holdsy, andyis not
+known ahead of time, offline BCC filtering must be aprivacy-preservingsecure computation of
+the aggregate BCC bit on shares, revealing only the single (key-independent) pass/fail bit and
+nevery,w, or r0. This is precisely what the Carry Elimination Framework provides (§5); the
+enclave profile instead evaluates the same predicate on the aggregate held in the clear inside the
+enclave (§6).
+No single-party incentive. BCC offers no cost benefit to a single signer: there ther0-check
+is a local, essentially free comparison, so pre-selecting nonces to avoid it only wastes the≈3×
+oversampling below. The value is intrinsic to the threshold setting, where that same check costs
+a distributed, multi-round MPC ons2. Offline nonce selection for single-party Dilithium has
+been studied [YLW25], but it filters thekeyat key generation for a different rejection condition
+and changes the key distribution; BCC filtersnonces, keeps the exact FIPS-204 nonce rangeγ1
+and the key distribution, and eliminates thes2 computation. This asymmetry (value only under
+threshold) is the reason the observation has been available yet unused.
+4.4 Acceptance rate
+Proposition 1(BCC rate).For a uniform single-coefficient low part,Pr[|(r0)j|<γ2−β] = 1−
+β/γ2, and overnk independent coefficients the BCC acceptance probability ispBCC = (1−β/γ2)nk.
+Numerically pBCC = 31.7%at ML-DSA-65, and43 .2%/39 .1%at levels 2 / 5, matching a
+Monte-Carlo estimate to within0.3%. A usable nonce is therefore found after1/pBCC≈3.15
+offline trials at level 3.These are offline nonce trials, done before any message is known; they
+are not online interaction rounds, a distinction we keep throughout (the online round count is
+stated separately in §6–§7).
+5 Carry Elimination
+BCC removes thes2 computation, but the parties still need the commitmentw1 = HighBits(A y)
+to form the challengec =H( µ∥w1). In the distributed profile no party holdsy, sow1 must
+be computed on secret shares. This section gives that computation, the Carry Elimination
+Framework (CEF), and shows that some form of carry resolution is unavoidable. We begin with
+9
+KeyGenonce per key·§I
+dealer-free DKG⇒Shamir[ [s1] ],[ [s2] ]; publish stockpk= (ρ,t1),t=As 1 +s 2
+Preprocessoffline, per nonce·§5, Appendix B (Alg. 3–4)
+nonce-DKG[ [y] ]S bound to a quorumS; eachh: ˆwh =A ˆyh,Decompose→(w1,h,r 0,h)
+CEF: full-stripe–mask the low parts, open only the aggregateB; recover the carryκon
+shares
+⇒[ [w1] ] =
+∑
+h[w1,h] +κ(exact;yandr 0 never opened)
+BCCfilter on shares∥r0∥∞<γ2−β; commitcomto[ [w1] ]
+⇒pool{[ [w1] ],com,[ [y] ]S}, consumed once then erased
+Sign(µ)online, two rounds·§7 (Alg. 2)
+Round 1open[ [w 1] ](bound bycom)⇒w1;c=H(µ∥w1)
+Round 2z h = ˆyh +cs 1,h;z=
+∑
+hλhzh; form hinth; self-verify; emitσ= (c,z,h)
+V erifyany unmodified FIPS-204 verifier
+σ= (c,z,h)accepted by stock ML-DSA verification againstpk= (ρ,t1)
+Figure 1:The complete TALUS protocol (MPC profile), end to end.KeyGen and
+Preprocess runoffline; only Sign isonline, in two rounds. Only two aggregate values ever open:
+the full-stripe–masked low sumB (offline, fuzzed by the mask) and the committed high partw1
+(online, afterµ); the nonceyand its low partr0 are never reconstructed. The TEE profile (§6)
+instead holdsyin the clear inside the enclave and folds Round 1 into Round 2, giving a single
+online round. Each box is detailed in the cited section; Algorithm 1 restates this lifecycle as
+pseudocode.
+the whole protocol end to end (Figure 1), then the same lifecycle as pseudocode (Alg. 1); the
+details of each phase follow in the subsections below and in the algorithms of Appendix B.
+5.1 What is easy and what is hard
+The public matrixA= ExpandA(ρ)is derived from the publicρ, so it is known to all parties
+(and is injective with overwhelming probability overρ; see Appendix E). Consequentlyw=
+A y=A ∑
+h yh =∑
+h A yh islinearin the shares: each party locally formsA yh, and the additive
+combination gives a sharing[ [w] ]of the aggregate with no interaction. What isnotlinear is
+Decompose(w):HighBitsdoes not distribute over the sum,
+∑
+h HighBits(A yh)̸=HighBits(∑
+h A yh)
+in general, because the low partsLowBits(A yh)can sum past a stripe boundary and carry into
+the high part. Resolving that carry on shares, without revealing the low sum, is the technical
+core.
+Proposition 2(Carry–privacy).Revealing the aggregate low part ∑
+h LowBits(Ayh) modα
+(equivalently the exactr0) is unsafe: from a single signature it yields a noise-free lattice sample,
+from whichs 1 is recovered by linear algebra. Hence the low sum must never be openedin the
+clear. CEF instead opens only afull-stripe–maskedlow sumB =∑
+h(r0,h +ρh), eachρh drawn
+uniformly on the whole stripe[0,α), so thatBmodα is aone-time padand the opening leaks
+nothing aboutr0 beyond the unmasked coarse quotient⌊B/α⌋; only the key-independent stripe-
+carry, modulus-wrap, and FIPS boundary bits are then extracted (on shares, never opened). That
+residual quotient has committee-independent per-key wall≥228.2across levels (228.2/230.8/230.5),
+above thes 1 wall, hence non-binding (§8, Appendix B); we disclose it rather than treat it as zero.
+10 TALUS: Threshold ML-DSA
+Algorithm 1Protocol overview: TALUS signing lifecycle (MPC profile; TEE differences noted).
+Phase 0 — Key generation(once per key; DKG instantiated in Appendix I)
+1:dealer-free DKG→Shamir shares[ [s1] ],[ [s2] ]; publish stockpk= (ρ,t1)witht=As 1 +s 2
+Phase 1 — Preprocess(offline, repeated; Alg. 3–4)
+2: nonce DKG: each committee memberh samples ˆyh; Shamir shares sent only to the bound
+quorumS(|S|=T) give[ [y] ]S
+3:eachh: ˆwh←Aˆyh;(w 1,h,r 0,h)←Decompose(ˆwh,α)
+4: CEF(Alg. 4): full-stripe masked low parts, shared (only aggregate opened)→carry κ;
+combine with shared high parts→[ [w1] ] =HighBits(A y), exact▷y,r 0 never opened
+5: BCC filter: on shares, check∥(r0)j∥∞< γ2−β; open one bit; discard if fail (≈69%at
+level 3; §4)
+6:[TEE]enclave holdsyin the clear; computesw 1 and BCC directly
+7:commitcomto the sharing[ [w 1] ]; pool([ [w1] ],com,{ˆyi}i∈S)tagged withS
+Phase 2 — Sign(µ)(online; Alg. 2)
+8:[MPC]Round 1: open the sharing[ [w 1] ](bound bycom); all learnw1
+9:all signers:c←SampleInBall(H(µ∥w1))
+10:Round 2: each signerhsendsz h←ˆyh +c·s1,h
+11:coordinator:z← ∑
+hλhzh;h←[HighBits(Az−ct12d)̸=w1]; verify; emitσ= (c,z,h)
+12: [TEE]Rounds 1–2 collapse: enclave releasesw1 and aggregateszinternally; only accepted σ
+leaves
+Low part[r 0,h]High part[w 1,h]
+each committee member VSS-deals it each committee member VSS-deals it
+one shared CEF carry resolution (κ,b,δ,k; full-stripe maskρh on the low side)
+aggregateB=
+∑
+h([r0,h] + [ρh])aggregate[ [w 1] ] =HighBits(A y)
+opensoffline, beforeµopensonline, Round 1, afterµ
+fuzzed byρ: only⌊B/α⌋leaks⇒BCC bit exact, unmasked⇒c=H(µ∥w1)
+Figure 2:TALUS-MPC carries the high part exactly like the low part: both are VSS-dealt per
+committee member and only their aggregates open. The masking asymmetry is the reveal-timing
+asymmetry: the low aggregate opens offline (beforeµ), so it is full-stripe masked and leaks only
+the coarse⌊B/α⌋; the high aggregate opens online (afterµ), so it is exact and unmasked. The
+TEE profile instead holdsyin the clear inside the enclave.
+5.2 The framework
+A modulus identity of ML-DSA makes the carry cheap. Becauseq−1is an exact multiple of the
+stripe width (q=mα+ 1), the high part takes one ofm= (q−1)/αvalues (m= 16at levels 3
+and 5;m = 44at level 2, handled by parameterizing the reduction). With the full-stripe masks of
+Proposition 2 the masked low sum can wrap several stripes, so the secure carry is⌈log2|C|⌉+ 1
+bits per coefficient (how many stripe boundaries the masked sum crossed) rather than the single
+bit a magnitude-bounded mask would give; this widening is exactly what makes the mask a true
+one-time pad while keepingw1 byte-exact. CEF computes, on shares:
+1. the shared low-sum in carry-save form, without opening it;
+2. the aggregate stripe carry and modulus-wrap (the multi-bitκρ, the sub-stripe borrowb, and
+the mod-qwrap countk; Appendix B) by secure comparisons on the shares;
+3. the FIPS round-to-nearest centering bitδfor the centered representative,
+and combines them to obtain[ [w1] ] =HighBits(A y)on shares (Figure 2 summarizes the low/high
+symmetry). The round and communication cost isO(logN )per signature and is confined to
+preprocessing; the full protocol, including theT = 2specialization and the m = 44case, is in
+Appendix B.
+11
+BCC is a by-product of the same computation.Once CEF has produced[ [w1] ], the low
+part follows linearly:[ [r0] ] = [ [w] ]−α·[ [w1] ]. The aggregate BCC bit is then the conjunction⋀
+j
+[
+|(r0)j|<γ2−β
+]
+, evaluated by the same secret-shared comparisons; only that single (key-
+independent) bit is opened, and a failing candidate is discarded. Thus one carry resolution yields
+both the commitmentw1 (used online) and the offline BCC filter; the exact low sum andyare
+never opened in the clear. Only the masked (fuzzy)r0 is, per Proposition 2, and the full product
+wis never reconstructed. Because the opened bit is key-independent it leaks nothing about the
+key per candidate; the residual information fromwhichcandidates fail, accumulated over many
+signatures, is exactly theqs-bounded regime of §8 and is capped by the mandatory key rotation.
+5.3 Unavoidability
+CEF adds an offline carry resolution; the following says no FIPS-compatible scheme can avoid some
+such step by a one-round homomorphic shortcut. We state it here and prove it in Appendix E.
+Theorem 2(Carry resolution is necessary; informal).There is no one-round protocol in the
+plaintext linear-aggregation model (parties broadcast a linear imageφ(yh)and everyone computes
+w1 from∑
+hφ(yh)by a public map, with no trusted reconstruction, no extra rounds, and no
+rejection) that computesw1 = HighBits(A y)while hidingy. Any FIPS-compatible lattice threshold
+scheme must therefore use one of: trusted/enclave or MPC reconstruction of the high bits, extra
+interaction, or a rejection step.
+The mechanism is thatHighBitsis not a homomorphism (a fact we attribute to [CS19,PMS26]);
+the impossibility is a formalization of this folklore at the scope the result needs, not a claim that
+the non-homomorphism is new. It is unconditional for a wide (coset-covering) nonce, the statement
+the construction relies on. For ML-DSA’s boxed nonce it holds for everyφchosen obliviously of
+the public matrix, with the fully unconditional boxed case (an adversarially contracted kernel)
+left open (Appendix E).
+6 TALUS-TEE
+The TEE profile establishes the one-round online phase using a trusted execution environment as
+the trust anchor, for anyT-of-Nand with no honest-majority requirement.
+Protocol.In preprocessing, an enclave coordinator receives the parties’ nonce shares, forms
+the aggregate nonceyinternally, computes w1 and checks BCC directly (withyin cleartext
+inside the enclave), and discards nonces that fail BCC. It thereby holds a pool of BCC-passing
+nonces with theirw1. To signµ: the enclave releasesw1, the parties computec =H(µ∥w1)and
+broadcastz h =y h +cs1,h, and the enclave aggregatesz, forms the hint, verifies, and emitsσ
+only if verification passes. This is a single online broadcast round.
+Cost and guarantees.Online latency is one round; measured single-box compute≈1.5ms at
+ML-DSA-65, T = 3(§10). Because BCC is enforced offline, ther0 check never fires online; a
+first signing attempt succeeds with probability≈99.6%at ML-DSA-65 (measured over12,645
+attempts, Appendix H;≈98.0%/99 .2%at levels 2 / 5). To the resolution of our sample the
+residual isdominatedby ML-DSA’s message-dependent hint-weight check: across our≈33,000
+measured attempts thez-norm check never fired, the summed nonce being concentrated well
+inside the norm bound (the same Irwin–Hall concentration quantified in §8). At ML-DSA-44
+there is one further, far rarer source: thet0 round-trip∥ct0∥∞< γ2 can fail (about2−24per
+attempt; job 1b, §3), triggering the online self-verification⊥of Alg. 2 and a resample. This term
+is vacuous at ML-DSA-65/87 and lies below the resolution of the≈33,000-attempt sample, so it
+does not perturb the measured first-attempt rates. Neither residual can be pre-filtered offline,
+so the online phase is one round per attempt with expected≈1.004attempts at level 3, not a
+guaranteed single pass.
+12 TALUS: Threshold ML-DSA
+Trust and security.The enclave is the coordinator; thezh, the aggregate, and the norm check
+are enclave-internal, and only an acceptedσleaves. An adversary corrupting up toT−1signers
+(not the enclave) never observes an aggregate or a rejectedz; its view isw1 and σ, simulatable
+from( pk,σ)up to the qs-bounded channels of §8; for a coalition of signers, subtracting its own
+contributions fromσ’s response reduces the summed nonce to a single honest signer’s share,
+a sharp-edged residual of width2γ1/T (m=1in the insider regime of Appendix D). This is a
+thinner channel than the MPC committee’s (m≥T, a soft Irwin–Hall edge): it admits linear-rate
+recovery ofs 1 at≈(2γ1/T) ln(2nℓ)/τ, which falls belowQcap for moderateT, so we donot
+inherit Theorem 3 or the rotation cap for the TEE insider. The TEE variant is presented only
+as a simpler one-round contrasting profile, its threshold-custody security resting on the enclave.
+The enclave must be trusted for both confidentiality and integrity: it holds the aggregate nonce
+yandaggregatesz=y+ cs1, so a confidentiality breach alone recoverss1 =c−1(z−y)by a
+single linear solve (a full key compromise, not a reduction to Module-LWE), and an integrity
+breach can violate thew1-after-µordering or the verify-before-emit guard. The TEE profile thus
+rests on the enclave assumption plus the standard assumptions of §8; under those, unforgeability
+follows from theqs-bounded reduction of Theorem 4.
+7 TALUS-MPC
+The distributed profile removes the enclave. No party holds the nonce, sow1 is computed on
+shares by CEF and BCC is filtered on shares; the online phase is two rounds. This section gives
+the structure, the principle that determines the round count, and the closure conditions for
+malicious security.
+7.1 Compute offline, reveal online
+The challengec = SampleInBall(H(µ∥w1))needs both µ(online) andw1. Crucially,computing
+w1 = HighBits(A y)is message-independent and is done offline (by CEF, on shares); onlyrevealing
+w1 is timing-sensitive. This split is the whole design.
+What must stay hidden.SinceAis injective,w=Aydeterminesy; revealingwwould
+revealy, and with the releasedz=y+ cs1 that givess 1. So the full productwand its low
+part r0 areneveropened; only the massively lossy high partw1 = HighBits(w)is released (and
+only online). CEF’s job is exactly to extract the shared[ [w1] ]from the shared[ [w] ]without ever
+reconstructingworr 0 (§5).
+Offline.Parties run a nonce DKG to obtain[ [y] ](each partyh’s free term isˆyh; we writeyh
+when the hat is clear from context) and locally form[ [w] ] =∑
+h Aˆyh; CEF resolves the carry
+on shares: each party offsets its low part by a maskρh drawn uniformly on thefull stripe[0,α)
+(edaBit-committed), and withr0,h VSS-shared only the aggregate low partB =∑
+h(r0,h +ρh)is
+opened (never an individual share). Because each mask spans the whole stripe,Bmodα is a
+one-time padon r0 (it reveals nothing about the true low sum), and only the key-independent
+stripe-carry and FIPS boundary bits, computed securely from the shared masks, are extracted
+(Proposition 2; the carry is correspondingly widened to⌈log2|C|⌉+1bits and w1 stays byte-exact).
+This full-stripe masking makesBmodα a one-time pad, so the residual is confined to the coarse
+quotient⌊B/α⌋, with committee-independent per-key wall≥228.2across levels (228.2/230.8/230.5;
+§8), well above the cap. To keep the two-round guarantee,w1 is not opened offline: CEF
+outputs it as a secret-shared[ [w1] ](the high parts VSS-dealt per party, exactly as the low parts),
+placed under an offline hiding-and-binding commitment to its shares (§7.4), so the pool holds
+BCC-passing nonces each with a committed[ [w1] ], opened only online afterµ. The on-shares
+BCC filter opens a single key-independent pass/fail bit and discards failing nonces; about3.15
+candidates are sifted per pooled nonce, in batch ahead of any message.
+13
+Algorithm 2TALUS.Sign: online signing (both profiles).
+Input:message µ; from the pool of Alg. 3:([ [w1] ],com )and the quorum’s shares{ˆyh}h∈S;
+signing quorumS,|S|=T.
+Output:FIPS-204 signatureσ= (c,z,h)or⊥.
+1:[MPC only]signers open the sharing[ [w1] ](bound bycom); all learnw1 ▷Round 1
+2:each signerh∈S:c←SampleInBall
+(
+H(µ∥w1)
+)
+▷local
+3:each signerhsendsz h←ˆyh +c·s1,h to coordinator▷Round 2 (Round 1 for TEE)
+4:z←∑
+h∈Sλh zh ▷Lagrange at0:λh =∏
+j∈S\{h}j/(j−h)
+5:if∥z∥∞≥γ1−βthen return⊥▷z-norm check
+6:h←
+[
+HighBits(Az−ct1·2d)̸=w1
+]
+▷t0-free hint from committedw1 (§10)
+7:ifwt(h)>ωthen return⊥▷hint-weight check
+8:w ′
+1←UseHint(h,Az−ct1·2d, α)
+9:verifyc
+?
+=H(µ∥w′
+1);if not, return⊥▷self-verification
+10:returnσ= (c,z,h)▷accepted by any unmodified FIPS-204 verifier
+Online (two rounds).
+Round 1: open the committed[ [w1] ]to revealw1; each signer locally computes
+c = SampleInBall(H(µ∥w1)). Round 2: revealz h = ˆyh +cs1,h; aggregatez= ∑
+hλhzh (Lagrange
+at0, Alg. 2), form the hint (a local public step fromw1, needing not0; §10), verify, emitσ.
+CEF is not run online; the two online rounds are the two reveals, with thec computation a local
+step between them. The finalσis self-verifying, so a wrong aggregate is caught before emission.
+Algorithm 2 gives the pseudocode; in the TEE profile Round 1 is absent (the enclave holdsw1 in
+cleartext) and all aggregation is enclave-internal.
+7.2 Why two rounds, and why standard assumptions
+The timing of thew1 reveal is exactly what separates a secure standard-assumption protocol
+from an insecure one.
+• If w1 is revealedoffline, before µ(a one-round online phase), then corrupt parties hold the
+offline commitments before choosing messages, the commit-before-message setting underlying
+ROS/Wagner attacks on rejection-based threshold signatures [Wag02, DEF+19, BLL+21]. A
+standard reduction cannot then program the challenge, and security would need a one-more
+assumption.
+• If w1 is keptcommitted/shared until onlineandopenedonly after µ(the two-round phase
+above), each session’sw1 is revealed only after that session’s message is fixed, so a reduction
+need not program the challenge ahead of the message and security rests on standard Module-
+LWE and SelfTargetMSIS (§8) in the sequential/bounded-qs setting. The commitmenttiming
+removes the one-more requirement for a single session; it doesnot, by itself, defeat aconcurrent
+ROS/Wagner adversary, since a commit-then-open with no per-session binding factor is exactly
+the setting of [DEF+19]. TALUS has no binding-factor analogue to add—FIPS-exactness fixes
+c =H(µ∥w1)with no per-session term to absorb (cf. the reused-nonce discussion below)—so
+full concurrency is not claimed and unforgeability isqs-bounded. What blocks adirecttransfer
+of the Schnorr-style ROS/Wagner attack is the non-homomorphism ofHighBits (c is applied
+to a non-linear function of the nonce, §9), and any forgery would still have to be a short
+SelfTargetMSIS solution.
+This is the same axis that makes the TEE profile one round: the enclave holds the aggregate in
+the clear, so it can apply the BCC filter and be ready to releasew1 immediately onceµarrives,
+collapsing the reveal into the single online round, whereas the MPC profile has no such trusted
+party and must run the commit-then-open across the two rounds. In both profilesw1 is revealed
+only afterµ; what the enclave saves is the extra online round the distributed open would otherwise
+cost. TALUS-MPC adopts the two-round ordering: keeping the headline standard-assumption
+is worth one online round. The one-round MPC variant (secure only under a one-more lattice
+14 TALUS: Threshold ML-DSA
+assumption, in the manner of FROST [KG21] under OMDL [BCK+22]) is not pursued here, as
+its required structure conflicts with FIPS-exactness and arbitraryN.
+7.3 Honest majority is for the carry, not the round count
+CEF is a non-linear computation on shares and requires an honest majority; the linear online
+reconstruction ofztolerates T−1corruptions. These are independent axes: the two-round
+ordering fixes theassumption(removes the one-more requirement), while honest majority is what
+makes the on-sharesw1 computation possible at all. To place the honest-majority guarantee
+correctly, CEF is run over a committee of≥2T−1parties, so a corrupt minority is a minority
+within the committee, decoupled from the size-T online signing quorum. The nonce is carried
+in two coexisting representations from the same committee polynomials: an additive form over
+the committee (for the offlinew1) and a degree-(T−1)Shamir form (for the onlinez), which
+are numerically equal by linearity of Shamir interpolation (∑
+hgh(0)is reconstructed from the
+shares{∑
+hgh(i)}). Thekeyis Shamir-shared degree-(T−1)over all N points, so anyT of the
+N parties reconstructs 1 and theT-of-N threshold holds at the key layer. Each preprocessed
+nonce, however, is bound at preprocessing to a single signing quorumS of sizeT: its Shamir
+shares are distributed only toi∈S(not to allN), the pool entry is tagged withS, and it is
+consumed exactly once and then erased (Remark 1). This binding is mandatory and cannot
+be relaxed: a nonce reconstructable by two quorums lets a corrupt coordinator (holdingT−1
+shares) openz= ˆy +cs1 andz′= ˆy +c′s1 on the same ˆy under two challenges and recover
+the signing secrets1 = (c−c′)−1(z−z′). A FROST-style participant-binding factor does not
+rescue a single reused nonce here: in FROST the binding recombines each signer’sindependent
+nonce contributions (R = ∑
+i(Di +ρiEi)) and leaves the challengec =H( R,µ)untouched,
+whereas our preprocessed nonce is onethreshold-sharedsecret with no per-party contributions to
+rebind. A linear per-quorum rebinding (each share scaled by a publicρS =H(S,µ)) preserves
+the sharing but stays solvable across two sessions (ρS ˆy +cs1 and ρS′ ˆy +c′s1 are two equations
+in the two unknownsˆy, s1), and a two-independent-pool variant that would restore signing-time
+choice reopens the concurrent-session (ROS) problem [DEF+19, BLL+21, Wag02] under the
+untrusted aggregator. We therefore bind each preprocessed nonce to a fixedS at preprocessing:
+S’s guaranteed honest member is a common witness that enforces one-time uselocally. This
+is a design choice, not an information-theoretic impossibility. Signing-time quorum choice is
+recovered by preparing one nonce pool per quorum offline (message-independent, batched; zero
+cost for a fixed operating quorum,|Q|×preprocessing to support a setQ of quorums). The
+added requirements are offline committee liveness and, per nonce, a fixed quorum chosen at
+preprocessing. We thank Sunghyeon Jo (Georgia Tech and QED) for identifying this cross-quorum
+nonce-reuse key-recovery attack on an earlier version; it motivated the quorum-binding fix above,
+and an independent note is in preparation.
+Remark1 (Nonce lifecycle; normative).The following are hard requirements of the construction,
+not optimizations; each closes a distinct key-recovery or carry-privacy channel, and a naive
+implementation that omits any one is broken.
+• One-time use, atomic.Each pool entry is opened for at most one(µ,c). An honest signer
+atomicallymarks the entry consumedbeforereleasingz h, and refuses any later orconcurrent
+request on it; a non-atomic check–emit–mark admits a two-message race that reopens the
+reuse above.
+• Rollback protection.The consumed flag is persisted with rollback/replay protection (a
+monotone counter or equivalent); a crash that loses it would permit replay and key recovery.
+• Quorum binding.A nonce’s shares reach only its owner quorumS; a request namingS′̸=S
+is refused. The offlinew1 still runs over the committeeC (|C|≥2T−1); the share-recipient
+set and the committee are independent knobs.
+• Post-session erasure, ordered before Blame.On releasingz h, on abort, or—for a
+committee member outside the signing quorum (C\S , which runs the offlinew1 but releases
+noz h)—on an authenticated session-completion signal, the party erasesˆyh, ρh, and all
+Beaver/mask intermediates for that entry; erasure must precede any Blame opening, since
+Blame opening a live post-znonce leakss1 (§7.5). A committee member that cannot confirm
+15
+completion treats the entry as live and refuses any Blame opening of it, so the guard binds at
+C-granularity, not only for the signing quorum.
+• Session-id uniqueness.Every preprocessing session uses a globally unique session idsid
+(distinct from the challenge weightτ), with each honest party contributing fresh randomness
+to sid and refusing a repeated one, so a coordinator cannot force a replay: reusingsid would
+repeat the full-stripe pad and Beaver triples, soB−B′= r0−r′
+0 exactly, exposing the
+aggregateLowBits(A ˆy)and hences 1.
+7.4 Communication model and identifiable abort
+The round counts above are stated in the standard threshold-signature model of one broadcast
+per round, as in FROST [KG21]. We donotrequire a heavyweight Byzantine broadcast channel:
+the parties communicate through anuntrustedaggregator (coordinator), exactly the FROST
+topology. An untrusted aggregator could try to equivocate (send differentw1 to different signers,
+so they compute differentc), but the offlinehiding-and-binding commitmenttow1 binds it to a
+single value, so a divergent opening is detected (a lightweight echo of the opened value across
+signers suffices for delivery agreement; a full Byzantine broadcast is not needed). The same
+commitment removes the rushing/adaptive-c concern (§7.5). A wrong aggregatezfails the
+pre-emission verification, so the coordinator cannot substitute a bad signature; note, however,
+that self-verification blocks aforgedsignature but not the coordinator-triggered Blame attack,
+which is the dominant malicious break and is closed separately in §7.5.
+Identifiable abort.On the optimistic (fault-free) path, identifiable abort costsno extra online
+round: attribution rides on the authenticated/committed messages already sent in the two rounds.
+Only when a fault is detected does aBlame subprotocolrun, adding a round on that path alone.
+Crucially, Blame attributes faults from theauthenticated offline transcript, before the online
+round, and must never open a post-znonce; otherwise it becomes the key-recovery of §7.5.
+Offline faults (bad preprocessing contributions) are attributable this way. A purely online fault, a
+signer sending a malformedzh, is the residual case: since a public per-party check would require
+publishingA yh (which must stay hidden), attributing it needs a per-party verifiable-zh proof; we
+defer that component, and the complete identifiable-abort treatment, to the extended version. A
+broadcast-style agreement may be needed for dispute resolution inside Blame, but only on that
+failure path, never in the optimistic two rounds.
+7.5 Malicious model: the closure conditions
+EUF-CMA unforgeability is proven against malicious adversaries in theFDKG-hybrid model (§8,
+Remark 2); simulation-based transcript privacy is proven in the semi-honest model (Proposition 3).
+Identifiable abort on the optimistic path is provided as above; the simulation-based malicious lift,
+including online malformed-zh attribution, is deferred to the extended version. We state here the
+protocol mechanisms it requires, because they determine the construction. Every catastrophic
+malicious break we are aware of has the same shape: two individually key-independent revealed
+values whosejoindetermines the key. Each is closed by a standard identifiable-abort or threshold
+technique that severs one of the two reveals:
+• Post-znonce reveal.A coordinator holdingz=y+ cs1 that could also trigger a Blame
+openingywould recovers 1 =c−1(z−y). Closure: attribute preprocessing faultsbeforethe
+online round, via authenticated offline transcripts, so Blame never opens a post-znonce.
+• Round-1 reveal binding.A bare open of w1 is rushing-steerable, which would restore
+adversary-chosenc and re-introduce the one-more setting. Closure: an offline hiding-and-
+binding commitment to thew1-shares, opened online; this costs no extra online round, since
+w1 is message-independent.
+• CEFintegrityandkeygeneration.CEFusesauthenticated(ratherthanplainpreprocessing-
+based) multiplication; key generation is a dealer-free DKG whose only public lattice output
+ist=As 1 +s 2 (an MLWE sample, hence hiding) andnevera per-partyAs 1,h: that is a
+bare, error-free lattice image, and sinceAhas full column rank at ML-DSA’s dimensions its
+16 TALUS: Threshold ML-DSA
+left-inversion would expose the shares1,h. Short-share well-formedness is therefore enforced
+by secret-shared rejection sampling (ΠRand, Appendix I) rather than by a FeldmanAs1,h com-
+mitment (no ZK range proof). Such a DKG is realizable in the manner of Quorus [BdCE+26];
+not publishing the non-hiding image closes the passive-share-recovery route by construction,
+while the rogue-contribution and rogue-key routes are closed subject to the deferred UC
+composition; the instantiation is given in Appendix I.
+• Masked low-aggregate consistency.The opened aggregateB =∑
+h(r0,h +ρh)and the
+boolean-shared ρh that CEF subtracts (Sr =B−∑
+hρh) are two representations of the same
+mask; a corrupt party feedingρinto B but ρ′̸= ρinto CEF would inject a known offset
+ρ−ρ′into Sr, steering w1 and the BCC bit. Closure: each ρh is committed once as an
+FedaBits-certified edaBit⟨[ρh], [ρh]2⟩(Alg. 3);B is reconstructed from the arithmetic[ρh]and
+CEF consumes the boolean[ρh]2, provably equal (soundness2−κ). This is an information-
+theoretic binding on shares,nota hash commitment: a hash commitment toρh could not be
+reconciled against the boolean sharing without openingρh, destroying the full-stripe one-time
+pad of Lemma 3. It is distinct from thew1 commitment and costs no online round (offline
+preprocessing).
+• Bounded nonce contribution.Each contributor’s free termˆyh∈[−γ1/|C|+1,γ1/|C|]is
+honestly sampled, but honest-majority interpolation onlyextractsit, notboundsit. Closure:
+a per-session bounded-nonce proof (ˆyh committed as an edaBit, each coordinate range-tested
+byFBitLTC, only the aggregate accept bit opened; Alg. 3) rejects an out-of-range contribution
+offline. This keeps the|C|-party sum inside[−γ1+1,γ1](the FIPS-exact nonce law and the
+z-norm), while a within-range choice is a corrupt-known shift the corrupt subtracts from its
+own view, hence inert on thes1 channel. It costs no online round.
+Because the committee fix increases the number of parties touching the sensitive computation,
+the Blame closure is applied first. With the full set in place, we expect malicious security in the
+qs-bounded regime forced by §8; the mechanisms are recorded in Appendix G, and the complete
+simulation-based proof is deferred to the extended version, which we do not claim here.
+8 Security
+We instantiate the boundary of §3 against ML-DSA’s own assumptions. Treating single-party
+ML-DSA as a black box is not available to us: the summed (Irwin–Hall) nonce is not ML-DSA-
+distributed, so a uniform-nonce oracle reduction does not apply. We give a concrete lower-bound
+attack, an optimized upper bound together with the exact proof–attack gap, the resulting cap,
+and the privacy accounting.
+8.1 A passive key-recovery attack
+The revealed nonce is a sum of≥2bounded shares, so its per-coordinate marginal is non-uniform,
+carryingβ-truncated Fisher informationI >0about a location shift (§3); the responsez=y+cs1
+is exactly such a shifted observation ofs1.
+Theorem 3(FIPS-exact revealed-sum-nonce lower bound).Let a threshold ML-DSA scheme
+emit FIPS-204-exact signatures whose revealed nonce is a sum of≥2independent bounded shares,
+with per-coefficient nonce densityf of Fisher informationI =
+∫
+(f′/f)2f > 0( I = 0iff the
+revealed marginal is uniform). Then a passive, assumption-free estimator recoverss1 from the
+signatures of a single key onceqs ≳ 4/(Iτ), withτthe challenge weight. Consequently no such
+scheme hasqs-independent EUF-CMA under any assumption.
+Proof sketch.The τcoordinates touched byc give location observations ofs1 throughz; the
+challenges are independent random-oracle outputs, so Fisher information accumulates linearly,
+J = Iτqs·Id. The estimator isconcrete, not merely a converse. The poly-time linear solve
+ˆs1 = (∑
+i C⊤
+i Ci)−1∑
+i C⊤
+i zi (withC i the matrix ofci) has per-coordinate signal gaing≈0.9992
+(exactly0when T = 1, recovering single-party ML-DSA) and already recoverss1 at qs≈231.8;
+the maximum-likelihood estimator, which additionally exploits the density’s sharp edge, reaches
+17
+the tighter≈230.4wall quoted below. Both are efficient and use only public signatures; their
+construction, gains, and walls are in Appendix C.
+At ML-DSA-65,I = 5.74×10−11and the wall isqs≈230; across levels it is226.8/230.4/230.0
+(ML-DSA-44/65/87; the two-share caseν=2, with the share-count sweep in Appendix C). Two
+points, both in Appendix C. First, the wall4/(Iτ)isparameter-specific: widening or reshaping
+the nonce pushes it out, but that departs from ML-DSA’s fixedγ1, so TALUS’s only lever is the
+cap of §8.3. Second, the attack degradeslinearlyinqs with the sharp wall at4/(Iτ); the√qs
+rate elsewhere is a feature of the securityproof’s change-of-measure bookkeeping (§8.2), not of
+the attack.
+Placement.Theorem 3 separates TALUS from schemes that reveal an internallyuniformnonce
+(Quorus [BdCE+26], Trilithium [DKLS25]), which haveI = 0and escape the bound at the cost of
+heavier interaction, and from Raccoon-lineage flooding [dPKPR24], which escapes by reshaping
+the nonce and is not FIPS-exact. TALUS accepts the bound and delimits it operationally.
+8.2 An upper bound, and the proof–attack gap
+Becausew1 is committed offline and opened only afterµ(§7.2), there is no pre-message reveal an
+adversary could pin, and unforgeability reduces to Module-LWE (key hiding) and SelfTargetMSIS,
+with no one-more assumption. The Irwin–Hall nonce is discharged not by statistical distance
+(which saturates once the outputs are distinguishable) but by abox-restrictedRényi change of
+measure, and the forgery is extracted directly as a SelfTargetMSIS witness in the Dilithium
+manner, with no forking (Appendix D).
+Theorem 4(EUF-CMA, TALUS).In the random-oracle model, TALUS-TEE and two-round
+TALUS-MPC areqs-bounded EUF-CMA (Definition 1)in the external view, under Module-
+LWE and SelfTargetMSIS in the sequential/bounded-concurrency setting, via the reduction of
+Appendix D, forqs≤Qcap (§8.3). For insider views the guarantee is profile-dependent, certified
+per view in that appendix: the honest-majority MPC insider (m≥2) is partial; the TEE coalition
+ofT−1signers (m=1) is excluded, the reduction certifying nothing there (below).
+Since Definition 1 permits arbitrary adversary behaviour, the theorem covers malicious
+adversaries in theFDKG-hybrid model: each game transition operates on honest-party randomness,
+from which the corrupt contributions factor out as known shifts (Remark 2; in the MPC profile
+honest-majority interpolation provides the extraction; the DKG is specified and proven (proof-
+sketch) in Appendix I (FDKG guarantees well-formed, short keys), its full UC composition with
+signing deferred). The insider’s boxdistinguishingcertificate, and its conjecturedλ/mforgery
+ceiling (m =ν−thonest), are given per view below and in Appendix D; the MPC coordinator’s
+rejected-response view is bounded separately (Appendix D).
+On the acceptance box the summed-nonce density is bounded below, so the per-query
+divergence is soft (second order in the shiftcs1) andeveryRényi order is finite; optimizing
+the order gives the clean certificateλprov(qs) = λ(1−
+√
+qs/Qmax)2, essentially full atqs=1
+and vacating atQmax (Appendix D, Theorem 6). At each level’s operational cap this certifies
+≈114–121bits for the external view over the deployed share counts (≈112/118/121at the
+ν=3reference qs=214 of Table 3). The box argument needs the nonce support to overhang the
+acceptance window; aninsiderwho knows t shares (an MPC committee member, or a coalition of
+TEE signers) can retract it inside the window, where the edge is interior and absolute continuity
+fails on the retracted sliver: the box then certifies only adistinguishingadvantage of≈4.4/5.1/6.0
+bits (the bad-event mass, at the honest-majority worst casem=2; ML-DSA-44/65/87), while the
+forgeryhardness is conjectured at the good-event ceilingλ/m(64bits at T=2, about42.7at T= 3;
+m =ν−t). The gap between the two is left open exactly as for the external view (Corollary 2).
+A TEE coalition ofT−1signers reaches m=1, where the argument certifies nothing. No insider
+forgery below theλ/mceiling is known. The residual[Qmax,attack wall]interval is characterized
+exactly (Corollary 2): its width is theλ-versus-H(s1)gap2 nℓσ2/(λln2), a per-level constant,
+and closing it to the attack wall (≈230 at ML-DSA-65) would need a third leakage-hardness
+18 TALUS: Threshold ML-DSA
+assumption equal to the attack itself. We do not claim a tight reduction to the attack wall; that
+barrier, and full concurrency (open, as for FROST without its binding factor), are left to the
+extended version.
+8.3 The signing-lifetime cap, by key rotation
+Theorem 3 makes a per-key signing cap mandatory. We set it at Qcap ≈213/214/214 (≈
+8k/ 16k/ 16k signatures per key) at ML-DSA-44/65/87. The binding constraint is not thes1
+side: the optimized reduction of §8.2 stays informative up toQmax≈221.8/223.4/224.4and still
+certifies≈114–121bits at the cap for the external view. The binding constraint is thes2 channel
+(below): we placeQcap so that its syndrome meet-in-the-middle meets the core-SVP Module-LWE
+key-recovery bound (≈2160), about two bits below the integer-uniqueness referencequniq. The
+mechanism, the residual-entropy model on which the≈2160 rests, and the disclosed interval
+between the cap and the attack walls are detailed in the cap-placement analysis below.
+The cap is discharged by key rotation, not by proactive share-refresh, and the distinction is
+load-bearing. Thes 1 leak is about thefixedsecret under afixedpublic key: the Fisher clock
+J = Iτqs accumulates over every signature ever emitted under thatpk. Re-randomising the
+sharing without changingpk (proactive refresh, which resists a mobile adversary) keepss1 fixed
+and doesnotreset the leak; every pastzremains a valid observation. The cap is met only by
+retiring the key and re-running key generation to a freshpk (a light, one-time operation, §7). A
+lifetime cap is the appropriate mechanism for arbitraryN; nonce-widening is unavailable to a
+FIPS-fixedγ1.
+Proactive refresh addresses aseparatethreat we do not defend here: a mobile adversary that
+migrates a≤T−1corruption across a key’s lifetime and accumulates≥Tshares recoverss 1
+by Lagrange interpolation, independently of the Fisher leak. We assumestaticcorruption (§2);
+a deployment facing a mobile adversary must add proactive refresh or rotate faster than the
+adversary can migrate, since rotation only bounds the accumulation window. Finally,Qcap is a
+per-pk aggregate: every signature emitted under a key, across all quorums and coordinators that
+form under it, counts against one budget, so security assumes a deployment-level accountant (a
+threshold-maintained issuance counter or equivalent, consulted before each signing) that enforces
+the aggregate and triggers rotation at the cap. This is the standard lifetime-usage control a
+capped key already needs, and both thes1 ands 2 walls rest on it.
+8.4 Privacy: thes 2 and rejected-response channels
+BCC pass/fail bits are key- and message-independent (§4) and simulatable from public data;
+the transcript-level accumulation from candidate selection is exactly theqs-bounded channel
+quantified by Theorem 3 and capped in §8.3. The accepted transcript departs from single-party
+ML-DSA only inqs-bounded ways, every one of which sits below the cap of §8.3:
+• thes 1 nonce concentration (theδIH(qs)term of Appendix D, accumulating the per-session
+box-restricted Rényi divergence); its attack wall is≈230 at ML-DSA-65 (Theorem 3);
+• thes 2 channel from moving thes2-rejection offline: the emitted hint carriesO=r0 +c(t0−s2)
+with r0 = LowBits(Ay), and sincet0−s2 =As 1−t12d this is a key-recovery observation.
+Its sharp-edged uniform noise makes it an integer-LWE recovery [BDE+18, Nio26]; because
+s2∈[−η,η]is integer-bounded, the binding limit iscomputational: the publictalready
+determiness 2, and below theinteger-uniquenesswallquniq≈215.2/216.4/216.2the observations
+alone leave many integers2 consistent, whichtdoes not cheaply prune (O=Az−ct12d−αw1
+needs not 0 and is the actual public observable, not an idealization). This isnots2-secrecy
+of the output (BCC provides thes2-boundary invariance, nots2-independence, §4) but a
+qs-bounded channel;
+• (MPC only) the CEF fuzzy-r0 opening: the full-stripe masking of §5 makesBmodα a
+one-time pad, leaving only the coarse quotient⌊B/α⌋as a committee-independent residual,
+with a per-key wall≥228.2across levels (228.2/230.8/230.5at ML-DSA-44/65/87).
+Each wall exceedsQcap, so one cap covers all three; the orderingQcap < (s2) < Qmax (the proof
+wall) holds at every level, and both the s1 and fuzzy-r0 walls exceedQmax by≥5bits at matched
+19
+ν(their relative order isν-dependent; both are non-binding; see Table 3). Thes2 channel is the
+bindingone, and its security iscomputational: we identify and price its strongest attack ourselves.
+The public key(ρ,t1)commits to the short key (a second short solution would be anMSIS vector,
+absent at these parameters), so the guarantee is thecost of extractingit, not its non-uniqueness.
+That cost is a meet-in-the-middle on the emitted-signature channel that we found and priced
+ourselves, the best attack we have: Wagner, representation/BJMM, and nearest-neighbour search
+all price higher, and the direct lattice attack is≈2160. We set the cap so this cost meets the
+core-SVP Module-LWE key-recovery bound (≈2160) across the key population, and even the
+unconditionalproven floor below is≈258/249 (its relation to the128-bit target detailed below).
+The mechanism is a syndrome meet-in-the-middle. The public left-cokernelHofA(HA= 0,
+available sincek>ℓ) yields a public syndrome fromt1 alone (H(t0−s2) =−Ht12d, independent
+of whethert 0 is published), whoseuniquebox-feasible preimage is the true key (a second would
+be a shortMSIS vector); keepingt 0 secret only enlarges the box-feasible setS, so the cap is a
+conservative floor. BecauseS factors per polynomial, the unique syndrome-consistent element
+is found by split-and-match at cost2H/2, whereH = log2|S|is the residual entropy (validated
+end-to-end on planted keys; a memory-lean Schroeppel–Shamir variant keeps the2H/2 time),
+so the security bar isH > 256, notH > 128. ML-DSA-44 is immune (k = ℓ, no cokernel).
+At ML-DSA-65 and ML-DSA-87 we takeQcap≈214: under the cancellation-inclusive residual-
+entropy model, estimated at realn=256(bootstrapped, calibrated to the incomplete direct
+measurement), the bootstrapped full-key entropy staysH≥502even in the weak-key tail (worst
+of3 ×104 sampled keys at ML-DSA-65), so the split-and-match cost2H/2 sits at or above the
+2160 lattice bar for the whole population; this weak-key tail is what forced the ML-DSA-65 trim
+from2 14.5, where the tail falls toH≈229–304(cost2 114–2152, below the bar), down to214. The
+integer-uniqueness thresholdquniq≈215.2/216.4/216.2, at which the observationsalonewould pin
+s2, is the information-theoretic reference,≈2.2–2.4bits above the cap.
+We flag the model-dependence once. The≈2160 shield is themodeledcost, not a proven
+floor; the onlyunconditionallower bound (the product of per-polynomial box-feasible flip subsets,
+granting no cross-coordinate cancellation,H≥116/96) is a proven meet-in-the-middle floor of
+≈258/249 at the ML-DSA-65/87 caps (lower still on the tail; a work cost below the128-bit target,
+not directly comparable to the query cap214), and the true residual entropy lies between this
+proven floor and the modeled≈2160. Two questions remain open and disclosed as such: whether
+a structured search beats the plain2H/2 meet-in-the-middle for this box-constrained syndrome
+code, and whether the modeled entropy is provably attained. We therefore present the≈2160
+shield as model-supported and best-attack-validated, not as a proven barrier; betweenQcap and
+thes 1/fuzzy-r0 attack walls no attack is known, and we disclose that interval as such rather than
+claim it as proven security.
+The revealed-rejected response.A coordinator collects the aggregatez=y+ cs1 before
+the onlinez-norm and hint-weight checks decide acceptance, so a rejectedz, which single-party
+ML-DSA never emits, is exposed.3 It is the same location observation that Theorem 3 already
+charges, so we count signingattempts, not emitted signatures, towardQcap (the≤1.02×attempt
+inflation is absorbed within the cap’s margin), and we compute the exposure exactly (Appendix H).
+Hint-weight rejections, the only kind observed, satisfy∥z∥∞<γ1−β, lie inside the acceptance
+box, and are covered by the same per-session bound. Az-norm-rejected coordinate occurs once
+per2 22–225 sessions, an expected< 2−9occurrences over a key’sentire signing lifetimeat every
+level; an informative coordinate, one exceedingγ1 with its excess attributable tocs1, once per
+232–237 sessions, expected< 2−19.4per key lifetime. The coordinator’s out-of-box view of a
+key is therefore empty except with probability< 2−9; the2−19.5–2−22.6union-bound terms in
+the certificate of Appendix D are the bookkeeping shadow of this tail, not an attack surface,
+and deployments that want the theorem without the term add one on-shares comparison before
+3A separate, faint channel at ML-DSA-44 only: the online self-verification that enforces thet0 round-trip
+(§3) returns⊥exactly when∥ct0∥∞≥γ2, an event depending on the secrett0 (vacuous at ML-DSA-65/87). It
+fires with probability≈2−24per attempt, so its expected information over anyqs≤Qcap is≪1bit and more
+than20bits below thes 1/s2 walls; a below-threshold corrupt signer sees only “attempt failed, resample”; the
+aggregator, holdingz, could attribute a residual⊥to ct0, but the≈2−24firing rate keeps even that≪1bit over
+anyq s≤Qcap, and Module-LWE/SelfTargetMSIS do not rest ont0-secrecy.
+20 TALUS: Threshold ML-DSA
+the reveal. The committee/Blame mechanisms of §7 and the simulation-based malicious-model
+treatment of rejected-attempt intermediates are in the extended version. Simulation-based
+transcript privacy is proven in the semi-honest model (Proposition 3): a corrupt minority’s view
+is simulated from(pk,σ)and the public BCC bits, up to theqs-bounded coarse-quotient residual
+of the CEF opening.
+9 Why Carry Resolution Is Necessary
+This section states, as motivation for CEF, the impossibility informally given as Theorem 2:
+no one-round homomorphic shortcut computesw1 while hiding the nonce. The result is a
+formalization of the folklore thatHighBits is non-homomorphic; we claim only the formalization
+at the scope the construction needs, and the BCC/CEF workaround, not the non-homomorphism
+itself, which is attributed to [CS19, PMS26].
+Model.Consider a one-round protocol in which each party broadcasts φ(yh)for a public
+Zq-linear mapφinto an explicit module, everyone formsφ(y) =∑
+hφ(yh)by module addition,
+and computesw1 from it by a public trapdoor-free map, with no trusted reconstruction ofyor
+w, no extra rounds, and no rejection. Hiding requires thatφ(y)reveal no more aboutythan w1
+does.
+Theorem 5(Carry necessity).Under the model above, withAinjective, no φcan compute
+w1 =HighBits(A y)while hidingy.
+Proof idea (full proof in Appendix E).The core is a cyclic-invariance lemma: sinceq is
+prime, a unit shift generatesZq, so ifHighBits were invariant along a nonzero kernel direction
+of φit would be constant, contradicting non-constancy. Hencekerφ⊆kerA= {0}, soφis
+injective; being an explicit linear map, an injectiveφleaksyinformation-theoretically, breaking
+hiding. This argument is unconditional for a wide (coset-covering) nonce, which is the statement
+we rely on. For ML-DSA’s boxed nonce it stays unconditional whenkerφ={0}(a counting
+bound onB), and otherwise rests on an unconditional per-vector crossing bound(4) that holds
+for everyφchosen obliviously ofA= ExpandA(ρ); a fully unconditional boxed proof, excluding
+an adversariallyA-contracted kernel, is left open (Appendix E). The discrete-log mapg(·)isnot
+a counterexample: it is not an explicit invertibleZq-map and cannot exposeHighBits, which is
+exactly why the FROST–Schnorr template does not transfer to ML-DSA. The escape hatches
+the theorem leaves open (trusted or MPC reconstruction, extra rounds, rejection) are precisely
+the routes that real schemes, including CEF, take.
+10 Implementation
+We implemented TALUS across all three FIPS-204 levels in Rust and validated that every
+signature is accepted by an unmodified ML-DSA verifier.
+Software.A Rust implementation covers ML-DSA-44/65/87 with both profiles. Offline nonce
+preparation sifts≈3.15candidates per usable nonce at level 3 and is done ahead of time, so it
+does not appear in online cost; the online phase is one round (TEE) or two rounds (MPC). The
+measured variant reconstructsw1 in the clear; the normative two-round MPC instead keepsw1
+secret-shared and opens[ [w1] ]in Round 1 (a threshold reconstruction of a few field elements per
+coefficient), a small increment over the figures below.
+Compute microbenchmarks.We report single-machine cargo bench compute times (one
+16-core desktop CPU), which isolate arithmetic cost from network effects. At ML-DSA-65,
+T = 3, the online signing compute is0.29ms (TEE) and0.68ms (MPC), and the per-attempt
+preprocessing (including the BCC filter) is0.39ms (TEE) and1 .08ms (MPC). Amortizing
+the offline preprocessing over the≈3.15trials per usable nonce, a signature costs about0.29 +
+21
+3.15×0.39≈1.5ms (TEE) and0.68 + 3.15×1.08≈4.1ms (MPC) of arithmetic.4 These are
+local compute figures, not a distributed or multi-region latency study; in deployment the online
+wall-clock is dominated by the one (TEE) or two (MPC) network round-trips, which we do not
+measure here. The BCC pass rate was additionally confirmed by a Monte-Carlo benchmark.
+FIPS-204 compatibility.Output signaturesandthe public key are byte-identical in format to
+FIPS-204 and are accepted by an unmodified ML-DSA verifier: the public key is the stock(ρ,t1),
+witht 0 kept in the secret key exactly as single-party ML-DSA does. There is no byte-layout
+departure, becauset 0 is needed by no party. Hint formation stays a local, public, two-round
+step without it: the offline-committed w1 (opened in Round 1) and the publicAz−ct12d
+(available after Round 2) giveh= [HighBits(Az−ct12d)̸=w1]. Under BCC thist0-free hint is
+byte-identical to the standardMakeHint(−ct0, Az−ct12d,α), because BCC forces the committed
+w1 to equal HighBits(A y−cs2)(thes 2-boundary, job 1a of §3). Byte-identity of the hint is not
+by itself verifier-acceptance: theUseHint round-trip additionally requires∥ct0∥∞<γ2 (job 1b,
+§3), automatic at ML-DSA-65/87 and, at ML-DSA-44, enforced by the online self-verification
+of Alg. 2, so onevery emittedsignature both halves hold and w′
+1 = w1 (verified byte-exact
+against the FIPS-204/ACVP reference at all three levels). The self-verification uses only public
+(A, z,c, t1)and the committedw1, nevert 0; the online phase therefore has nos2- ort 0-dependent
+computation and stays two rounds. Thesigning distributiondiffers in the qs-bounded ways
+quantified in §8: the nonce concentration and the residuals2 channel. We report conformance as
+verifier-acceptance (an unmodified verifier accepts the output), not as a modified verifier or a
+changed format.
+11 Discussion and Limitations
+We state the boundaries of the results plainly.
+Security model.EUF-CMA unforgeability is proven against malicious adversaries in the
+FDKG-hybrid model under Module-LWE and SelfTargetMSIS and isqs-bounded (Theorems 3, 4;
+Remark 2); the insider ceiling isλ/m(m =ν−t; conjectured form≥2, the TEEm=1coalition
+excluded, §D). The analytic constantJ(ν)behind the per-session divergence is computed in
+Appendix D (Theorem 6); a machine-checked write-up is planned. Simulation-based transcript
+privacy is proven in the semi-honest model (Proposition 3); identifiable abort is provided for
+preprocessing faults, with onlinezh attribution deferred. The malicious simulation lift requires
+ZK-extractable inputs; the closure conditions of §7.5 specify the mechanisms, and the complete
+simulation is deferred to the extended version. Concurrency beyond the sequential/bounded
+setting is open.
+Round count and profiles.The online phase is one round for TEE and two rounds for MPC,
+per accepted nonce, with≤1.02expected attempts (measured;1 .004at ML-DSA-65); we do not
+claim a one-round MPC phase under standard assumptions. Honest majority is required by CEF
+for T≥2committee computation, not by the round count; the MPC profile requiresN≥2T−1
+and offline committee liveness.
+Parameters.The CEF carry reduction is stated for the level-3/5 modulus (m = 16); level 2
+(m = 44) requires parameterizing the reduction, which we do in Appendix B. Claims tabulated
+per level are for the profiles as specified there.
+4These single-machine figures are from a reference implementation of the measured (clear-w1) construction
+variant; a re-benchmark of the current normative construction, together with a distributed multi-region measure-
+ment, accompanies the next version. Since the online phase is two rounds (one for the TEE profile), we expect its
+deployment wall-clock to be governed by that many network round-trips rather than by the local compute above,
+though this remains to be measured.
+22 TALUS: Threshold ML-DSA
+Relationship to [Nio26].Niot [ Nio26] independently identifies two key-recovery attacks
+on the earlier version of TALUS. The first exploits non-hiding commitments of the formA v
+(both Feldman key-generation commitmentsAs1,h and post-signing blame openings): sinceAis
+left-invertible, such a commitment revealsvby Gaussian elimination. The present version avoids
+this by design: the DKG’s only public lattice output ist=As1 +s 2 (a hiding MLWE sample),
+never a per-partyAs 1,h; short-share well-formedness is enforced by secret-shared rejection
+sampling (Π Rand) rather than by a Feldman commitment; and Blame attributes faults from
+authenticated offline transcripts, never opening a post-znonce (§7.5). The second attack targets
+thes 2 channel opened by removing the online rejection check: each emitted signature leaks a
+noisy observation ofs2. This channel is exactly the one quantified in §8 (the integer-uniqueness
+wall quniq ≈215.2/216.4/216.2, below which the channel’s observations do not determines2)
+and bounded by the mandatory key rotation of §8.3, set so the channel islattice-shielded: its
+syndrome meet-in-the-middle is modeled to cost the core-SVP Module-LWE bound≈2160, with
+an unconditional proven floor≈258/249 (§8), and the capQcap sits+2 .18/ + 2.4/ + 2.15bits
+below theq uniq reference at ML-DSA-44/65/87. We thank Niot for the independent analysis.
+Positioning.Among FIPS-204-exact threshold schemes, TALUS is distinguished by supporting
+arbitraryN under standard assumptions with a low online round count. No prior FIPS-204-exact
+scheme reaches that combination. The schemes with a comparably low round count do not scale
+past a handful of parties, and the schemes that scale to many parties use many more online
+rounds. The lower bound of §8.1 is the technical reason schemes that reveal a uniform nonce (e.g.
+Quorus) pay more interaction, and the reason flooding-based schemes (Raccoon-lineage) are not
+FIPS-exact. Key generation is the dealer-free, hiding-by-design DKG above (Appendix I); its UC
+composition with TALUS-signing is developed in the extended version.
+Deployment and applicability.TALUS targetslow-frequency, high-valuesigning such as
+certificate authority roots, firmware and release signing, and cross-organization custody, where a
+single important key is held by many independent parties across regions and organizations, and
+the signatures issued under it stay well below the rotation cap of §8.3 (≈8–16k). The binding
+limit is this per-public-key budget rather than raw throughput. TALUS can sign in bursts, but
+a single long-lived key is not the place for sustained high-volume signing; such a root instead
+delegates to short-lived operational keys, so its per-key cap is a governance parameter rather
+than a throughput limit. The two profiles trade trust for interaction: TALUS-TEE (one online
+round) suits a deployment with a trusted enclave, and TALUS-MPC (two online rounds, honest
+majority N≥2T−1) a purely distributed setting with no trusted hardware, at an online round
+count that does not grow with the number of parties. The emitted signature is a stock ML-DSA
+signature, so the threshold machinery stays behind the signing service and downstream verifiers
+are unchanged. Both profiles rest on the operational controls the cap requires: a per-pk signature
+accountant, periodic key rotation, and, against a mobile adversary, proactive share-refresh (§8.3).
+12 Conclusion
+TALUS shows that the online, distributed computation of ML-DSA’ss2-dependent rejection
+check can be moved offline, by selecting nonces that satisfy the Boundary Clearance Condition,
+leaving only aqs-boundeds 2 residual in the emitted signature. This yields an arbitrary-N, FIPS-
+204-exact threshold ML-DSA, for a bounded number of signatures per key, with a low online
+round count; its external-view unforgeability rests on standard Module-LWE and SelfTargetMSIS.
+Two profiles realize it: a one-round TEE variant and a two-round honest-majority MPC variant,
+both built on a Carry Elimination Framework whose necessity we motivate by an impossibility
+result for one-round homomorphic shortcuts (unconditional for a wide nonce, and holding for
+ML-DSA’s boxed nonce under a stated crossing property of the public matrix). The price of
+exactness is made precise by a lower bound (any FIPS-exact scheme revealing a summed nonce is
+qs-bounded) and an upper bound whose distance to it is an exact per-level constant, paired with a
+mandatory key rotation. The construction and its FIPS-exact output are complete; unforgeability
+23
+is proven against malicious adversaries in theFDKG-hybrid model; the DKG is specified and
+proven (proof-sketch) in Appendix I, and the simulation-based malicious-model privacy proof
+and the full UC composition are developed in the extended version.
+A Assumptions
+We use the two assumptions of the ML-DSA security analysis [DKL+18, KLS18, Nat24], at the
+parameters of the targeted FIPS-204 level.
+Definition 3(Module-LWE).For a modulus q, rankk, and secret boundη, the (decisional)
+Module-LWE problem is to distinguish(A, t)withA ←$Rk×ℓ
+q andt=As 1 +s 2 for shorts 1, s2
+(∥si∥∞≤η) from(A, u)withu ←$Rk
+q. Key hiding reduces to Module-LWE: the public key
+t=As 1 +s 2 is exactly a Module-LWE sample.
+Definition 4(SelfTargetMSIS).For a random oracleHand boundγ, the SelfTargetMSIS problem
+is to find(r,c,µ)with ∥r∥∞≤γ, c in the challenge space, andc =H
+(
+µ∥[A|t|I]·(r,−c)
+)
+, i.e.
+a short vector that hashes to its own challenge. This is ML-DSA’s own unforgeability assumption;
+a forgery yields such a tuple directly, and the straight-line extraction of §8.2 produces the short
+vector.
+We donotassume any one-more or otherwise non-standard variant; Definitions 3 and 4 are
+exactly those of single-party ML-DSA.
+B Carry Elimination Framework: full protocol
+We specify CEF and the honest-majority MPC primitives it uses (secret-shared addition is local;
+secret-shared multiplication and opening are the standard honest-majority gates).
+Shared high part, fuzzy low aggregate.Each committee party h holdsy h and forms
+Ayh, decomposed into(w1,h,r 0,h). It commits afull-stripemask ρh (each coordinate uniform
+on the whole stripe[0,α)) as anFedaBits edaBit⟨[ρh], [ρh]2⟩, so∑
+hρh is jointly recoverable but
+eachρh individually hidden. The low contributionsr0,h and ρh areshared, not broadcast(r0,h
+VSS-dealt as aT-private degree-(T−1)sharing, ρh from the edaBit), so thatonlytheir aggregate
+B =FOpen(∑
+h([r0,h] + [ρh])) =∑
+h(r0,h +ρh)is opened, never an individualr0,h +ρh; the high
+part[ w1,h]is VSS-dealt the same way, needing no mask of its own. Because at least one honest
+mask is uniform on a full stripe,Bmodα is uniform, a one-time pad on the low sum (Lemma 3),
+and reveals nothing aboutr0. The aggregate stripe count⌊B/α⌋, now spanning⌈log2|C|⌉+ 1
+bits because the summed masks can wrap several stripes, is public. To recover thetrueaggregate
+carry the parties subtract the masks’ own stripe countκρ
+j =⌊∑
+hρh,j/α⌋, a sub-stripe borrowbj,
+and the modulus-wrap countkj =⌊Wj/q⌋(where Wj =∑
+h ˆwh,j is the integer aggregate; all
+computed by secure comparison on the shares and never opened), and apply the FIPS round-to-
+nearest centering correctionδj = [ (wj modα)>γ2 ](the Decompose centering bit forα= 2γ2,
+evaluated on the mod-q-corrected residuewj modα= (Bj−∑
+hρh,j−kj) modα, never opened).
+Then
+[ [w1,j] ] =
+(∑
+h[w1,h,j] +⌊(Bj−kj)/α⌋−κρ
+j−bj +δj
+)
+modm,
+which is byte-exact against single-partyHighBits by Lemma 2 below (the modulus-wrap carryk
+is included), as we confirm by an exhaustive numerical check across all levels and committee sizes.
+The TEE profile reconstructs the aggregate in the clear inside the enclave (mod-q reduction is
+then immediate); the distributed profile keepswhidden, recoveringk on shares, as specified here.
+ForT = 2the comparison is a distributed comparison function; forT≥3a carry-save-adder tree
+with a short prefix comparison, inO(logN )offline rounds. The modulus ism = (q−1)/α= 16
+at levels 3/5 andm = 44at level 2 (the reduction is parameterized inm). The committee
+variant runs this over≥2T−1parties (§7.2); the offline protocol is Algorithm 3, its carry step
+Algorithm 4.
+24 TALUS: Threshold ML-DSA
+Algorithm 3TALUS.Preprocess: offline nonce preparation (MPC profile).
+Input:committee C,|C|≥2T−1;signing quorum S⊆[N],|S|=T (this nonce is bound to
+S); pairwise seeds; session id.Output:([ [w 1] ],com,{ˆyi}i∈S)tagged withS, or⊥.
+1: Nonce DKG:each h∈C samples degree-(T−1) gh with free term ˆyh ←
+[−γ1/|C|+1,γ1/|C|]nℓ(the restricted range ensures the |C|-party sum stays inside
+[−γ1+1,γ1]); sendsgh(i)only toi∈S ▷eachi∈Sstores signing shareˆyi :=∑
+hgh(i); the
+nonce is reconstructable only byS(quorum binding, Rem. 1); onlyCruns CEF
+2: Bounded-nonce proof:each h∈Ccommits its free termˆyh as an edaBit⟨[ˆyh], [ˆyh]2⟩←
+FedaBits (the single source of both the additive and the degree-(T−1)forms, §7.2) and proves,
+via oneFBitLTC per coordinate, ˆyh,j∈[−γ1/|C|+1,γ1/|C|]; open only the aggregate accept
+bit oky
+h. If oky
+h=0, blameh and abort (offline, before anyzh) ▷honest-majority interpolation
+extracts ˆyh but does notboundit
+3:forh∈Cdo▷ ˆyh =g h(0):h’s additive contribution toy
+4: ˆwh←Aˆyh; w1,h←⌊ˆwh/α⌋; r0,h←ˆwh modα ▷Decompose; the highw1,h and lowr0,h
+are both VSS-dealt
+5: samplefull-stripe ρh←[0,α)nℓ, commit it as an edaBit⟨[ρh], [ρh]2⟩←FedaBits (certifies
+[ρh]=bits([ρh]2)and ρh∈[0,α)nℓ, soundness2−κ); VSS-deal[r0,h]and[ w1,h] ▷high and low
+bothT-private degree-(T−1)sharings; never broadcast, only the aggregateBopened
+6:end for
+7:openB←F Open
+(∑
+h([r0,h] + [ρh])
+)
+▷degree-(T−1)reconstruction:
+an inconsistent corrupt share is detected and discarded, then≥Thonest shares interpolate
+(honest-majority detect-and-blame, not error-correction); each[·]is T-private, onlyB opens;
+Bmodαa one-time pad (Lem. 3)
+8:(κρ,b,δ,k)←CEF({[ρh]2},{w1,h},B)▷Algorithm 4;k=mod-qwrap
+9:[ [w1,j] ]←(∑
+h[w1,h,j] +⌊(Bj−kj)/α⌋−κρ
+j−bj +δj) modm ▷on shares, never opened;
+exact, Lem. 2
+10:r 0←w−αw1 ▷low part on shares;w=∑
+h ˆwh inZ q, never opened
+11:pass←⋀
+j[|(r0)j|<γ2−β]▷secure comparison; open only the key-independent BCC bit
+12:if¬passthen
+13:return⊥▷discard; retry with a fresh nonce DKG
+14:end if
+15: the parties form a hiding-and-binding commitmentcom to the sharing[ [w1] ](binding the
+Round-1 reveal);return([ [w 1] ],com,{ˆyi}i∈S)tagged withS
+Lemma 2(Carry reconstruction, exact).Fix a coordinatej. LetWj =∑
+h ˆwh,j be the integer
+aggregate of the per-party products andkj =⌊Wj/q⌋its modulus-wrap count. WriteSr =∑
+hr0,h,j,
+Sρ= ∑
+hρh,j, Bj = Sr +Sρ, and set the corrected low sumS∗
+r = Sr−kj, x = S∗
+r modα,
+y =Sρmodα. Withκρ
+j =⌊Sρ/α⌋and bj = [ ((Bj−kj) modα)<y ], the aggregate stripe carry
+κj =⌊S∗
+r/α⌋is recovered asκj =⌊(Bj−kj)/α⌋−κρ
+j−bj, andw1,j = (∑
+hw1,h,j+κj+δj) modm =
+HighBits(Ay)j, whereδj = [x > γ2 ]∈{0, 1}is the round-to-nearest centering bit (α= 2γ2).
+Bothk j andκj are reconstructed on shares by secure comparison and are never opened.
+Proof. The true coordinate iswj =Wj modq . Sinceq =mα+1, Wj modq =Wj−kj(mα+1) =
+(Wj−kj)−kjmα; the kjmαterm is a multiple ofαand≡0 ( modm ), so HighBits(wj)≡
+HighBits(Wj−kj) ( modm ), with common low residue(Wj−kj) modα. Writing Wj−kj =
+(∑
+hw1,h,j)α+S∗
+r, the stripe-carry identity applies to the shifted sum:Bj−kj =α(⌊S∗
+r/α⌋+κρ
+j)+
+(x +y)with x +y∈[0, 2α), so⌊(Bj−kj)/α⌋=κj +κρ
+j + [x +y≥α]; and(Bj−kj) modα<y
+iffx +y≥α(as x<α), sobj = [x +y≥α]and subtracting givesκj. Then∑
+hw1,h,j +κj =
+⌊(Wj−kj)/α⌋is the floor high part; FIPS-204HighBits is its centered variant⌊·/α⌋+ [x>γ2 ],
+so addingδj yields it exactly, the valuem realizing Decompose’sw1=m→0wrap via modm.
+(Without the−kj correction the formula reconstructsHighBits of the un-reduced integerWj,
+which differs fromwj whenever a rounding boundary lies in(wj, wj +kj]; this is theq-wrap the
+aggregate must clear.)
+25
+Algorithm 4CEF: carry elimination on the shared full-stripe masks (per coordinate).
+Input:shared masks {ρh}, shared high parts{w1,h = ⌊ˆwh/α⌋}; public B.Output:
+(κρ,b,δ,k), boolean-shared, never opened.
+1: take[ρh]2 from the edaBit committed in Alg. 3 (bound to the[ρh]summed into B, soundness
+2−κ); derive Beaver triples from pairwise seeds
+2:forℓ= 1,...,⌈log2|C|⌉do▷carry-save-adder tree
+3:apply a4:2carry-save compressor via one round of Beaver ANDs
+4:end for
+5:obtain carry-save(S,C)withS+C= ∑
+hρh (boolean-shared)
+6:S r←B−(S+C);SH←∑
+hw1,h ▷low sum, high sum; on shares; sound: theρh inB
+equals theρh inS+Cby the edaBit binding, soS r carries no corrupt-injected offset
+7:k←⌊(SHα+Sr)/q⌋▷modulus-wrap count, secure comparison; never opened
+8:κρ←⌊(S+C)/α⌋▷mask stripe-count; never opened
+9:x←(Sr−k) modα ▷=wmodα, mod-qcorrected; on shares
+10:b←[ ((B−k) modα)<((S+C) modα) ]▷sub-stripe borrow
+11:δ←[x>γ2 ]▷round-to-nearest centering bit (α= 2γ 2)
+12:return(κρ,b,δ,k)
+Lemma 3(Fuzzy-r0 hiding).Let A corrupt a minorityC′⊊C of the committee, so at least
+one honest party contributes a mask each of whose coordinates is uniform on[0,α)and unknown
+toA. Then: (i) each honest party’s high and low contributions[w1,h], [r0,h], [ρh]are T-private
+degree-(T−1)sharings, never broadcast individually, so only their aggregates are revealed; (ii) the
+opened aggregateBj =∑
+h(r0,h +ρh)j satisfiesBj modαuniformon[0 ,α)andindependentof
+the true low sum∑
+hr0,h,j, a perfect one-time pad. Hence the only information about the low
+parts that leaks is the coarse quotient⌊Bj/α⌋,independently of|C|.
+Proof. (i) The high contribution[w1,h]and low contributionsr0,h,ρh are each dealt asT-private
+degree-(T−1)sharings rather than broadcast, so a corrupt minorityC′learns nothing of an
+individualw1,h,r0,h, orρh; only the robust reconstructionB =FOpen(∑
+h([r0,h]+[ρh]))is opened
+(the high aggregate[ [w1] ]opens only online, afterµ); the individual shares are never revealed.
+(ii) Bj modα= (∑
+hr0,h,j +∑
+hρh,j) modα; since at least one honestρh,j is uniform on[0,α)
+and independent of the rest,∑
+hρh,j modαis uniform on Zα, so Bj modαis uniform and
+independent of∑
+hr0,h,j. Only⌊Bj/α⌋and the boundary corrections (computed on the shared
+masks, never opened) leave the broadcast.
+BecauseBmodα is a perfect one-time pad, the opening of Proposition 2 leaks nothing about
+r0 beyond the unmasked coarse quotient⌊B/α⌋, and iscommittee-independent. The residual
+quotient⌊B/α⌋is a variance-α2/12integer observation with no sharp edge to exploit, so only
+the quadratic moment estimator applies (not the edge-exploiting one of thes2 channel), at a
+per-key wall4(α2/12)/τ=α2/(3τ). This is≥228.2across levels (228.2/230.8/230.5; §8), above
+thes 1 wall and hence non-binding, which we disclose rather than treat as zero.
+From[ [w1] ]to the pool.CEF never reconstructs w1 in the clear: it outputs the sharing[ [w1] ],
+exactly as it keeps the low part shared, and only the aggregate opens—online, in Round 1, afterµ.
+The high part is VSS-dealt per party ([w1,h]) just like[r0,h], so no party holdsw1 before µ; this
+is the reveal-after-µordering the two-round argument (§7.2) needs. The low partr0 =w −αw1
+then gives the BCC bit as the opened conjunction of the per-coefficient comparisons. (In the
+TEE profile the enclave instead holdsyandw 1 in the clear internally, §6.)
+Residuals (stated, not hidden).The opened low aggregateB is a fuzzyr0 that is a one-time
+pad on the low sum (Lemma 3); the only residual is the coarse quotient⌊B/α⌋(committee-
+independent per-key wall≥228.2across levels; non-binding). That residual and the accumulation
+of BCC-fail bits fold into theqs-bounded accounting of §8, below the cap of §8.3. Realizing the
+multiplications as authenticated (BGW-style) rather than preprocessing-based triples is what the
+malicious model of §7.5 requires.
+26 TALUS: Threshold ML-DSA
+C Lower bound: Fisher information and the estimator
+We give the computation behind Theorem 3.
+Fisher information.Let f be the per-coefficient law of the accepted nonce. It is a truncated
+discrete Irwin–Hall, the law of a sum ofνbounded shares, which we treat via its continuous
+envelope (the discreteness shifts the constant by≲ 10−3relatively and is absorbed into it;
+Remark 3). The share count is set by the profile: it isν≈Tsigner shares in the TEE profile,
+andν=|C|= 2T−1committee shares in the MPC profile (§7). The location Fisher information
+I =
+∫
+(f′/f)2f is positive for everyν≥2and zero iffν= 1. We quote the two-summand case
+ν= 2, a triangular density (the cleanest closed form, realized by the TEE profile atT = 2).
+Three derivations agree onI = 5.74×10−11: the closed formI≈(2/γ2
+1) ln(γ1/β), whose ln
+comes from the triangular edge, a discrete score computation, and a numerical integral. The
+Fisher information ofIH(ν)is non-monotonic inν(edge-dominated atν= 2, a minimum near
+ν= 3, then rising with the Gaussian bulk), and the wall moves inversely, peaking nearν= 3:
+over the deployed range it varies by up to≈1.4bits, the largest committee (ν= 2T−1, MPC)
+giving thesmallestwall (≈229.6at T = 5). All stay≫Qcap (§8.3; a margin of well over ten bits
+at every level and committee size), and the bindings2 wall does not depend onν.
+The estimator.An accepted signature revealsz=y+ cs1; on theτcoordinates thatc touches,
+this is a location observation ofs1 through the densityf, of per-observation informationI.
+Challenges across signatures are independent random-oracle outputs, so information accumulates
+linearly: after qs signatures the Fisher information matrix isJ = Iτqs·Id. Two estimators
+realise this, and they must be distinguished. The linear (moment/least-squares) solveˆs1 =
+(∑
+i C⊤
+i Ci)−1∑
+i C⊤
+i zi has per-coordinate signal gaing = 1−2Bf (B)/Z(0)≈0.99925at ν= 2
+(B =γ1−β; Z(0)the normalization of f), bounded away from zero for everyν≥2andexactly
+zero atν= 1. This is why the plain linear attack works on a summed nonce and provably
+fails on single-party ML-DSA, where the box truncation cancels the shift (E[z|u] = 0). It is a
+poly-time solve on public signatures and recoverss1 once its error drops below the coefficient
+spacing, numerically atqs≈231.8(the moment solve does not attain the Fisher wall;g is the
+signal gain, not the efficiency gap). The maximum-likelihood estimator additionally exploits
+the density’s sharp edge, which the moment solve ignores, to lower the wall to the Fisher value
+qs ≈230.4 = 4/(Iτ)at ML-DSA-65 (the ν= 2case); across levels2 26.8/230.4/230.0. Both
+are efficient (there is no computational–statistical gap), so the bound is realised by an actual
+attack, not merely a converse. This is ablack-boxwall, over the public transcript alone, and
+is not lowered by sign-leakage key recovery [BKM26], which recovers the ML-DSA secret from
+≈190,000 (≈217.5)signatures: that is aleakageattack, requiring a per-signature side-channel
+oracle that discloses the sign of a nonce coordinate (a Hamming-weight or single-bit leak) and
+reducing recovery to learning the halfspacessign(⟨s1, wi⟩). No such oracle exists in the transcript
+of Definition 1: the summed nonce is never revealed (r0 is one-time-padded andw1 stays hidden
+until Round 1), so the onlys1-signal available is the Irwin–Hall location shift already walled
+at4 /(Iτ). Where a nonce-sign oracleispresent it breaks single-party ML-DSA identically (the
+ν=1case above, on which the transcript-only estimator provably fails), i.e. an implementation
+side channel, out of the black-box threshold threat model and orthogonal to the summed-nonce
+bound analysed here.
+Attack wall, proof wall, cap.The wall4/(J(ν)τ)isparameter-specific(it moves with the
+nonce provisioning; a scheme that widens its nonce pushes it out). It is the wall of an actual
+efficient attack. Separately, a securityproofby change of measure ceases to be informative earlier,
+at the zero crossingQmax = 2λln2/G(ν)of Theorem 6,≈221.8/223.4/224.4(ML-DSA-44/65/87,
+ν=3); the ratio of the two walls is the per-level constant of Corollary 2. Theoperationalcap
+sits below both, atQcap≈213/214/214: it is bound not by eithers1 wall but by thes2 channel,
+the smallest wall in the accounting of §8 (§8.3). Belowquniq no attack is known; up toQmax
+the certificate(3) moreover stays positive. The cap is enforced bykey rotation, not proactive
+share-refresh: the leak is about thefixeds1 under a fixed public key, so the Fisher clockJ(ν)τqs
+27
+runs over every signature ever emitted under that key and is reset only by re-running key
+generation to a freshpk (§8.3). The full sweep and the estimator gains are archived with the
+artifact.
+D Upper bound: game sequence
+We give the game sequence behind Theorem 4. Throughout, the ideal endpoint is thes 1-
+independent BCC-nonce distribution,nota uniform-nonce ML-DSA oracle: the summed nonce
+is not ML-DSA-distributed, so a black-box reduction to single-party ML-DSA does not apply.
+Game 0.The real EUF-CMA game.
+Game 1 (HVZK simulation).Simulate each accepted response withouts1. The response
+z= (y+ cs1)|box is not exactlys 1-independent, but the first-order dependence vanishes
+because∥cs1∥∞≤βfits inside the acceptance window (the “window-fits-support” identity),
+leaving a soft second-order gap. We charge it by a box-restricted change of measure (Kullback–
+Leibler and chi-squared, not statistical distance, which saturates once the outputs are
+distinguishable): on the acceptance box the accepted-nonce density is bounded below, so the
+per-query divergence is 1
+2Iτ∥s1∥2
+2 to second order, withI the boundary Fisher information
+of §3. Accumulated overqs sessions the resulting security loss isδIH(qs) := λ−λprov(qs)
+(Theorem 6 below),qs-bounded and informative up toqs≤Qmax. BCC is a public key-
+independent predicate applied identically in both worlds, so it adds no term.
+Game 2 (key hiding).Replace the public keyt=As 1 +s 2 by uniform. Since Game 1 has
+already removeds 1 from the responses, the signing oracle is simulated without the secret and
+the Module-LWE distinguisher is well-defined; indistinguishable under Module-LWE (Def. 3);
+advantage lossAdvML WE.
+Game 3 (extraction).A forgery is itself a SelfTargetMSIS witness (Def. 4): the forged(c, z, h)
+on a fresh message gives, through the verification relation, a short vector for the random-
+oracle-programmed target, the norm bound following from the Dilithium accounting (z,c s1
+bounded). Extraction is straight-line: no rewinding or forking, so the reduction keeps the full
+λbits rather than a√·fraction. This usesonlyModule-LWE and SelfTargetMSIS, with no
+one-more assumption; the two-round ordering (w1 committed beforeµ, opened after) is what
+removes the adaptive-cobstruction that would otherwise force a rewind.
+The Game 1 transition: mechanism and ordering.Game 1 is a distributional change, not
+a separate simulator: the signing oracle’s code isunchanged, and only the underlying probability
+measure shifts. In every session the oracle executes exactly the same protocol (sampleyfrom
+IH(ν), BCC-filter, commitw1 = HighBits(Ay), wait forµ, computec, formz=y+ cs1, check
+norms, compute hint, verify, emitσ). Let P0 denote the joint distribution of theqs-session
+transcript in Game 0 (the real signing keys1) andP1 the same protocol run with each response
+replaced byz′=y(the shift cs1 removed). The adversary is never “told” which world it inhabits;
+rather, Rényi probability preservation
+PrP0[E]≤e(α−1)Dα/α·PrP1[E](α−1)/α, D α=q s·Rsess
+α,
+bounds the probability ofanyevent E (in particular, a forgery) across the two measures, with
+the per-session divergenceRsess
+α computed below (Lemma 4).
+Three features of this step deserve emphasis.
+1. No reduction to single-party ML-DSA.Both P0 and P1 use the IH(ν)nonce law, not a
+uniform-nonce ML-DSA oracle. The IH-to-uniform divergence is thereforenever needed: the
+ideal endpoint is alreadys1-independent under the summed-nonce law, and the forgery is
+extracted as a SelfTargetMSIS witness directly in Game 3.
+2. Ordering preserved.P0 and P1 share the same protocol ordering:w1 is committed (offline,
+before µ) and opened (online, afterµ) in both measures. No random-oracle programming is
+28 TALUS: Threshold ML-DSA
+needed at this step; the distributional change affects only the conditional law ofzgiven(y,c ),
+not the sequencing or the RO. Definition 1 explicitly grants the adversary the pre-message
+w1, and both measures provide it identically.
+3. Rejected responses.A coordinator who observes a rejectedzsees the samey+cs1 observation
+that an acceptedzcarries, and rejected sessions are counted towardqs. Hint-weight rejections
+satisfy∥z∥∞<γ1−β, lie inside the acceptance box, and are covered by the sameRsess
+α bound
+(empirically they are the only rejections observed; Appendix H). Responses in thez-norm
+region arenot: a coordinate can land beyond the box, re-exposing the support edge the box
+cuts. We split them off as a bad event of per-session probability2−32.5/2−34.7/2−36.6(ML-
+DSA-44/65/87, ν=3; computed exactly, Appendix H), i.e. an expected2−19.5/2−20.7/2−22.6
+occurrences over a fullQcap key lifetime. The full certificate of(3) therefore holds for observers
+of the accepted transcript and for the TEE profile (the enclave never emits a rejectedz); the
+MPC-coordinator view is certified to≈19.5–22.6bits (no attack on it is known; an on-shares
+z-norm check before the Round-2 reveal would restore the full certificate at the cost of one
+online secure comparison, a construction option we do not take up here).
+We now make Game 1 precise. The load-bearing quantity is the change of measure between
+the real (s1-shifted) accepted response and thes 1-independent simulation, restricted to the
+acceptance box. Throughout this subsectionα >1denotes the Rényi order, unrelated to the
+stripe widthα= 2γ2 of §5;σ2 =η(η+1)/3is the per-coordinate variance of a secret entry, so
+E∥s1∥2
+2 =n ℓσ2.
+Definition 5(Box-restricted shift divergence).Let f be the accepted-nonce density on the
+acceptance boxB = [−γ1+β,γ1−β]and δa per-coordinate shift with|δ|≤β. The per-coordinate
+Rényi-αdivergence of the shifted density fromfis
+Rα(δ) = 1
+α−1log
+∑
+x∈B
+f(x−δ)α
+f(x)α−1, α>1.
+The box restriction (cuttingβfrom each end) keepsf(x)and f(x−δ)both bounded below, so
+Rα(δ)is finite forevery α>1. Theα<3/2divergence of the unrestricted Irwin–Hall envelope
+is a support-edge artifact of the continuous approximation, absent here.
+Lemma 4(The shift divergence is soft).On B the density is bounded below (the support
+overhangs the box byβ), Lipschitz, and piecewise quadratic withbounded, piecewise-constant
+curvature (|f′′|≤1/(4a3)at ν=3; f′′= 0a.e. at ν=2). Hence for everyα>1and every shift
+|δ|≤δ0(α) :=β
+[
+(a/β)3/(2α)−1
+]
+the per-coordinate divergence obeys theone-sided upper bound
+Rα(δ)≤α
+2 ΘJ(ν)δ2(
+1 +Cν|δ|/a
+)
+, a=γ 1/ν,
+with Lagrange-remainder factorΘ = max{(1 +u⋆)α−2, (1−u⋆)α−2}(the first argument forα≥2,
+the second for1<α< 2; on the bulk the score excursionu⋆=O(δ/a)makesΘ −1 =O
+(β
+a ln a
+β
+)
+≈
+8×10−3, essentiallyα-independent and evaluated at the bulk edgeδ0) andexplicitconstant Cν=
+amaxB|f′′|·∥f′/f∥L1(B)/J(ν): atν=3, maxB|f′′|= 1/(4a3)and ∥f′/f∥L1(B) = 2 ln 3
+2 + 4ln 2a
+β,
+giving C3≈6.7(so C3|δ|/a≤7.5×10−3even at|δ|=β); atν=2the curvature term vanishes
+and the single kink-crossing atx=0contributes the closed-formC2 = 1/(6 ln(γ1/β))≈0.02with
+the favourable sign (soJ(2)δ2 is already an upper bound). The bound usesf≥fmin =β2/(16a3)
+and Lip(f) = 1 /(4a2)butneverdifferentiates logf , whose third derivative is unbounded at
+the kinksx=±a(ν=3) andx=0( ν=2); hereJ(ν) =
+∫
+B(f′/f)2f is the box-truncated Fisher
+information of the summed-nonce lawIH(ν): at ν=2it is the closed formJ(2) = I = 2
+γ2
+1
+ln γ1
+β
+that powers Theorem 3; atν=3the Fisher integrand( f′/f)2f is x2/(2a3(3a2−x2))on |x|≤a
+and the constant1 /(4a3)on a <|x| ≤B(the tail’s score is−2/(3a−|x|)), giving J(3) =(
+−1 +
+√
+3 arctanh(1/
+√
+3)
+)
+/a2 + (B−a)/(2a3), i.e. J(3)γ2
+1 ≈10.3; J(5)γ2
+1 ≈15.3(the same
+non-monotonicity inνas Appendix C). Summing thenℓcoordinates and taking the challenge
+expectation (Ec∥cs1∥2
+2 =τ∥s1∥2
+2), split the per-session sumS =∑
+jRα((cs1)j) =Sgood +Sheavy at
+the shift radiusδ0(α); thegoodcoordinates carry the bulk and theheavyones a rapidly-decaying
+tail, so the leading (challenge-expectation) per-session divergence obeys
+Rsess
+α ≤α
+2 G(ν) (1 +εshape) + 1
+α−1∆ heavy(α), G(ν) :=J(ν)τnℓσ2,
+29
+with G(3) = 1.56×10−5nats at ML-DSA-65 (τ= 49, nℓσ2 = 8533; G(2) = 2.40×10−5from
+I = 5.74×10−11). Hereεshape =CνEc|(cs1)j|/a+ (Θ−1)≤10−2is the per-coordinate shape
+correction to the linearized divergenceEc[S](at ML-DSA-65 its two terms are≈6.9×10−4
+and≈8×10−3, summing to≈8.7×10−3, a thin margin); the exponential-moment lift from
+Ec[S]to the exact cumulant costs a further chord factor1 +ε0, ε0≤0.15at the ML-DSA-65
+cap, established in Theorem 6’s proof.∆heavy(α)is the exponential-moment mass of the heavy
+coordinates|(cs1)j|>δ0(α), bounded in that proof by the conservativeAedge
+α over-count (including
+the eM ≤eprefactor) at∆ heavy≤5.7×10−6per session, the exact box-affinity evaluation
+giving the tighter≈2.1×10−6/1.1×10−6at ML-DSA-44/65; either is negligible beside the bulk
+(α−1)Ec[S]≈5.2×10−3. This heavy mass is a truncated-MGF term over the exact weight-τ
+shift law,notcharged to ϵbox; the out-of-box tailϵbox (Appendix H, aseparateevent) and the
+≤10−3discreteness gap (Remark 3) are cross-referenced, not re-derived. For the realistic shift
+δ= RMS(cs1)≈18≪aboth corrections are negligible; the continuous-envelope constants are
+cross-checked against an exact discrete-score sum and a direct integral, all three agreeing (code
+archived with the artifact).
+Proof.IH (ν)has a piecewise-polynomial density on[−γ1,γ1]; atν=3it is f(x) = (3a2−x2)/(8a3)
+for|x|≤aand f(x) = (3a−|x|)2/(16a3)for a <|x|≤3a (a = γ1/ν). On B the density
+is bounded below, so its scoref′/f has finite varianceJ(ν) =
+∫
+B(f′/f)2f, the β-truncated
+Fisher integral, whoseν=2case is the closed-form I of the lower bound. For theone-sided
+bound write the box affinityAα(δ) =∑
+x∈Bf(x)(1 +u)α, u = ∆/f,∆ = f(x−δ)−f(x), so
+e(α−1)Rα(δ)=Aα(δ)exactly. Split the box sum into a bulk (scoreO(1/a)) and the two near-edge
+strips (folded intoAedge
+α ). On the bulk the Lagrange remainder(1 +u)α≤1 +αu+ α(α−1)
+2 Θu2,
+Θ = max{(1 +u⋆)α−2, (1−u⋆)α−2}, and the linear term sums to thesigned boundary flux
+|∑
+x ∆|≤(edge flux)≤ϵbox (an inequality, not an equality). Because∆ = −δf′+ δ2
+2f′′(ζ)
+uses only thebounded, piecewise-constantcurvature |f′′| ≤1/(4a3)(no logf differentiated
+across a kink),χ2(δ) =∑∆ 2/f≤J(ν)δ2(1 +Cν|δ|/a); atν=2the x=0kink strip contributes
+the closed-form−2
+3δ3/γ3
+1, i.e.C2 = 1/(6 ln(γ1/β))with the favourable sign. Hence Aα(δ)≤
+1 +α·(edge flux) +α(α−1)
+2 Θ χ2(δ) +Aedge
+α (δ)and Rα(δ)≤α
+2 ΘJ(ν)δ2(1 +Cν|δ|/a)for |δ|≤δ0(α),
+the radius at whichAedge
+α (δ) = (16a3)−1∫ 2a
+β(s +δ)2αs2−2αds (edge parametrisedx = 3a−s) first
+matches the bulk term, whenceδ0(α) =β[(a/β)3/(2α)−1]. Larger shifts re-expose the support
+edge and are handled by the truncated-MGF tail in Theorem 6, not smoothed. A weight-τ
+challenge maps∥s1∥2
+2 to Ec∥cs1∥2
+2 =τ∥s1∥2
+2; the aggregation over thenℓcoordinates rests on the
+worst-case operator bound∥cs1∥2
+2≤τ2∥s1∥2
+2 and linearity of expectation (Theorem 6),noton
+coordinate independence, and is therefore insensitive to any negacyclic dependence or positive
+association among the(cs1)j. Boundedness below onB gives finiteness for allα >1, so no
+α<3/2restriction applies to the box.
+Key dependence ofG(ν). G(ν)evaluates the per-session cost at the key-generation mean
+E[∥s1∥2
+2] = nℓσ2; for a fixed key,nℓσ2 is replaced by∥s1∥2
+2. By concentration over thenℓiid
+coordinates,∥s1∥2
+2 deviates from its mean by less than8%at the3σlevel across all FIPS levels,
+shifting Qmax by< 0.12bits for all but a negligible fraction of keys; the table evaluates at the
+mean. Even the maximal key (s1 =±ηthroughout, an exponentially unlikely draw) shiftsQmax
+by onlylog2(η2/σ2)≤1.3bits, retaining≥110bits at each level’s cap atν=3(≈106in the ν=2
+corner).
+Theorem 6(Optimized change-of-measure bound).Let the ideal-world forging advantage be at
+most2−λ(λ= 128, used at every level as the conservative common target). Game 3 extracts
+a SelfTargetMSIS witness directly from a forgery (the KLS/Dilithium route: the forgeryis
+the witness, no rewinding), so the reduction keeps the fullλbase, inheriting the standard non-
+tightness of SelfTargetMSIS relative to MSIS as in Dilithium [KLS18, Nat24]. By Rényi probability
+preservation, for everyα>1the certified security afterqs independent sessions is
+λprov(qs)≥α−1
+α λ−α−1
+2 ln 2qsG(ν), G(ν) =J(ν)τnℓσ2,(2)
+30 TALUS: Threshold ML-DSA
+whereJ(ν)is the box-truncated Fisher information of the summed-nonce lawIH(ν), soRsess
+α =
+α
+2G(ν)(Lemma 4). Optimizingα=
+√
+λ/C′withC ′=q sG(ν)/(2 ln 2)gives the closed form
+λprov(qs) =
+(√
+λ−
+√
+C′)2
+=λ
+(
+1−
+√
+qs/Qmax
+)2
+, Q max = 2λln 2
+G(ν).(3)
+The closed form(3) is aprovenlower bound on[ qlo,Q max](Lemma 4; the proof below), with
+qlo≈212.2/213.2/214.2(ML-DSA-44/65/87) the point below which the analytic optimizer’s order
+drives the heavy-shift MGF tail above the bulk; this crossing is numerically soft by≈0.3bit (an
+independent recompute of theδ⋆(α)=δ0(α)balance places ML-DSA-65 nearer2 13.5), which is
+immaterial for ML-DSA-44/65 (their caps213/214 remain≥0.5bit above qlo even at the softened
+value) and for the ML-DSA-87 certification below, which uses theqlo-independent feasible order
+α≈30. The bound vacates (α→1) atQmax; its approach toλas qs→1(where the optimizer’s
+αgrows past the edge-balance radiusδ0) is a numerically-evaluated shape statement, not a claimed
+bound. The operational capsQcap = 213/214/214 lie strictly inside for ML-DSA-44/65; at ML-
+DSA-87 the cap sits at theqlo boundary and is certified directly by the exact-cumulant optimizer
+(a feasible orderα≈30 <
+√
+Qmax/qs, since (2) holds for everyα >1), giving≥120.9bits, 5
+within0.2bit of the closed form.
+Proof. Rényi probability preservation givesPrreal[E]≤e(α−1)Dα/αPrideal[E](α−1)/αwith Dα=
+qsRsess
+α the total divergence (Rényi divergences of independent sessions add). WithE the forgery
+event, Prideal[E]≤2−λand Rsess
+α = α
+2G(ν)(Lemma 4) this is (2); its stationary point inαis√
+λ/C′, giving (3). The per-session cost is the scaled cumulantK(α) = 1
+α−1logEc[e(α−1)S],
+S =∑
+jRα((cs1)j), δ= (cs1)j (using e(α−1)Rα(δ)=Aα(δ)per coordinate). The product form
+(α−1)K =nℓlogE [Aα(δ)]holds under coordinate independence but is used only asmotivation:
+the two bounds below are independence-free (the good part rests on the worst-case operator
+inequality∥cs1∥2
+2≤∥c∥2
+1∥s1∥2
+2 =τ2∥s1∥2
+2, a deterministic per-challenge bound, and the heavy
+part on linearity of expectation), so the estimate is immune to any negacyclic dependence or
+positive association among the(cs1)j. Split S = Sgood +Sheavy at δ0(α).Good part.The
+operator bound gives(α−1)Sgood ≤M:= τλln2/qs foreverychallenge (at the optimizer
+α=
+√
+Qmax/qs); onqs≥qlo≥τλln2this gives M≤1, and the convexity chordex≤1 +eM−1
+M x
+on[0 ,M ]yields Kgood(α)≤α
+2G(ν)(1 +ε0)(1 +εshape), ε0 = eM−1
+M −1≤0.15at the ML-65 cap
+(M = 0.27; combined slack≤1.16, withεshape≤10−2from Lemma 4; the challenge-typical scale
+(α−1)Ec[S] = 5.2×10−3is50×smaller thanM).Heavy part.Factoring the good part out,
+Ec[e(α−1)S−e(α−1)Sgood] = Ec
+[
+e(α−1)Sgood
+(
+e(α−1)Sheavy−1
+)]
+≤eMnℓ
+∫β
+δ0
+(
+Aedge
+α (δ)−1
+)
+pcs1(δ)dδ,
+the prefactore(α−1)Sgood≤eM≤e(since M≤1) retained,pcs1 the exact weight-τconvolution
+(entrywise|term|≤η, so Pr[|(cs1)j|>δ0]obeys a Bennett bound—nota union-charge toϵbox).
+The log-integrand2αln(1+δ/β)−δ2/2Varhas its saddle atδ⋆= 1
+2(
+√
+β2 + 8αVar−β); at ML-65
+(α= 26) δ⋆≈65 < δ0≈94, so the integral isendpoint-dominated. The rigorousAedge
+α over-
+count, with theeM prefactor, gives∆ heavy≤5.7×10−6per session at ML-44/65; the exact
+box-affinity evaluation is the tighter≈2.1×10−6/1.1×10−6. Either is negligible beside the
+bulk( α−1)Ec[S]≈5.2×10−3(ratio ≲ 10−3). Hence onqs∈[qlo,Q max], qlo≈212.2/213.2/214.2
+(the heavy=bulk crossingδ⋆(α) =δ0(α), binding over the chord floorτλln2, and numerically
+soft by≈0.3bit), K(α) ≤α
+2G(ν)(1 + ε0)(1 + εshape) + ∆ heavy/(α−1), moving λprov by
+≲ 0.7bit at the loose chord bound ε0≤0.15(the tighter exact-cumulant correction,≈0.2
+bit, is used for the tabulated floors and the ML-DSA-87 value below) and absorbed in the
+tabulated value. At ML-87 the cap sits at theqlo boundary; since (2) holds forevery α >1,
+evaluating at the heavy-subdominant orderα≈30(independent of the exact qlo) gives the
+provenλprov(214)≥120.9, against the closed-form121.1at the analytic optimizerα≈37. The
+small-qs end of Table 3 (qs→1, α→√Qmax, δ0 <RMS (cs1)) is a numerically-evaluated shape
+statement, not security-load-bearing.
+5The proven ML-DSA-87 floor is120.9bits at the2 14 cap, from the exact-cumulant optimizer at the feasible
+integer orderα≈30, at which the heavy-shift tail stays subdominant. The closed-form valueλprov(214) = 121.1
+is theα-continuous approximation (its optimizerα=
+√
+Qmax/qs≈37pushes the shift radiusδ0 inward until the
+heavy tail is no longer subdominant), so121is not a hard proven floor; the guarantee is≥120.9, within0.2bit of
+the closed form and inside the<0.3-bit rounding of Table 3.
+31
+Where the bound applies: the box must overhang.Lemma 4, and with it(3), needs the
+summed-nonce support to overhang the acceptance box byβ, so the box cuts off the support
+edge and every Rényi order stays finite. This holds exactly when the adversary knowsnononce
+shares: the revealed nonce is thenIH(ν)on the full[−γ1,γ1]. Two regimes follow.
+• The external view (both profiles).An adversary holding no nonce shares – an outside observer
+of either profile – sees the accepted signatures, carrying the fullν-share sum, in the overhang
+regime. Then (3) governs and (Table 3) certifies≈116–121bits at each level’s operational
+cap at the table’sν=3(≈114–119atν=2;≈112–121at the table’s referenceqs=214).
+• Insiders (MPC committee members, TEE signer coalitions).A party knowingt of theν
+shares subtracts its own contributions from the response, leaving the conditional nonceIH(m),
+m =ν−t, whose support±mγ1/νretractsstrictly insidethe box. The edge the box used to
+cut is now interior: on the sliver just past±mγ1/νthes 1-shifted response carries mass where
+the ideal (unshifted) law carries none, absolute continuity fails,Rαdiverges forα≥1 + 1
+m−1,
+and the box optimization returnsα−1
+αλ≤λ/monly on the good event that no coordinate
+lands in that sliver. For a corrupt minority of aν= 2T−1committee (t = T−1, m = T)
+this conditional ceiling isλ/T: λ/2 = 64bits at T=2( ν=3), about42.7at T= 3( ν=5). The
+unconditionalbox certificate is set, exactly as for the coordinator’s rejected-response view
+(item 3 above), by the bad-event mass: the residual-edge crossing—a coordinate beyond
+the IH(m)support, its excess attributable to the honest secret, computed exactly at the
+honest-majority worst casem=2(Appendix H)—has expected count≈2−4.4/2−5.1/2−6.0
+over a fullQcap key lifetime (ML-DSA-44/65/87), so the box argument certifies the MPC
+insider view tomin
+(
+λ/m,−log2(mass)
+)
+≈4.4/5.1/6.0bits. This respects monotonicity of
+the view: an insider observes everything the coordinator does and its ownt shares besides,
+so its certificate cannot exceed the coordinator’s≈19.5–22.6bits, and its nearer (interior)
+edge makes it strictly smaller. As in Corollary 2 these are limits of the boxdistinguishing
+argument, not forgery attacks: the same< 1expected residual coordinate per key lifetime
+that caps the certificate is a one-sided inequality on a single coordinate ofcs1, which isΘ(nℓ)
+coordinates short of thes1 recovery a forgery needs (Corollary 2), so no insider forgery below
+theλ/mceiling is known. Closing the gap between this≈4.4–6.0-bit distinguishing certificate
+and the conjecturedλ/mforgery hardness—a leakage-resilient SelfTargetMSIS bound on the
+≤1leaked coordinate, or an on-shares residual check as for the coordinator view—is left
+open. The TEE profile is different: a coalition ofT−1of the T signers leavesm=1, a shifted
+uniformresidual with asharpsupport edge. Here the box argument certifies nothingand
+an attack exists: the sharp single-share edge admits the same integer-uniqueness recovery of
+s1 that sizes thes2 channel, at≈(2γ1/T) ln(2nℓ)/τ, which falls belowQcap for moderateT
+(roughly T≥7–9across levels). The rotation cap doesnotextend to the TEE insider; the
+TEE variant is a contrasting one-round example, not a threshold-custody security target, and
+its guarantees rest on the enclave (§6).
+A malicious committee member cannot steer past the box bound.The insider bounds
+above assume the honest residual nonce is the un-steeredIH(m). A corrupt committee member
+has two handles it could try to use; the construction closes both at source, and (as we show
+next) neither would help even if left open. Its per-session nonce contributionˆyc is range-tested
+by the bounded-nonce proof of Alg. 3 (FBitLTC on the committedˆyc), and its low contributions
+[r0,h], [ρh]are the FedaBits-committed sharings CEF consumes (Alg. 4), so the openedB =
+FOpen(∑
+h([r0,h] + [ρh]))is reconciled to the boolean[ρh]2 (soundness2−κ), so any blind offset
+δc a corrupt party adds to shift the openedB is detected. To bound the residual should that
+2−κbinding ever be evaded, we analyze the un-bound channel. Both handles let a corrupt party
+blindlyshift the offline BCC acceptance window (the choice is fixed beforer0, secret-shared
+until the bit opens). This doesnotaccelerate thes 1 leak: the BCC predicate is a threshold
+on r0 = LowBits(Aˆy), and underA= ExpandA(ρ)the productA ˆy is uniform modq , sor0 is
+uniform on its stripe and, coordinate-wise, statistically independent of the raw nonce coordinates
+that carry the boundary Fisher information (§3); shifting a threshold of a uniform variable leaves
+its acceptance profile flat, so no blind steering concentrates the high-information edge. This
+mechanism is level-independent; the following measurement confirms it. Over eightδc-shift and
+32 TALUS: Threshold ML-DSA
+four ˆyc-bias strategies at ML-DSA-65 (ν=2,2 ×106 sampled nonces, BCC acceptance≈0.32,
+genuine ExpandA), maxI steered/Iunsteered = 1.0017(|ρ−1|= 1.7×10−3, within the Monte-Carlo
+noise band; the independent-random-bit control gives0.9992), with Pr[BCC-pass|ˆyh,i]flat
+for every strategy (worst-caseχ2/dof = 1.34); Qmax is unchanged. ButQmax, the proof wall,
+sits8–10bits above the operational cap and does not bind; the binding constraint is thes2
+channel, whose integer-uniqueness referencequniq sits about two bits above the cap (§8.3), and
+the same width invariance protects it. Removing the online check leaves each signature the
+readout LowBits(Az−ct), whoses 2-masking noise is the accepted nonce low-bitsLowBits(Aˆy)
+(equal to LowBits(Aˆy)−cs2 where the cleared window keepscs2 from crossing a boundary; a
+steered near-edge carry only feeds the boundary channel shown flat above). Thenquniq is fixed
+by that noise’s support half-widthγ2−βand its shape, uniform being the attacker-worst case we
+certify. Steering moves the per-coordinate acceptance window’scenter, never its half-width—the
+predicate stays|LowBits(Aˆy)j−δj|<γ2−βfor every blindδj (or ˆyc, a subset)—so an external
+observer’s effective noise never narrows and a de-shifting insider recovers exactly the honest
+half-width; quniq cannot drop below its un-steered value unless the accepted noise concentrates.
+It does not: over the same eightδc and four ˆyc strategies (105 nonces,≈2×106 pooled accepted
+low-bits) the de-shifted accepted noise is uniform on(−(γ2−β), γ2−β)(worst-case χ2/dof = 1.31,
+sample s.d.(γ2−β)/
+√
+3 to four digits), soquniq,steered/quniq,honest∈[1.000, 1.000]and the cap
+margin holds under steering. The residual is thus an integrity gap in the offline transcript, not a
+key-recovery channel. The construction closes it at source: theFedaBits binding of the openedB
+to the boolean-shared[ρh]2, together with the per-sessionFBitLTC range check onˆyc (Alg. 3–4),
+removes the malicious-steering conditionality from the insider ceilingλ/m; the measurement
+above shows this is belt-and-suspenders for thes1 channel, where the steering is inert even
+absent the binding. The insider ceiling’s residual-edge conditionality—hence the≈4.4–6.0-bit
+distinguishing certificate of the itemized bound above—remains, and is the separate open item.
+(The analogous on-sharesz-norm check for the coordinator view is a construction option we state
+but do not take up here.)
+Remark2 (Extension to malicious adversaries).In theFDKG-hybrid model—whereFDKG samples
+(s1, s2)itself, so corrupt parties choose only theiroutput shares {si,j}j∈C(Shamir t-private,
+independent of the key) and no party controlspk (rogue-key impossible by construction)—the
+game sequence of Theorem 4 extends to a malicious adversary. Quorus GEN realizesFDKG
+(Lemma 7); the full UC composition with signing, which crosses a game-based-to-UC seam
+(Theorem 4 is game-based), is deferred to the extended version.
+• Change of measure.As in Theorem 6, thes1-shift is removed by the box-restricted Rényi
+step, unchanged by corruption: a corrupt committee member can zero only itsownnonce
+contribution (already folded into the retraction toIH(m),m =ν−t), never an honest one, so
+the insider ceiling isconjecturedto beλ/m: the box-restricted Rényi step here certifies only
+a≈4.4–6.0-bit distinguishing advantage, and the gap from distinguishing to forging is left
+open. Itst=T−1keyshares add nothing (t-private, independent ofs1; recoverings 1 needs
+T shares); all key-dependence in its view flows throughpk, priced by Module-LWE. The
+individual honest response shareszh = ˆyh +c s1,h an insider sees are simulatable from the
+aggregatezby the nonce-sharing one-time pad of Proposition 3(iv); the change of measure
+itself governs the aggregatez.
+• Key hiding.The Module-LWE hop (replacetby uniform, over fullt, Def. 3) is applied in
+thes 1-free world reached above, so the reduction answers theqs signing queries without the
+honest secret. The corruptoutputshares do not obstruct it: they are adversary-supplied
+and reproduced by the reduction from the leak(pk,tr, t, t0)it already holds, never generated
+from(s 1,s 2), and the honest shares are private outputs outside the adversary’s view.
+• Extraction.Straight-line SelfTargetMSIS over[A |t|I]in the DKG-view, which collapses to
+the stock public key (Corollary 3); adversary-behaviour-independent.
+No zero-knowledge range proofs are needed in the DKG realization: shortness of the key is
+enforced by the realization’s secret-shared rejection sampling (ΠRand, §I.3), not by a Feldman
+commitment. The accounting is unchanged (it already assumesFDKG’s uniform key law). The
+MPC coordinator’s rejected-response view is bounded separately (item 3 of the change-of-measure
+mechanism).(TEE profile: it does not inherit this, as it need not run an honest-majority DKG;
+33
+see the scoped TEE keygen note.)
+Corollary 2(The λ-versus-H(s1)gap).In the overhang regime the proof wallQmax and the
+attack wall4/(J(ν)τ)of Theorem 3 satisfy
+4/(J(ν)τ)
+Qmax
+= 2nℓσ2
+λln 2,
+independent ofJ(ν)and of the committee count: a per-level constant25.5/27.6/26.3(ML-DSA-
+44/65/87, evaluated at the key-generation meannℓσ2). The two walls measure different things.
+Distinguishing the transcript from its simulation costsO(λ)bits of accumulated leakage; recovering
+s1, hence forging, costsΘ(nℓσ2)≫λbits of accumulated information. Between the walls the
+transcript already fails the box closeness the simulation needs while no key recovery is yet possible;
+certifying to the attack wall would require asserting that the accumulated leakage is not forging-
+useful untils 1 is recovered, which is exactly the attack’s hardness.
+We therefore argue that no black-box reduction to Module-LWE and SelfTargetMSIS closes the
+gap: a barrier argument for the natural reduction class, short of a meta-reduction (Remark 3).
+Table 3:The upper bound in the overhang regime (the external view), by level, at the committee
+share countν=3with its matchedJ(3). λprov is the certificate of(3) at the referenceqs = 214;
+the proof wall is its zero crossing; the attack wall is theν-matched4/(J(3)τ)of Theorem 3 (§8.1
+quotes the two-share caseν=2,0 .6–0.7bits lower); the gap is theirJ-independent ratio. Insider
+views fall in the retracted regime (good-event ceilingλ/mfor m≥2, nothing atm=1; the box
+distinguishing certificate is the itemizedInsidersbound above).
+Levelλ prov at2 14 Proof wall Attack wall Gapq s=1
+ML-DSA-44≈112 2 21.8 227.4 25.5 ≈λ
+ML-DSA-65≈118 2 23.4 231.0 27.6 ≈λ
+ML-DSA-87≈121 2 24.4 230.7 26.3 ≈λ
+Exact boxRα,αoptimized on an integer grid; code archived with the artifact.
+The gap is theJ-independent ratio2nℓσ2/(λln 2), computed exactly; individual walls are rounded to one decimal.
+Remark3 (Scope and open constants).The Fisher information J(ν)is computed from the
+continuous IH(ν)envelope (closed-form atν=2, 3; Lemma 4) and cross-checked against a discrete-
+score sum and a direct integral, agreeing to within the discreteness gap:≲ 10−3relative at
+ν=2and ≈4×10−6at ν=3(edge-dominated), shifting the table’s entries by< 0.01bits and
+absorbed in its rounding. The closed form(3) is proven on[qlo,Q max]with qlo≈212.2/213.2/214.2
+(Theorem 6, numerically soft by≈0.3bit); the ML-DSA-87 cap sits at that boundary and is
+certified by the exact-cumulant optimizer at the feasible orderα≈30, the value the table already
+reports. And (3) charges all accumulated leakage as potentially forging-useful; a non-black-box
+argument that onlys 1-recovery enables a forgery would move the certified wall toward the
+attack wall, but is unproven and would itself be the assumption named in Corollary 2. The
+machine-checked write-up, the insider tightening (the MPC committee and TEE signer-coalition
+views), and the full-concurrency treatment (open, as for FROST without its binding factor)
+accompany the extended version.
+E Carry-necessity: full proof
+We prove Theorem 5. IdentifyRq∼= Z256
+q coordinate-wise, so HighBits = h×nkfor the scalar
+map h : Zq→{0,...,m−1}(m = (q−1)/α≥16), and h is non-constant (property (P)).
+Model assumptions: (A1)Ainjective; (A2) φan explicit Zq-linear map given by a known matrix
+Φ∈Zd×nℓ
+q ; (A4) a public trapdoor-freeψwith w1(y) = ψ(φ(y))for ally; (A5) hiding, i.e. a
+simulatorSwithS(w 1(y))≈φ(y).
+Lemma 5(Cyclic invariance).Let V≤Znk
+q be a subspace andu∈V. If HighBits(v +u) =
+HighBits(v)for allv∈V, thenu= 0.
+34 TALUS: Threshold ML-DSA
+Proof. Supposeu̸= 0and pick a coordinatej witha :=uj̸= 0. SinceV is a subspace,tu∈Vfor
+all t∈Zq; evaluating the hypothesis atv =tu and reading coordinatej givesh((t+1)a) =h(ta)
+for allt. Asq is prime anda̸= 0,a is a unit, sox↦→x+a is a singleq-cycle on Zq; chaining over
+t = 0,...,q−1makes h constant on{0,a,..., (q−1)a}= Zq, contradicting (P). Henceu = 0.
+The line{tu}lies entirely inV = Im(A), and on it coordinatej already runs through all of
+Zq; so injectivity ofAsuffices and surjectivity ofA yis not needed.
+Lemma 6.kerφ⊆kerA.
+Proof. Let k∈kerφ. For everyy, φ(y+ k) = φ(y), so by (A4) w1(y+ k) = w1(y), i.e.
+HighBits(A y+Ak) = HighBits(A y). Puttingv =A y∈V= Im(A)and u =Ak∈V, Lemma 5
+givesAk= 0, i.e.k∈kerA.
+Injectivity forces a leak.By (A1)ker A= {0}, so kerφ={0}and φis injective;Φthen has
+full column rank and an explicit left inverseΦ+, so from the broadcastz = Φyanyone recovers
+y= Φ +z. Sincew1 = HighBits◦Ais massively non-injective (range≤mnk≪qnℓ=domain),
+picky 0̸=y 1 with w1(y0) = w1(y1) =: ω; the real broadcastsφ(y0)̸=φ(y1)are two distinct
+points, and no simulatorS(ω)can be statistically close to both (they are at distance1; the
+distinguisher “output1iffΦ +z =y 0” separates them). So (A5) fails even against an unbounded
+simulator: the broadcast leaks strictly more aboutythanw 1 does. This proves Theorem 5.
+Boxed-nonce regime.The argument above is unconditional for a wide (coset-covering)
+nonce; that wide-nonce impossibility is the load-bearing statement: it already shows one-round
+homomorphic aggregation cannot computew1 while hidingy. Nothing in the security analysis of
+§8 depends on the boxed refinement. For completeness we record what survives for the ML-DSA
+box B ={∥y∥∞<γ1}, where the cyclic sweep of Lemma 5 leavesB and the argument runs on
+box pairs. Hiding and correctness force theφ-partition ofB to coincide with thew1-partition,
+and φlinear makes its fibers the affine slicesB∩(y+ kerφ).If kerφ={0}, the fibers are
+singletons, forcingw1 injective onB, impossible by counting (|B|= (2γ1)nℓ≫mnk at every level;
+no hypothesis onA).If kerφ̸={0}, it suffices to exhibit one0̸=k∈kerφwith a box pair that
+crosses a boundary, since a single crossing breaks the partition coincidence. By (A1),u :=Ak̸= 0.
+Choose T =⌊(2γ1−1)/∥k∥∞⌋box-collinear pointsy, y+ k,..., y+ Tk∈B(a suitableykeeps
+all of them inB, sinceT∥k∥∞< 2γ1); along the coordinatej maximizing|uj|their j-th images
+form an arithmetic progression of stepuj and total spreadT|uj|, so a consecutive pair lands in
+differentHighBitscells wheneverT|uj|≥α= 2γ2, i.e. whenever
+max
+j
+⏐⏐(Ak)j
+⏐⏐ ≥α∥k∥∞
+2γ1
+.(4)
+This per-k multi-step crossing is unconditional and subsumes the single-step case|uj|≥α. A non-
+crossingk must therefore violate(4):Acontracts it in ℓ∞by more than the factor2γ1/α=γ1/γ2
+(about2at levels 3/5,1 .4at level 2). ForA= ExpandA(ρ)this is stringent:∥Ak∥∞concentrates
+near q/2, so for anyk fixed independently ofAthe failure of (4) has negligible probability over
+ρ; hence(4) holds, and the box impossibility with it, for everyφchosen obliviously of the public
+key (verified across levels: fullm-cell equidistribution of⟨Aj,·⟩over box pairs, and an end-to-end
+crossing search, archived with the artifact). The one case we donotclose, and do not paper over,
+is anadversariallychosen φwhose entire kernel consists ofA-contracted vectors near the box
+diameter (the quantifier order permits it,φbeing fixed afterAis public); excluding such akerφ
+is a lattice question we leave open, exactly as a fully unconditional boxed proof would require.
+Why g(·)is not a counterexample.The discrete-log map is excluded on two independent
+grounds: it is not an explicit invertibleZq-map (its inverse is the discrete log), so (A2) and
+the left-inverse leak do not apply; and there is no efficientψthat exposes HighBits from gx
+(extracting high bits of a discrete log is as hard as the discrete log). This is exactly why the
+FROST template ports to Schnorr (whose challenge reads off the opaque group element) but not
+to ML-DSA, whose challenge needs the rounded pre-image.
+35
+F Semi-honest simulation
+The emitted signatureσ= (c, z, h)already carries thes 1 channel (throughz) and thes 2 channel
+(throughh), so both are available to any simulator givenσ. The only value a semi-honest party
+opensbeyond σis the fuzzyr0 of CEF, and by Lemma 3 that reduces to the coarse quotient⌊B/α⌋.
+This makes the semi-honest view simulatable up to that residual (and the online rejected-attempt
+observations, the sames1 channel).
+Proposition 3(Semi-honest simulation).Let A semi-honestly corrupt at mostT−1parties (of
+which those inC form a minority|C′|<|C|/2). There is a PPT simulator that, given(pk,σ)and
+the corrupted parties’ inputs and randomness, outputs a view computationally indistinguishable
+fromA’s real view in a signing session, up to theqs-bounded MPC residuals of §8: the coarse
+quotient⌊B/α⌋of the CEF opening (one per run,≈3.15per emitted signature; per-key wall
+≥228.2, non-binding) together with the rejected-attempt response observations. In the TEE profile
+Bis never opened and the simulation is exact from(pk,σ).
+Proof.A ’s view is (i) the CEF secure-multiplication and comparison intermediates; (ii) the
+T-private high and low sharings[w1,h], [r0,h], [ρh]and the opened B; (iii) the opened BCC bit
+and the commitment com; (iv) the online revealsw1,{zh},z,σ. We simulate each. (i) The
+secret-shared multiplication and comparison gates are semi-honest secure, so their intermediates
+come from the standard honest-majority gate simulator, revealing nothing beyond the gate
+outputs handled below. (ii) By Lemma 3, the high and low sharings[w1,h], [r0,h], [ρh]are T-
+private (a corrupt minority sees no individual value), andBmodα is a full-stripe one-time
+pad, even given the corrupt parties’ own masks and shares, so the simulator drawsB uniformly
+and samples the corrupt shares consistently; the only real information not so reproduced is the
+coarse quotient⌊B/α⌋, the charged residual. (iii) The BCC bit is key- and message-independent
+(§4), hence a public function of the accepted nonce, andcom is a hiding commitment to the
+sharing[ [w1] ], simulated by committing to a sharing consistent with thew1 read fromσ. (iv)
+w1 = UseHint(h, Az−ct12d,α)is recovered fromσ; the Round-1 opening of[ [w1] ]is simulated
+by revealing honest shares consistent with thisw1 and the corrupt shares (as forzbelow). The
+online sharingzi =y i +cs1,i is degree-(T−1), and the corrupt minority sees allT broadcasts;
+but the polynomial’s non-constant coefficients are the nonce-sharing randomness, fresh each
+session and a one-time pad on thes1-sharing coefficients, so the whole polynomial reveals only
+z= ∑
+iλizi abouts 1, whichσalready carries. The simulator samples the honest openings from
+this residual randomness subject tozand the corrupt evaluation points, matching the real joint
+law. Corrupt parties outsideC additionally hold, for each honest committee memberh, the
+evaluationgh(j)at their index j (sent during the nonce DKG). The corrupt parties hold at most
+T−1evaluations of each honestgh in total; sincegh has degreeT−1, its non-constant coefficients
+are fresh uniform randomness that one-time-pads anyT−1evaluations (a Vandermonde bijection
+at distinct nonzero integer points, whose pairwise differences are units inRq), making them
+jointly uniform and independent of the free termˆyh and of everything else in the view. The
+simulator draws them uniformly at random. Composing, the view is reproduced from(pk,σ)and
+the corrupt inputs except for the coarse quotient⌊B/α⌋and the rejected-attempt observations,
+both qs-bounded (§8) and non-binding (wall≥228.2, resp. the sames1 channel already charged),
+so semi-honest security holds forqs≤Qcap. In the TEE profile the enclave runs CEF internally
+and never opensB, so step (ii) is vacuous and the simulation is exact.
+G Malicious-model security
+Unforgeability.EUF-CMA against a malicious adversary is established by Remark 2: the
+game sequence of Theorem 4 extends directly because each transition operates on honest-party
+randomness, from which the corrupt contributions factor out as known shifts. The operative
+bound is the insider ceilingλ/m(m honest nonce shares) from the overhang analysis of §D
+(there proven as a distinguishing advantage andconjecturedas a forgery ceiling), with the
+MPC coordinator’s rejected-response view bounded separately (item 3 there). The required
+well-formedness of corrupt contributions is extractable by honest-majority interpolation in the
+36 TALUS: Threshold ML-DSA
+MPC profile, and falls to the key-generation proofs of §7.5 in the TEE profile. No additional
+computational hardness assumption is used in the proven game transitions; theλ/minsider
+forgery ceiling remains conjectural, as stated above.
+Simulation-based transcript privacy.The malicious lift of Proposition 3 adds a single
+obligation beyond the semi-honest simulator: against arbitrary deviation by theT−1corrupt
+parties and an untrusted aggregator, the simulator must firstextracteach corrupt party’s effective
+input before it can invoke Proposition 3. We give the simulatorSin four stages.
+S1 (extraction).In the honest-majority MPC profile (N≥2T−1) the honest parties hold
+≥Tevaluations of every corrupt degree-(T−1)sharing, so each corrupt share vector is either
+consistent with a unique degree-(T−1)polynomial—whose free termS reads off as the effective
+input—or inconsistent, in which caseS aborts (S4).S reads the public openedB directly and
+interpolates the secret-shared inputs: the DKG shares, each corrupt contributor’s nonce-sharing
+evaluationsgc(j), and the high and low sharings[w1,h], [r0,h], [ρh]. Extraction is thus complete
+and needs neither rewinding nor a ZK extractor; the ZK-extractable-inputs clause is required
+only for the TEE profile and for identifiable abort.
+S2 (authenticated gates).The closure conditions of §7.5, summarized below, make each gate
+either certify well-formedness or abort-with-blame from the authenticated offline transcript:
+•authenticated offline transcripts and pre-online fault attribution;
+•an offline hiding-and-binding commitment to thew1-shares (binding the Round-1 reveal);
+•authenticated multiplication in CEF;
+•proof-of-possession and range/well-formedness proofs in key generation (for extractability).
+Because CEF is instantiated with authenticated (BGW-style) rather than preprocessing-based
+multiplication, a deviation in any gate is detected and blamed, not silently absorbed, so the gate
+intermediates of Proposition 3(i) stay simulatable from the gate outputs even under deviation,
+by the standard maliciously-secure gate simulator.
+S3 (invoke the semi-honest simulator).The extracted inputs meet the corruption pattern
+Proposition 3 assumes—at mostT−1corrupt parties, of which the committee-corrupt form a
+minority|C′|<|C|/2—so on themS runs its simulator verbatim:B uniform (Lemma 3, full-stripe
+one-time pad), the high and low sharingsT-private, the BCC bit andcom from σ, w1,{zh},z
+from σthrough the fresh nonce-sharing pad, and the honestgh(j)uniform by the Vandermonde
+bijection.
+S4 (erase-before-blame).If extraction fails or an input is malformed,S aborts with blame
+drawn from the authenticatedofflinetranscript before the online round, so Blame never opens a
+post-znonce (Remark 1); self-verification blocks a forged online output.
+The real malicious transcript and S’s output are computationally indistinguishableup
+toexactly the qs-bounded residual that Proposition 3 already charges—the coarse quotient
+⌊B/α⌋per CEF opening (Lemma 3) together with the rejected-attempt responses (the same
+s1 channel). Extraction and the authenticated gates neither enlarge this residual nor add
+a channel: the corrupt steering of the opened low aggregateB isblind, fixed before r0 =
+LowBits(A y)and the honest contributions are revealed—so its accept-or-abort event is a function
+of r0, which is uniformmodαand independent of the raw nonce coordinate that carriess1; a
+selective-failure abort therefore discloses nothing new, blind steering being inert (the measured
+steered/unsteered Fisher ratio is≈1to the measurement resolution; archived red-team evidence,
+analysis/redteam/bcc_fisher_allcells_2026_08_04/). This is deliberatelynota clean UC
+realization: by Theorem 3 the disclosed leak carries Fisher informationI > 0, so no exact
+simulator can exist and the “up to the disclosed residual” scope is by design, not a slack in the
+argument.
+Two seams stay open. Onlinezh attribution: a malformedzh forces abort (self-verification
+blocks a forged output), but per-party culprit identification would need a verifiable-zh proof that
+publishesA ˆyh, which must stay hidden; the protocol thus has identifiable abort for preprocessing
+faults and unanimous abort without per-party blame on the online path, and we defer the
+verifiable-zh proof. The passage is moreover game-based; promoting it to a UC statement is the
+second deferred seam. The complete simulation-based proof accompanies the extended version.
+37
+H Empirical measurements
+The offline BCC pass rate and the online first-attempt success rate were measured by running
+the reference implementation (thetalus-tee crate) end to end: for each level we generated a
+batch of nonces through the nonce DKG, applied the BCC filter, and ran one distributed online
+signing attempt per BCC-passing nonce, on a distinct message, classifying each outcome (T = 3,
+N= 5, fixed seeds; the harness is archived with the artifact).
+Table 4:Measured offline BCC pass rate and online first-attempt success rate. Online failures
+areentirelyhint-weight rejections: thez-norm check did not fire in any of the≈33,000online
+attempts, because the summed (Irwin–Hall) nonce is concentrated well inside theγ1−βbound.
+Level BCC pass (offline) Trials/nonce Online success Online fail Exp. att.
+ML-DSA-4443.09%(10,773/25,000)2.32 98.04% 1.96% 1.020
+ML-DSA-6531.61%(12,645/40,000)3.16 99.57% 0.43% 1.004
+ML-DSA-8738.91%(9,728/25,000)2.57 99.23% 0.77% 1.008
+The BCC rates match the analyticpBCC = (1−β/γ2)nk of Proposition 1 to within0.3%.
+That the online residual is purely hint-weight (neverz-norm) is a by-product of the same nonce
+concentration that Theorem 3 chargesagainstsecurity: the concentration that lightens the
+z-norm tail is exactly the non-flatness that yieldsI >0.
+Exact rejected-response exposure.Complementing the measurement, we computeexactly
+(not by sampling) the tail masses ofz=y+cs1 under the committee share model (ν=3shares
+uniform on[−γ1/ν+1,γ1/ν], average-case key): the closed-formIH(3)edge tails combined with
+the exact PMF of(cs1)j give, per session, az-norm-band probability of2−22.1/2−23.7/2−25.4
+(band γ1−β <|zj|≤γ1; the≥convention shifts entries by< 0.1bit) and an over-γ1 probability
+of2 −32.5/2−34.7/2−36.6(ML-DSA-44/65/87), i.e. expected< 2−9resp. < 2−19.4occurrences
+over a fullQcap key lifetime; the analogous insider-residual overhang mass (IH(2), exact support
+[−2a+2, 2a]) is≈2−4.4/2−5.1/2−6.0per key lifetime. These are closed-form combinatorial
+computations with no statistical error; the script is archived with the artifact. The measured
+0/33,000z-norm firings above match the predicted expectation (≈2−8.1for that mixed batch),
+and the hint-weight-only failure profile is exactly what the computation predicts. A larger
+implementation-level probe,10 8 signing sessions run end to end through thetalus-tee crate
+over twelve independent keys (harness archived), observed12z-norm rejections against≈7
+predicted by the key-averaged model, Poisson-consistent (p≈0.07); the implementation thus
+reproduces a2−24-per-session tail at the predicted rate. We stress the scope of this table: it is
+evidence for the construction’s round count and acceptance rates,notfor the upper bound of
+§8.2. That bound’s load-bearing constantJ(ν)(through the per-session divergence of Lemma 4)
+is analytic, not empirical: it is computed in Appendix D (a machine-checked write-up is planned),
+and no amount of signing-rate measurement bounds a forger’s advantage.
+I Distributed key generation
+TALUS generates keys by a dealer-free distributed key generation (DKG) that outputs Shamir
+sharings[ [s1] ], [ [s2] ]of the secret and publishespk = (ρ,t1)together with the fullt(hencet 0), where
+t=As 1+s2. We instantiate it with the key-generation (GEN) sub-protocol of Quorus [BdCE+26],
+and prove the composition against a standalone ideal functionalityFDKG. Two functionalities
+must not be conflated: thiskeyDKG runsonce per key, whereas the per-signaturenonceDKG of
+§5 (which samplesyand, being contributory, lets each party evaluate its own share polynomial
+at every index) is a separate object; the argument below concerns only the key.
+38 TALUS: Threshold ML-DSA
+I.1 The ideal functionality
+Fix ML-DSA parameters(q,N,k,ℓ,η,d)at the target level. The party set is[N]; the adversary
+statically corruptsC⊆[N]with |C|≤t:=T−1, andN≥2T−1(honest majority, t<N/ 2)—
+exactly TALUS’s committee requirement (§7.2). All sharings are degree-t Shamir over Fq
+evaluated at the points{1,...,N}.
+Functionality 7(FDKG).On(GEN)from all honest parties:
+1.ρ←${0,1}256,A:=ExpandA(ρ).
+2.(s 1,s 2)←$Sℓ
+η×Sk
+ηuniformly (each coefficient uniform in[−η,η]).
+3.t:=As 1 +s 2,(t 1,t 0) :=Power2Roundq(t,d),tr:=H(ρ,t 1),pk:= (ρ,t1).
+4.Leak(pk,tr,t,t 0)to the adversary.
+5. Receive corrupt output shares{s1,j,s 2,j}j∈Cfrom the adversary (abort⇒forward abort).
+6. Set the honest parties’ shares to the degree-t Shamir sharing of(s 1, s2)over {1,...,N}
+consistent with{s1,j, s2,j}j∈C: uniquely determined when|C|=t (the free term plus thet
+corrupt evaluations fix a degree-t polynomial by Vandermonde invertibility), and sampled
+uniformly among consistent completions when|C|<t.
+7. Output( pk, [ [s1] ], [ [s2] ]): partyPi (i∈[N]) receivespk and its sharess1,i, s2,i. The published
+key is the stock(ρ,t1); the fullt(hencet 0) is opened to the DKG participants in GEN but is
+not published.
+The DKG-view secret-dependent leakage (opened to the participants in GEN) is(t, t0): pk =
+(ρ,t1),tr are public functions of the output;t=As1 +s 2 is a Module-LWE sample (Def. 3);t0
+is a deterministic function oft; and≤tShamir shares are distributed independently of(s1, s2)
+(Shamir t-privacy). The published key(ρ,t1)is the standard ML-DSA key-hiding assumption;
+the harmlessness of the DKG-viewt0 (never published, only opened to the parties) is Corollary 3.
+I.2 Realization: Quorus GEN over allNparties
+Lemma 7(FDKG realization).LetΠ GEN be the Quorus Protocol-5 GEN sub-protocol run over
+the N parties, withFRand producing degree-t (t = T−1) Shamir sharings ofSηat the points
+{1,...,N}, and augmented tooutputthe stored sharings[ [s 1] ], [ [s2] ]. Under static corruption
+|C|≤twith N≥2t + 1,Π GEN UC-realizesFDKG in the(FCoin,F Rand,F Open)-hybrid model, with
+a perfect (statistical distance0) simulator.
+Proof.The protocol and its hybrid.On(GEN),Π GEN has the parties (i) callρ←FCoin[{0, 1}256],
+[ [s1] ]← FRand[Sℓ
+η],[ [s2] ]← FRand[Sk
+η]; (ii) setA:= ExpandA(ρ); (iii)locallycompute[ [t] ] =
+A[ [s1] ] + [ [s2] ]; (iv) opent←FOpen([ [t] ]); (v) compute(t1, t0) = Power2Roundq(t,d ), tr =H(ρ,t1),
+pk = (ρ,t1); and (vi) store and, per the augmentation of the lemma, output(pk, [ [s1] ], [ [s2] ]).
+The only sub-functionality calls are oneFCoin, twoFRand, and oneFOpen, so the GEN hybrid
+world is exactly(FCoin,F Rand,F Open); in particularΠ GEN performs no secure multiplication:
+[ [t] ] =A[ [s1] ] + [ [s2] ]is a local public-matrix linear map, degree-t in and degree-t out (Protocol 5
+GEN step 3, “Locally compute” [BdCE+26]).
+The simulator.SDKG is Quorus’s own GEN simulator (Appendix C.5 of [BdCE+26]) with its
+ideal endpoint retargeted fromFT-MLDSA toF DKG. On(GEN)it:
+(a) receives(pk,tr,t,t 0)from theF DKG leak (FDKG step 4);
+(b) emulatesF Coin by sendingρtoA;
+(c) emulates the twoFRand calls byreceivingfrom A the corrupt output shares{s1,j, s2,j}j∈C,
+and forwards them toFDKG as its corrupt-share input (FDKG step 5);
+(d) computes the corrupt shares{tj :=As 1,j +s 2,j}j∈Cof[ [t] ]from the publicA;
+(e) emulatesFOpen([ [t] ]): ifA’s submitted shares differ from{tj}j∈Cit sends abort toFDKG;
+otherwise it sendsttoA.
+This is Quorus’s simulator verbatim; the sole added action, forwarding in (c) the corrupt shares
+toFDKG, uses valuesSDKG already receives and is needed only becauseFDKG (unlikeFT-MLDSA)
+outputsthe sharings.
+Corrupt view.Thecorruptparties’entireGENviewis {ρ; their own supplied shares of[ [s1] ], [ [s2] ];t}.
+SDKG produces ρin (b) andtin (e) from the leak, and the corrupt shares areA-chosen in both
+39
+worlds; no honest-party share ever enters the simulator. By Shamirt-privacy, any≤tdegree-t
+shares are distributed independently of the shared secret, so the real and simulated corrupt views
+are identically distributed.
+Honest outputs.In the real world honest parties holdFRand’s degree-t sharings of the true
+(s1, s2); in the ideal worldFDKG (FDKG steps 6–7) hands them the degree-t Shamir sharing of
+thesame(s 1, s2)consistent with{s1,j, s2,j}j∈C:uniquelydetermined when |C|=t (the secret’s
+free term together with thet corrupt evaluations fix a degree-t polynomial by Vandermonde
+invertibility), and uniformly random among consistent completions when|C|< t. The two
+distributions coincide.
+Abort correctness and honest majority.SDKG decidesFOpen’s abort from the corrupt shares
+alone; this matches idealFOpen (which reconstructs iff allN shares lie on a degree-t polynomial)
+precisely because theN−thonest shares already pin that polynomial, i.e.N−t≥t+1 ⇐⇒
+N≥2t + 1. Honest majority is thus load-bearing here, in theFOpen emulation, andnotin any
+multiplication, of which GEN has none (first paragraph); forN <2t + 1the honest shares would
+fail to pin the polynomial and the emulation would diverge. The singleFOpen in GEN opens
+the fullt=As 1 +s 2, a Module-LWE sample (Def. 3) with the noises2 included, and never a
+per-partyAs 1,i nor any other noiseless linear image of the secret.
+Perfectness.Quorus states its GEN simulation is a “perfect simulation of the real world”
+(Appendix C.5 of [BdCE+26]); the two added ideal-side actions, forwarding the already-received
+corrupt shares in (c) andFDKG’s sampling of the consistent honest completion, preserve the
+distribution exactly, so the statistical distance is0. The2−κ+1closeness that appears at the end
+of Quorus’s Theorem 3 proof is an artifact of thesigningpath (FRejSamp,κrepetitions) and never
+touches GEN; theFDKG realization is unconditionally perfect.
+Fromn = 2t + 1to all N.Quorus states GEN for a committee of exactlyn = 2t + 1; we run
+it over allN≥2t + 1parties, with FRand distributing shares to theN points{1,...,N}and
+FOpen reconstructing degree-t. The simulator’s remaining ingredients,≤t-share Shamirt-privacy
+and theFCoin/FRand/FOpen interfaces, hold for anyn>t , and the only honest-majority use inside
+GEN is theFOpen-abort argument above, which needs onlyN≥2t + 1. The honest-majority
+multiplicationgates live entirely inside theFRand realizationΠ Rand[Sη](§I.3), a fortiori satisfied
+at n =N≥2t + 1; and Quorus Remark 1 states the generalN-party setting (a size-N DKG
+with a smaller signing quorum) is trivially accommodated. No GEN sub-step assumesn = 2t + 1
+as an equality, so the perfect simulator carries over verbatim.
+Consequence (S1).Because the key is Shamir-shared degree-(T−1)overall N points,any
+T-of-N quorum can form the response shareszh = ˆyh +c s1,h and reconstructzby Lagrange
+(the keys 1 itself is never reconstructed); the onlineT-of-N threshold is unchanged. Keygen (and
+each key rotation) requires allNparties present once—a light, one-time cost (§I.6).
+I.3 FIPS-exactness of the key law
+A naive dealer-free additive/Shamir sum of bounded shares would be Irwin–Hall, not the FIPS-
+204 uniform-[−η,η]key law. This is avoided:[ [s 1] ], [ [s2] ]come fromFRand[Sη], whose Quorus
+instantiationΠ Rand[Sη](Protocol 10) performssecret-shared rejection sampling—sample shared
+bits viaFedaBits, test< 2η+1on the bit-shares viaFBitLTC, and openonlythe one-bit accept flag—
+so, conditioned on acceptance, each coefficient is exactly uniform on[−η,η].Π Rand UC-realizes
+FRand[Sη](Quorus Lemma 6); the accept flags leak only a value-independent geometric iteration
+count. The honest-majority sub-gates insideΠ Rand[Sη]—FedaBits and the comparisonFBitLTC
+(Quorus Lemma 11), realized in theFMult-hybrid—require2 t < n; eachFMult instantiation
+(Quorus App. A.3.4) degree-reduces the degree-2t product back to degreet and needs only
+n≥2t + 1, a fortiori atn =N≥2t + 1. The malicious soundness of these gates isstatisticaland
+does not use theFq sacrificing repetition:FedaBits is checked by cut-and-choose with statistical
+parameter κ(Quorus defaultκ= 40, App. D.5), andFBitLTC multiplies overF2k, k =⌈logn⌉+ 1.
+This soundness is aone-time key-generationstatistical parameter, not a computational one, and
+it need not be driven to2−λ; we trace what its failure buys. The cut-and-choose (App. D.5
+of [BdCE+26]) guarantees the produced edabits areconsistent(arithmetic value equal to bit
+value) except with probability2−κ; a surviving inconsistent edabit makes the returned arithmetic
+40 TALUS: Threshold ML-DSA
+share[ [r] ]disagree with theFBitLTC-tested bits[ [r1] ]2,..., [ [rℓ] ]2, shifting one freshly sampled
+key coefficient by an adversary-known offset∆(possibly outside[ −η,η]). This is a one-shot
+distributionalfault on the fresh key, inert on both security axes.Secrecy:it reveals nothing
+about honest secrets. The only openings are the value-independent1-bit accept flags and the
+Module-LWE samplet, and≤tShamir shares aret-private, all independent of edabit correctness.
+Unforgeability:the shift is inert against Theorem 4, whose reduction embeds the public key
+as the Module-LWE/SelfTargetMSIS challenge and answers theqs signing querieswithout the
+honest secret(Remark 2); like the corrupt output shares, a corrupt-side shift of the sampled key
+factors out as aknown public offsetabsorbed into that challenge (after the Module-LWE hopt
+is uniform, so ist+offset), leaving forgery exactly as hard in the failure world as in the honest
+one. Hence2 −κboundsonlythe probability that a single key is not FIPS-204-exact (short,
+uniform)—a keygen correctness event that never enters the forgery bound—so we keep Quorus’s
+default κ= 40: withN≥2κ/(B−1)and B∈{3, 4, 5}(App. D.5), the one-time batch isN≥220
+at B=3down to N≥210 at B=5, a standard preprocessing batch reused across keygens and
+rotations (of which one key consumesO((k+ℓ)·256)edabits), with no bucket blow-up and no
+distributed-ZK escape (which in any case verifiesFMult’sε=0, not edabit consistency). ThusFDKG
+delivers a FIPS-204-exact key withE∥s1∥2
+2 =nℓσ2, σ2 =η(η+ 1)/3—the value thes1-channel
+accounting of §8 already assumes.
+I.4 The DKG-viewt 0 is harmless
+FDKG opens the fulltto the participants, sot 0—kept in sk by stock ML-DSA—is seen by the
+DKG parties. TALUS publishes only the stockpk = (ρ,t1)(§10), sot 0 is absent from the
+external view; the DKG-viewt0 gives an insider nothing it did not already hold via its shares,
+and every assumption and channel wall in the paper is already stated over thetopened in GEN.
+Corollary 3(DKG-view collapse).Let A be any adversary against Theorem 4 or the channel
+walls of §8, additionally given theFDKG leak( pk,tr, t, t0,{si,j}j∈C)and the real GEN transcript.
+There isB with identical advantage and essentially identical runtime given only the full public
+keypk full = (ρ,t)and its own corrupt inputs.
+Proof. (1) tr =H( ρ,t1), and(t 1, t0)are deterministic functions of pkfull (t0 =t mod±2d,
+t1 = (t−t0)/2d); the corrupt shares are adversary-chosen. So the leak collapses topkfull. (2)B
+runs Lemma 7’s simulator (fed the collapsed leak) in the(FCoin,F Rand,F Open)-hybrid, and Quorus
+Lemma 6’s simulator for theFRand accept-flag sub-transcripts; the distance is0in that hybrid.
+The only residual is the sub-functionalities’ (FedaBits,F BitLTC) one-time statistical setup soundness
+2−κ(§I.3, Quorusκ= 40): by the trace there it perturbs only whether the sampled key is
+FIPS-exact (short, uniform) and doesnotenter this advantage, sinceA’s forgery and channel-wall
+bounds are transferred by a reduction that embedspkfull as its challenge and never uses the
+honest key (Remark 2), so a mis-sampled key factors out as a known public offset. The setup
+soundness2−κthus sits below every binding wall of §8 and is not driven to2−λ. (3) Every
+bound proven against thepkfull-view therefore holds verbatim: Games 0–3 of Theorem 4 and the
+assumptions (Defs. 3, 4) operate on fullt, and thes2 channel of §8 is priced against the syndrome
+meet-in-the-middle, which uses the publict1 alone (independent of whethert0 is published). The
+published key(ρ,t1)is derived ast 1 = (t−t0)/2d from thetopened in GEN; verification never
+readst 0.
+Remark (drop the “residual channel” framing).The DKG-viewt0 opens no channel beyond the
+already-accounteds 2 channel of §8; not publishingt0 only shrinks the external view, so the cap
+of §8.3 is a conservative floor and there is no separatet0-induced channel.
+I.5 Composition with signing: the key-source seam
+Remark4 (Key-source composition: the game-to-hybrid seam).Theorem 4 is agame(a freshly,
+centrally generated key, thenqs signing queries and a forgery check), whereas the key is delivered
+by arealizationof FDKG (Lemma 7). We close the resulting seam on thekey-sourceside and
+state precisely what stays deferred. Both advantages below answer theqs signing queries with
+41
+thesameidealized (game-based) signer of Theorem 4; they differonlyin the key source. Write
+Advhyb for the malicious-adversary EUF-CMA advantage when the key is handed by the ideal
+FDKG and theqs queries are answered by that idealized signer—the object Theorem 4 and its
+certificate (3) bound—and Advreal for the same advantage, with the same idealized signer, when
+the key instead comes fromΠGEN (withF Rand instantiated byΠ Rand[Sη], §I.3). Then
+Advreal ≤Advhyb +εFDKG,
+an inequality that swapsonlythe key source, so the game-based certificateλprov(qs)transfers to
+the real-keygen hybrid (the signing oracle remains the idealized signer of Theorem 4) up to the
+additiveεFDKG isolated below.
+A game is a valid environment.A UC-realization at distanceεmeans every environmentZ
+distinguishes the real from the ideal execution by at mostε; the EUF-CMA gameissuch aZ
+(it drives keygen, plays the idealized signing oracle, and outputs the win bit), so a realization
+substitutes into it with advantage change≤ε. For the key source this definitional guarantee is
+all we invoke—not the full UC composition theorem—becauseFDKG is calledonce: by Lemma 7,
+Π GEN realizesFDKG with aperfect( ε= 0) simulator in the(FCoin,F Rand,F Open)-hybrid, so the key
+it hands the idealized signing oracle is distributed identically in the real and hybrid games. That
+single-instance substitution is therefore free (ε= 0); εFDKG is entirely the cost of instantiating the
+ideal sub-functionalities.
+Multi-instance concession.Replacing(FCoin,F Rand,F Open)—and, insideΠ Rand[Sη], theFedaBits/FBitLTC/FMult
+gates—by their Quorus realizations [BdCE+26] is a poly-many-instance UC composition, and we
+concedethe union bound
+εFDKG =O(#inst)·ε,
+where# inst counts the sub-functionality instances one keygen invokes (O((k +ℓ)·256)coefficients
+throughΠ Rand, each a bounded number of gate calls) andεis the worst per-instance realization
+error on the forgery-relevant (privacy) side—the edabit cut-and-choose correctness soundness
+2−κis carved out below and is off the forgery ledger—each negligible under honest majority
+(N≥2t + 1). This union bound is the additional real-instantiation layer: Corollary 3’s distance-0
+(and residual-2−κ) statement lives at the(FCoin,F Rand,F Open)-hybrid level, whereasO(#inst)·ε
+measures the cost of instantiating those ideal sub-functionalities on top of it. These are the
+sole reducible realization terms: GEN itself performs no secure multiplication (Lemma 7); the
+multiplications live insideFRand.
+The lone statistical term is off the forgery ledger.The sub-gates carry one non-cryptographic
+quantity, the2−κcut-and-choose setup soundness (κ= 40). It perturbsonlywhether the
+freshly sampled key is FIPS-204-exact (§I.3, Corollary 3) and never enters the forgery advantage;
+we do not restate that trace here. It is thusnota summand ofεFDKG against forgery, andκ
+need not be pushed to2−λ. Consistently, the DKG discloses no secret-dependent value beyond
+(t, t0)—Module-LWE-priced and shown harmless in Corollary 3—and theΠRand accept flags
+are value-independent, charged toεFDKG at keygen time, not to the signing-time reveal set of
+Theorem 4.
+What stays deferred.This closes the seam for the keysourceonly: real keygen composes into
+the game-based bound up toεFDKG. It does not touch the signing side. HereAdvreal is real-keygen
+with the idealized (game-based) signer of Theorem 4, andAdvhyb is ideal-FDKG keygen with
+that same idealized signer—the object Theorem 4 bounds—so the step still outstanding is to
+replace that idealized signer with therealMPC signing sessions, whose online protocol runs its
+own sub-functionalities. That signing-side UC composition isnotfolded intoεFDKG; it remains
+deferred to the extended version, exactly as Remark 2 states.
+I.6 Cost
+The key DKG is light and one-time:≈(k +ℓ)·256bounded coefficients throughΠ Rand (expected
+≈1.6–1.78iterations per coefficient) plus one opening oft. It runs once per key and once per
+rotation, with allNparties present.
+42 TALUS: Threshold ML-DSA
+References
+[BCK+22] Mihir Bellare, Elizabeth Crites, Chelsea Komlo, Mary Maller, Stefano Tessaro, and
+Chenzhi Zhu. Better than advertised security for non-interactive threshold signatures.
+InAdvances in Cryptology — CRYPTO 2022, volume 13510 ofLecture Notes in
+Computer Science, pages 517–550. Springer, 2022.https://eprint.iacr.org/20
+22/833.
+[BdCE+26] Alexander Bienstock, Leo de Castro, Daniel Escudero, Antigoni Polychroniadou,
+and Akira Takahashi. Quorus: Efficient, scalable threshold ML-DSA signatures
+from MPC. Cryptology ePrint Archive, Paper 2025/1163 (revised 2026-01-28), 2026.
+Available from World Wide Web:https://eprint.iacr.org/2025/1163.
+[BDE+18] Jonathan Bootle, Claire Delaplace, Thomas Espitau, Pierre-Alain Fouque, and Mehdi
+Tibouchi. LWE without modular reduction and improved side-channel attacks against
+BLISS. InAdvances in Cryptology — ASIACRYPT 2018, volume 11272 ofLecture
+Notes in Computer Science. Springer, 2018.https://eprint.iacr.org/2018/822.
+[BKM26] Marcus Brinkmann, Nicolai Kraus, and Alexander May. Halfspace learning for lattice
+signature key recovery from signs. Cryptology ePrint Archive, Paper 2026/1366,
+2026. Available from World Wide Web:https://eprint.iacr.org/2026/1366. To
+appear at CRYPTO 2026.
+[BLL+21] Fabrice Benhamouda, Tancrède Lepoint, Julian Loss, Michele Orrù, and Mariana
+Raykova. On the (in)security of ROS. InAdvances in Cryptology — EUROCRYPT
+2021, volume 12696 ofLNCS, pages 33–53, 2021.
+[CdPE+26] Sofía Celi, Rafaël del Pino, Thomas Espitau, Guilhem Niot, and Thomas Prest.
+Efficient threshold ML-DSA. Cryptology ePrint Archive, Paper 2026/013, 2026.
+Available from World Wide Web:https://eprint.iacr.org/2026/013. To appear
+at USENIX Security ’26.
+[CS19] Daniele Cozzo and Nigel P. Smart. Sharing the LUOV: Threshold post-quantum
+signatures. InCryptography and Coding (IMACC 2019), volume 11929 ofLNCS,
+pages 128–153, 2019.
+[DEF+19] Manu Drijvers, Kasra Edalatnejad, Bryan Ford, Eike Kiltz, Julian Loss, Gregory
+Neven, and Igors Stepanovs. On the security of two-round multi-signatures. In
+IEEE Symposium on Security and Privacy (S&P), pages 1084–1101, 2019.https:
+//eprint.iacr.org/2018/417.
+[DKL+18] Léo Ducas, Eike Kiltz, Tancrède Lepoint, Vadim Lyubashevsky, Peter Schwabe,
+Gregor Seiler, and Damien Stehlé. CRYSTALS-Dilithium: A lattice-based digital
+signature scheme.IACR Transactions on Cryptographic Hardware and Embedded
+Systems, 2018(1):238–268, 2018.
+[DKLS25] Antonín Dufka, Semjon Kravtšenko, Peeter Laud, and Nikita Snetkov. Trilithium:
+Efficient and universally composable distributed ML-DSA signing. Cryptology
+ePrint Archive, Paper 2025/675, 2025. Available from World Wide Web:https:
+//eprint.iacr.org/2025/675 . 2-party protocol; requires trusted Correlated
+Randomness Provider.
+[dPKPR24] Rafaël del Pino, Shuichi Katsumata, Thomas Prest, and Mélissa Rossi. Raccoon: A
+masking-friendly signature proven in the probing model. InAdvances in Cryptology –
+CRYPTO 2024, volume 14920 ofLecture Notes in Computer Science, pages 409–444.
+Springer, 2024.
+[KG21] Chelsea Komlo and Ian Goldberg. FROST: Flexible round-optimized Schnorr thresh-
+old signatures. InSelected Areas in Cryptography (SAC 2020), volume 12804 of
+Lecture Notes in Computer Science, pages 34–65. Springer, 2021.
+43
+[KLS18] Eike Kiltz, Vadim Lyubashevsky, and Christian Schaffner. A concrete treatment
+of Fiat–Shamir signatures in the quantum random-oracle model. InAdvances in
+Cryptology – EUROCRYPT 2018, volume 10822 ofLecture Notes in Computer
+Science, pages 552–586. Springer, 2018.
+[Nat24] National Institute of Standards and Technology. FIPS PUB 204: Module-Lattice-
+Based Digital Signature Standard. Federal Information Processing Standards Publi-
+cation FIPS PUB 204, National Institute of Standards and Technology (NIST), 2024.
+Available from World Wide Web:https://csrc.nist.gov/pubs/fips/204/final.
+[Nio26] Guilhem Niot. Key-recovery attacks on TALUS: A cryptanalytic note. IACR
+Cryptology ePrint Archive, Paper 2026/1386, 2026.https://eprint.iacr.org/20
+26/1386.
+[PMS26] Alice Pellet-Mary and Michel Seck. On the properties of HighBits and LowBits
+functions and their applications. IACR Cryptology ePrint Archive, Paper 2026/895,
+2026.https://eprint.iacr.org/2026/895.
+[Sha79] Adi Shamir. How to share a secret.Commun. ACM, 22(11):612–613, 1979.
+[Wag02] David Wagner. A generalized birthday problem. InAdvances in Cryptology —
+CRYPTO 2002, volume 2442 ofLecture Notes in Computer Science, pages 288–304.
+Springer, 2002.
+[YLW25] Lianglin Yan, Ming Luo, and Mingsheng Wang. Speedup signing: pre-rejection
+sampling towards Dilithium.Cybersecurity, 8(1):10, 2025.
