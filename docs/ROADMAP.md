@@ -69,13 +69,13 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Deadline extension confirmed by user (1 Oct 2026)
 - [ ] Run Turnitin check and submit
 - [x] Re-verified citations 2, 16, 23, 24 online (1 Oct 2026)
-- [ ] Re-verify citations 21 (Shamir), 22 (Feldman) (from memory)
+- [x] Re-verify citations 21 (Shamir), 22 (Feldman): checked against Crossref 13 Oct (report notes)
 - [ ] Final read-through of report abstract and numbers before submitting
 
 ## Ethics / disclosure
 - [x] Read final NIST call text (IR 8214C), selectively (13 Oct): public analysis allowed and expected; NIST does not require notifying teams first (our own policy); forum is MPTC-forum
 - [x] Ask course instructor if any permission is needed (16 Oct: instructor says fine; continue as a university project; email authors and choose a venue only after the project is done)
-- [ ] Plan a fallback deliverable if no attack is found (harness plus measured margins)
+- [x] Fallback deliverable if no attack is found: the harness plus the measured-margin scorecard, `docs/PAPER_OUTLINE.md` (16 Oct)
 - [x] Draft author-notification emails: `docs/disclosure_drafts.md` (Kao P2, Mithril, Devevey et al.), 11 Oct, not sent
 
 ## 7. Paper (plan in docs/PAPER_PLAN.md, agreed 13 Oct 2026)
