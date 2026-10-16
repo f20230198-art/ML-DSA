@@ -23,6 +23,7 @@ ITEMS = [
     ("ls-error-plot", "Figure: least-squares error vs N with theory curve", ["-m", "experiments.ls_error_plot"], "fast-ish", f"{R}/ls_error_vs_N.png", False),
     ("coordinator-tail", "Scorecard: TALUS coordinator out-of-box tail probabilities", ["-m", "experiments.talus_coordinator_tail"], "fast", f"{R}/talus_coordinator_tail.txt", True),
     ("m2-sim", "TALUS m = 2 insider simulation (writes .json; table in .txt made from it)", ["-m", "experiments.talus_m2_sim", "--w", "32", "64", "128", "256", "--trials", "20"], "medium (CPU, ~1 h)", f"{R}/talus_m2_sim.json", False),
+    ("quorus-lemma8", "Quorus Lemma 8 exhaustive toy check (normaliser erratum)", ["-m", "experiments.quorus_lemma8_check"], "fast", f"{R}/quorus_lemma8_check.txt", True),
     ("kao-p2-real", "Kao P2 broadcast leak at real ML-DSA size (s1 from one signature)", ["-m", "experiments.kao_p2_real_demo", "--params", "ML-DSA-44", "--keys", "5"], "fast", f"{R}/kao_p2_real_demo_44.txt", True),
     ("item8-ilp", "TALUS ILP trials behind the success table", ["sh", "experiments/run_item8.sh"], "heavy (GPU, hours)", f"{R}/item8/ilp_*.json", False),
     ("partial-recovery", "TALUS partial recovery at the cap", ["-m", "experiments.partial_recovery"], "medium (GPU, minutes)", f"{R}/partial_recovery.json", False),

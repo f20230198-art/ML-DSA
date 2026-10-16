@@ -653,3 +653,9 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Result (ML-DSA-44, optimistic for the attacker):** the estimate's error at the cap (2^13 signatures) is about 1.5, as big as the secret's own spread (1.41), so the hint is weak. The lattice cost falls from 2^123.8 to 2^120.6 (3.2 bits) at the cap, 2^118.6 at 2^14, 2^113.9 at 2^15 (still hopeless). The practical threshold is therefore still the full-recovery wall at about 2^16, as before. A lattice finish does not push it below the cap.
 - **Items of the original item 4:** joint solving over ring elements gives nothing (elements are independent given the challenges); the hint h inside the signature was not evaluated separately; the lattice finish is the result above.
 - **Caveats:** Gaussian posterior and a Python core-SVP estimate (2016 model), only ML-DSA-44; a per-coordinate posterior from sampling would be better but cannot beat the information limit.
+
+## 2026-10-16: Quorus Lemma 8 erratum, script kept
+
+- **What:** `experiments/quorus_lemma8_check.py` enumerates every value a' in a small modulus q, for every allowed shift s, and compares the result with the probabilities printed in Quorus' Lemma 8.
+- **Result:** on 6 small parameter sets the output distribution is the same for every s (so the lemma's real claim holds), but the printed denominator 2(beta+1)delta+1 makes the probabilities add up to only 0.84-0.95, not 1. The correct denominator is (2 beta+1)delta+1, and with it the counts match exactly. A typo in the paper, not a security problem; the earlier note said the script had not been saved, now it is.
+- **Idea in simple words:** a probability table must add up to 1; if it does not, a number in the formula is wrong. Checking all possible inputs on a tiny version is a cheap way to find which.
