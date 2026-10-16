@@ -60,7 +60,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [~] Rerun on actual reference code: Mithril params/hyperball.sage RUN in Sage (11 Oct), reproduces App. A radii and boundI 2^-50.1 vs exact 2^-33.5. Go signing code, Quorus/Trilithium/TALUS/Kao code: not run (Kao code not public)
 
 ## Reading gaps
-- [~] Full Mithril (ePrint 2026/013) read except App. D, E and most of G (8 Oct)
+- [x] Full Mithril (ePrint 2026/013) read (App. D, E, G read 16 Oct at hybrid level; see notes/schemes/mithril.md)
 - [x] Quorus and Trilithium read in full (13 Oct, notes/schemes/*.md): hypotheses confirmed; our note that A y + e_w is "uniform" holds per coefficient only; paper errors found: Quorus Func. 6 bound gamma2-beta-eta vs gamma2-beta elsewhere (checked in PDF p. 32), Lemma 8 constant; Trilithium H-F3 simulation gap visible in p. 24 text
 
 ## Coursework: Phase 1 report
@@ -74,7 +74,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 
 ## Ethics / disclosure
 - [x] Read final NIST call text (IR 8214C), selectively (13 Oct): public analysis allowed and expected; NIST does not require notifying teams first (our own policy); forum is MPTC-forum
-- [ ] Ask course instructor if any permission is needed
+- [x] Ask course instructor if any permission is needed (16 Oct: instructor says fine; continue as a university project; email authors and choose a venue only after the project is done)
 - [ ] Plan a fallback deliverable if no attack is found (harness plus measured margins)
 - [x] Draft author-notification emails: `docs/disclosure_drafts.md` (Kao P2, Mithril, Devevey et al.), 11 Oct, not sent
 
@@ -89,7 +89,7 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [~] 8. TALUS statistics. Done 14 Oct for one ring element: 20 trials per point, Clopper-Pearson CIs, logistic fit; 95% success at 2^16.01 / 2^17.40 / 2^17.30 (-44/-65/-87), +3.0/+3.4/+3.3 bits over the cap, +0.8/+1.0/+1.1 over the wall (`experiments/results/item8/summary.txt`). Still open: full-secret recovery with ILP at 20 trials.
 - [x] 9. Corrected Devevey A.6 bound with proof. Done 14 Oct: `docs/a6_corrected_bound.md` (part a: cylinder, exponent (n-1)/2; part b: sharp, within 0.04 bits of exact at Mithril sizes); 320-point check, 0 violations, printed bound invalid at 149 (`experiments/a6_corrected_bound.py`)
 - [~] 10. Framing and scorecard draft: `docs/PAPER_OUTLINE.md` (16 Oct)
-- [ ] 11. Disclosure (ask instructor, send emails)
+- [~] 11. Disclosure: instructor OK (16 Oct). Emails and venue decided only after the project ends; nothing sent
 - [x] 12. Open artifact driver `experiments/reproduce.py` (16 Oct; fast items verified identical, heavy items listed only)
-- [ ] 13. Venue rewrite
+- [ ] 13. Venue rewrite (deferred by user, 16 Oct: decide after the project is done)
 - Targets: PQCrypto 2027 (paper 24 Nov 2026); USENIX Security '27 cycle 2 (26 Jan 2027) if items 1-3 find a hole

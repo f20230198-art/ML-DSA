@@ -616,3 +616,9 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Why:** venues like USENIX require an artifact that lets a reviewer redo the results. A listed command per result also makes our own claims checkable.
 - **Check:** the fast items (insider walls, m = 2 Fisher check, A.6 bound, TALUS success table, architecture figure) rerun in about 25 s and give output identical to the stored files (git shows no changes).
 - **Not covered:** heavy items (the GPU ILP trials, Sage hint estimator, Mithril Go transcripts) are listed with their commands but not rerun by `--fast`.
+
+## 2026-10-16: Phase 1 feedback re-check, Mithril appendices, project scope
+
+- **Feedback check (all 9 items):** (1) P1 TALUS cap is the core, P2-P4 stretch: done in the report. (2) Mithril, Quorus, Trilithium read in full: Quorus/Trilithium 13 Oct; Mithril App. D, E, G read today (notes/schemes/mithril.md), so this is now complete. (3) least-squares parameters, trials, seeds and plot: done. (4) architecture diagram: done. (5) Quorus is ePrint 2025/1163 in both the LaTeX and the docx source: checked. (6) Shamir and Feldman checked against Crossref: done 13 Oct. (7) withdrawn ePrints are listed for history only: done. (8) symbols defined at first use: done in the rewrite. (9) Phase 3 prototype stated: done. The report PDF is 10 pages. Still true: the LaTeX version was never compiled (no LaTeX installed here).
+- **What I read in Mithril's appendices:** the distributed key generation, the Gaussian sharing proofs and the unforgeability game hops. Nothing new broke; the proof still loses probability in exactly the tail bound we found to be misprinted.
+- **Project scope decision (from the user):** the instructor said it is fine to continue as a university project. Disclosure emails and any venue choice wait until the project is finished.
