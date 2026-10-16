@@ -1,0 +1,5 @@
+ML-DSA-44 full s2 (k = 4 ring elements, ILP finish, 120 s limit, seed 2081); cap 2^13
+       N  log2N  elem ok     full ok   95% CI full   p_elem^4
+   62000  15.92   57/ 80    3/ 20  [0.03, 0.38]  0.26
+   66000  16.01   75/ 80   15/ 20  [0.51, 0.91]  0.77
+   70000  16.10   78/ 80   18/ 20  [0.68, 0.99]  0.90
