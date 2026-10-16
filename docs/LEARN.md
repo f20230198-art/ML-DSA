@@ -603,3 +603,9 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **Result:** at N = 2^13 (the cap) about 43% of the coefficients round to the right value (random guessing: 20%); at 2^14 about 47%. Picking only the coefficients that sit close to an integer raises precision only to about 50-65%, with 15-30% kept. So at the cap we get a soft hint, not certain knowledge.
 - **What this means:** a lattice finish needs hard (certain) coordinates or a proper per-coordinate probability. Neither is available yet, so no attack under the cap is shown. A real test needs the posterior for each coordinate (sampling inside the set of secrets consistent with all signatures) and an LWE-with-soft-hints estimate. Not done.
 - **Caveats:** 2 trials per point; the LP picks a corner of the consistent set, which is a biased point guess. Joint solving across ring elements adds nothing by itself: the elements are independent given the challenges.
+
+## 2026-10-16: paper outline and scorecard (paper plan item 10)
+
+- **What:** `docs/PAPER_OUTLINE.md`: the claim of the paper, the threat model, a scorecard table with one row per tested channel, and the section plan.
+- **Idea in simple words:** a paper needs one clear sentence about what is new. Ours: a first systematic check of how much each threshold ML-DSA proposal leaks, with a test kit that has known-leaky and known-safe controls. The scorecard puts every result next to its margin (how many bits of safety remain) and the file that proves it.
+- **Honest state:** no break of an official submission. The strongest findings are the incorrect printed bound in Mithril's proof, the Kao P2 broadcast issue (not yet demonstrated on real ML-DSA-44), and the thin 3-bit margin for TALUS' outsider view.
