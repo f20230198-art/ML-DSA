@@ -44,7 +44,7 @@ def main():
             ok = r == s
             dist = np.abs(x - np.rint(x))
             row = dict(N=N, trial=t, frac_ok=float(ok.mean()), max_err=float(np.abs(x - s).max()),
-                       med_err=float(np.median(np.abs(x - s))), converged=bool(info["converged"]),
+                       med_err=float(np.median(np.abs(x - s))), rms_err=float(np.sqrt(np.mean((x - s) ** 2))), converged=bool(info["converged"]),
                        seconds=time.time() - t0)
             for thr in (0.05, 0.1, 0.2, 0.3):
                 keep = dist < thr

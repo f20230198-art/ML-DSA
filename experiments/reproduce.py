@@ -26,6 +26,7 @@ ITEMS = [
     ("kao-p2-real", "Kao P2 broadcast leak at real ML-DSA size (s1 from one signature)", ["-m", "experiments.kao_p2_real_demo", "--params", "ML-DSA-44", "--keys", "5"], "fast", f"{R}/kao_p2_real_demo_44.txt", True),
     ("item8-ilp", "TALUS ILP trials behind the success table", ["sh", "experiments/run_item8.sh"], "heavy (GPU, hours)", f"{R}/item8/ilp_*.json", False),
     ("partial-recovery", "TALUS partial recovery at the cap", ["-m", "experiments.partial_recovery"], "medium (GPU, minutes)", f"{R}/partial_recovery.json", False),
+    ("soft-hint-lwe", "TALUS soft-hint value in lattice cost (uses partial_recovery_rms.json)", ["-m", "experiments.soft_hint_lwe"], "fast", f"{R}/soft_hint_lwe.txt", True),
     ("mithril-real", "Mithril views on real Go transcripts (needs Go, harness/mithril_go/dump_test.go)", ["-m", "experiments.mithril_real_transcripts"], "medium", f"{R}/mithril_real_transcripts.txt", True),
     ("mithril-hint", "Mithril ML-DSA-65 hint accounting (Sage script, run separately)", ["sage", "experiments/mithril_hint_estimator_full65.sage"], "heavy (Sage)", f"{R}/mithril_hint_estimator_full65.txt", False),
 ]
