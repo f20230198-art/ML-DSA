@@ -80,6 +80,8 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Overleaf package `report/latex/overleaf_upload.zip` (main.tex + figures/); \graphicspath now also searches ./ and figures/
 - [x] Rubric check (29 Oct): intro updated with 2026 context and proposed method; Section IV titled Proposed Solution
 - [x] Results strengthened from saved data (29 Oct): Tables X-XII, XIV and Figs. 4-5 via experiments/report_extras.py; wording fixes (controls = one element; TEE T = 7/11/9)
+- [x] Plain-language pass on both versions (29 Oct): short sentences, few dashes/colons in prose, no content cut; docx 13 pages; Overleaf zip updated
+- [ ] Students rewrite the report in their own words (course AI rule), then Turnitin under 10%
 - [ ] Compile on Overleaf (upload all 5 PNGs) (pdfLaTeX) and check page count; page target still open (brief once said 20)
 - [ ] Rubric note: "AI-generated content will not be evaluated": report prose to be rewritten by the students in their own words
 - [ ] Final read-through of report abstract and numbers before submitting
