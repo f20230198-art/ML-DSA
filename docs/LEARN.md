@@ -665,3 +665,42 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 - **What:** `experiments/run_item8_full.sh` and `experiments/item8_full_analysis.py`; results in `experiments/results/item8_full/`. A whole ML-DSA-44 s2 is 4 polynomials. For each N we ran 80 independent polynomial recoveries (fresh seed 2081, ILP finish, 120 s limit) and grouped them in fours: 20 whole secrets per N. A whole secret counts as recovered only if all 4 polynomials are exactly right.
 - **Result:** N = 62,000 (2^15.92): 3/20 whole secrets (95% interval 0.03-0.38); N = 66,000 (2^16.01): 15/20 (0.51-0.91); N = 70,000 (2^16.10): 18/20 (0.68-0.99). The earlier prediction from single polynomials (success to the power 4) was 0.26 / 0.77 / 0.90, all inside the intervals. So the independence assumption holds in practice. About 90% whole-key recovery at 2^16.1 is 3.1 bits above the cap of 2^13.
 - **Caveats:** ML-DSA-44 only (-65 and -87 still use the extrapolation); the ILP time limit (120 s) cost a few polynomials near the threshold, so the true attacker success may be slightly higher; the channel is our simulation of TALUS, not the official package.
+
+## 2026-10-29: report brought up to date; withdrawn sources checked
+
+- **What:** the report (`report/build_report.py` and `report/latex/phase1_report.tex`) was last rebuilt on 13 Oct, so it missed everything from 14-16 Oct. Both versions now carry those results. The rebuilt PDF is still exactly 10 pages.
+- **What changed in simple words:**
+  - The main TALUS table now gives the number of signatures needed for a 95% chance of recovering the *whole* secret, not just one of its polynomials: 2^16.09 / 2^17.51 / 2^17.51 for ML-DSA-44/65/87. That is 3.1 / 3.5 / 3.5 bits (8-11x) above the cap. Only the ML-DSA-44 number comes from a real whole-secret run; the other two are predictions that the -44 run confirmed.
+  - A new paragraph lists the other ways around the cap we checked and closed: key rotation, rejected attempts, a corrupt insider, a corrupt coordinator, and using a partial guess in a lattice attack.
+  - Mithril: the real Go code was run and its signatures show no trace of s2; our corrected version of the faulty bound is mentioned.
+  - Kao P2: the key-from-one-signature attack is now shown at real ML-DSA size (15/15 keys per set).
+  - The Phase 3 plan no longer lists work that is already done (Mithril Go code, ILP for -65/-87 per polynomial).
+- **Why "95%" instead of "99%":** the 14 Oct runs fit a smooth S-shaped curve (a *logistic fit*) to how often the attack succeeds at each signature count. The 95% point of that curve is more reliable from 20 trials than a 99% point, which would need many more trials to pin down.
+- **Withdrawn papers (feedback item 7):** two cited preprints were withdrawn by their authors. A careful reader should not see us leaning on them. We checked every place they appear: they are only mentioned as history, never as support for a claim. One table still rated one of them as "supporting", so it is now "background".
+- **Not done:** the LaTeX version still has not been compiled (no TeX installed), so its page count is unchecked.
+
+## 2026-10-29: success-vs-N figure, missing definitions, the factor-12 explanation
+
+- **What:** a new figure `experiments/results/talus_success_vs_N.png` (script `experiments/talus_success_plot.py`, reads existing results only, no new runs) added to the report as Fig. 3 with a short "superiority over the baseline" paragraph; five terms now defined at first use; one sentence explaining why least squares needs about 12x formula (1). Both docx and LaTeX edited; docx still 10 pages, nothing trimmed.
+- **Why:** the Phase 1 report promised "recovery-vs-samples curves" as the Phase 2 output, and the Phase 2 rubric asks to "prove the superiority of the proposed method". The plot shows it at a glance: least squares recovers nothing at any N we tried, while the edge estimator with ILP reaches 95% at about 2^16, i.e. about 2^15.7 (50,000x) fewer signatures than least squares would need.
+- **The factor-12 in simple words:** formula (1) asks only that the *typical* error on one coefficient be 1/2. But to round all 256 coefficients right at the same time, even the unluckiest coefficient must be within 1/2, so the typical error must be about 3.5 times smaller. Error falls like 1/sqrt(N), so 3.5 times smaller error costs 3.5^2 = about 12 times more signatures.
+- **Terms now defined:** MLWR (Module Learning With Rounding: LWE where rounding replaces the random noise), TEE (trusted execution environment: secure hardware enclave), NTT (number-theoretic transform: the mod-q version of the FFT that makes polynomial multiplication slot-by-slot), the r0 check (ML-DSA's second rejection check, on LowBits(w - c s2)), core-SVP (pricing a lattice attack by the cost of its one shortest-vector search).
+- **New basic:** *success curve* = for each number of signatures N, the fraction of trials in which the attack recovers the key exactly. The steeper and further left the curve, the better the attack.
+
+## 2026-10-29: literature survey updated with recent papers
+
+- **What:** a new survey subsection (II-F, "Recent work, 2024-2026") with nine new sources, refs [26]-[34], in both the docx and LaTeX; the literature matrix grows from 24 to 33 sources. Student IDs are now the same in both versions. The docx is 11 pages (nothing trimmed, as asked).
+- **Why:** the Phase 2 rubric gives a mark for "updated literature survey with more recent papers".
+- **How:** searched ePrint, dblp and the NIST threshold-call writeups (29 Oct 2026); every title, author list and venue was checked on the paper's own page before it went in. Depth is recorded honestly in `notes/papers.md`: mostly abstracts only.
+- **What the new papers say, simply:**
+  - *Ringtail, Espitau-Katsumata-Takemure, Tanuki:* lattice threshold signatures that give up "looks like a normal ML-DSA signature". In return they need only two rounds and work with 1000+ parties. This shows what FIPS 204 compatibility costs.
+  - *TOPCOAT:* an earlier two-party Dilithium from the same group that later wrote Trilithium.
+  - *ML-DSaaS:* a faster version of Mithril for wallet-style services.
+  - *Meng (posted 20 Oct 2026):* a **fault attack**: if a device is tricked into reusing its random nonce, a party's key share leaks. It claims key recovery on Mithril. This is a physical attack (someone tampers with the hardware), which our project does not study; we only read the abstract.
+  - *Two 2026 side-channel papers on single-signer ML-DSA:* smarter estimators beat plain least squares by large factors, the same lesson as our TALUS result.
+- **New basic:** *fault attack* = the attacker disturbs the device while it computes (power glitch, laser, clock trick) so it makes a mistake that leaks secrets. Different from our *transcript* attacks, which only read messages the protocol publishes.
+
+## 2026-10-29: Phase 2 title, contribution split, Overleaf package
+
+- **What:** the subtitle in both versions is now "Phase 2 Report - Cryptography". The LaTeX contribution table now lists Phase 2 work split half and half (both members use one account, so git history does not show who did what; the split is an agreed assumption). `report/latex/overleaf_upload.zip` holds `main.tex` and a `figures/` folder; the LaTeX now looks for figures next to itself, in `figures/`, or in the repo's results folder, so the same file compiles locally and on Overleaf.
+- **Why:** Overleaf only sees uploaded files; the old figure path pointed two folders up into the repo, which does not exist there.

@@ -70,6 +70,16 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [ ] Run Turnitin check and submit
 - [x] Re-verified citations 2, 16, 23, 24 online (1 Oct 2026)
 - [x] Re-verify citations 21 (Shamir), 22 (Feldman): checked against Crossref 13 Oct (report notes)
+- [x] Bring the report up to date with the 14-16 Oct results (29 Oct): Table IX now whole-secret 95% points with ILP (3.1/3.5/3.5 bits over the cap), other TALUS routes closed, Mithril Go transcripts and corrected A.6 bound, Kao P2 at full size, Quorus Lemma 8 denominator, Phase 3 list and plan table; docx and LaTeX both edited; PDF still 10 pages
+- [x] Withdrawn ePrints [5], [15] (feedback item 7): checked 29 Oct, no claim rests on them; [5] downgraded M -> L in the matrix, counts now 13/5/6
+- [x] Success-vs-N figure (Phase 1 promised "recovery-vs-samples curves"): `experiments/talus_success_plot.py`, Fig. 3 in both report versions; 5 terms (MLWR, TEE, NTT, r0 check, core-SVP) defined at first use; factor-12 LS gap explained (29 Oct); docx 10 pages
+- [x] Student IDs: both versions use "Ashmit Dhown 2023A7PS0205U, Srivathsa H Honyal 2023A7PS0198U" (29 Oct, user)
+- [x] Updated literature survey (rubric 1 mark), 29 Oct: new Sec. II-F "Recent work 2024-2026" with 9 verified sources [26]-[34] (Ringtail, AOM-MLWE TS, Tanuki, TOPCOAT, ML-DSaaS, Meng fault paper, two 2026 ML-DSA leakage estimators, HAETAE); matrix now 33 sources; docx now 11 pages (user: do not trim)
+- [ ] Optional: user downloads ePrint 2026/2566 (Meng, fault attack on Mithril/TALUS/Trilithium) for a full read; only the abstract page was read
+- [x] Title "Phase 2 Report - Cryptography" in both versions; LaTeX contribution table split half and half (user: assume, same account used by both), 29 Oct
+- [x] Overleaf package `report/latex/overleaf_upload.zip` (main.tex + figures/); \graphicspath now also searches ./ and figures/
+- [ ] Compile on Overleaf (pdfLaTeX) and check page count; page target still open (brief once said 20)
+- [ ] Rubric note: "AI-generated content will not be evaluated": report prose to be rewritten by the students in their own words
 - [ ] Final read-through of report abstract and numbers before submitting
 
 ## Ethics / disclosure

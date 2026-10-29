@@ -105,3 +105,19 @@ Appendix proofs of every paper above; Raccoon, Gur-Katz-Silde, Dilithium, FROST 
 | 26 | Devevey, Fawzi, Passelegue, Stehle, On Rejection Sampling in Lyubashevsky's Signature Scheme | ASIACRYPT 2022, LNCS 13794, pp. 34-64 | Published version has no A.6 bound | Targeted (full text searched, Sec. 4 lemma read) |
 
 - **TALUS arXiv 2603.22109v5** (verified, downloaded 15 Oct 2026, 43 pages): Sec. 8 Theorem 4 paragraph and App. D insider/malicious passages read; rest not read in full.
+
+## Added 2026-10-29 (Phase 2 survey update; report refs [26]-[34])
+
+All metadata verified online 29 Oct 2026 (ePrint pages, dblp, TCHES, Springer listings via search). Depth is honest: none of these was read in full.
+
+| Report ref | Paper | Venue / ID | What it gives us | Depth |
+|---|---|---|---|---|
+| [26] | Boschini, Kaviani, Lai, Malavolta, Takahashi, Tibouchi, Ringtail | IEEE S&P 2025, doi 10.1109/SP61157.2025.00070; ePrint 2024/1113 | Two-round LWE threshold sig, not ML-DSA output; 13.4 KB sig, 1024 parties | Abstract (ePrint page) |
+| [27] | Espitau, Katsumata, Takemure, Two-round threshold signature from algebraic one-more LWE | CRYPTO 2024 Part VII pp. 387-424 (dblp); J. Cryptol. 38(4) 2025, doi 10.1007/s00145-025-09549-2; ePrint 2024/496 | New AOMMLWE assumption, ~11 KB sig at 1024 signers | Abstract (ePrint page); LNCS volume number not confirmed |
+| [28] | Boschini et al. (12 authors), Tanuki preview writeup v0.1 | NIST MPTC First Call, 2026-01-21 | Raccoon-based two-round scheme, dishonest majority, not ML-DSA compatible | Title page and abstract (PDF downloaded via fetch) |
+| [29] | Snetkov, Vakarjuk, Laud, TOPCOAT | Discover Computing 27(1), art. 18, 2024, doi 10.1007/s10791-024-09449-2 | Earlier two-party Dilithium from the Trilithium group | Abstract (publisher summary via search) |
+| [30] | Rambaud, Roth, Urban, Threshold Signatures as-a-Service (ML-DSaaS) | ePrint 2026/814 (Apr 2026) | Mithril variant, rounds 1-2 merged, online 2-3x faster | Abstract (ePrint page) |
+| [31] | Y. Meng, Fault-induced nonce repetition in threshold lattice signatures | ePrint 2026/2566 (20 Oct 2026) | Fault attack: key recovery on Mithril; Quorus immune; TALUS if preprocessing reuse; Trilithium fault-fragile | Abstract page only; PDF blocked (403). Not reproduced. User could download it for a full read |
+| [32] | Schubert, Mueller, Seifert, Margraf, Descent into Broken Trust | ePrint 2026/472 (Mar 2026) | One-bit nonce leakage, hill climbing, 37-68x fewer relations | Abstract (ePrint page) |
+| [33] | Paskarbeit, Schubert, Margraf, Seifert, Statistical inference from noisy randomness leakage | ePrint 2026/1712 (Aug 2026) | Bit-error-rate estimator, 20-44% fewer relations | Abstract (ePrint page) |
+| [34] | Cheon, Choe, Devevey, Gueneysu, Hong, Krausz, Land, Moeller, Stehle, Yi, HAETAE | TCHES 2024(3), pp. 25-75, doi 10.46586/tches.v2024.i3.25-75; ePrint 2023/624 | Hyperball FSwA signature; computes the exact intersection value (cited in Mithril finding) | Abstract; exact-value claim comes from our 13 Oct citing-works check |

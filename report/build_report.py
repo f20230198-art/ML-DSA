@@ -1,6 +1,6 @@
 """Builds report/Phase1_Report.docx. Run: python build_report.py
 
-Revised 13 Oct 2026: instructor feedback applied and Phase 2 results added.
+Revised 13 Oct 2026: instructor feedback applied and Phase 2 results added. Updated 29 Oct 2026 with the 14-16 Oct results.
 Numbers in Sections IV-V come from docs/ROADMAP.md, docs/LEARN.md and experiments/results/*.
 """
 import json
@@ -154,24 +154,25 @@ run(p, "Breaking the Threshold: A Systematic Cryptanalysis of Threshold ML-DSA "
        "Submissions to the NIST Multi-Party Threshold Call", bold=True).font.size = Pt(14)
 p = doc.add_paragraph()
 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-run(p, "Phase 1 Report (revised, with Phase 2 results) – Cryptography, BITS Pilani, Dubai Campus")
+run(p, "Phase 2 Report – Cryptography, BITS Pilani, Dubai Campus")
 p = doc.add_paragraph()
 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-run(p, "Ashmit Dhown (f20230205) · Srivathsa H Honyal (f20230198)", italic=True)
+run(p, "Ashmit Dhown 2023A7PS0205U · Srivathsa H Honyal 2023A7PS0198U", italic=True)
 
 # ---------------- Abstract ----------------
 para("**Abstract—**ML-DSA (FIPS 204) is the NIST-standardised lattice-based digital signature, designed for a single "
      "signer. Splitting its key among several parties is hard because rejection sampling and rounding do not combine well "
      "with secret sharing. NIST's 2026 First Call for multi-party threshold schemes (IR 8214C) has four proposals whose "
      "signatures verify under an unmodified ML-DSA verifier: Mithril, Quorus, SplitForge/Trilithium and TALUS. We survey "
-     "twenty-four sources on these schemes and on leakage attacks against lattice signatures, and make the TALUS per-key "
+     "thirty-three sources on these schemes and on leakage attacks against lattice signatures, and make the TALUS per-key "
      "signing cap our core problem. A leakage-testing harness built in Phase 2 (ML-DSA passing 81 NIST ACVP vectors, scheme "
-     "views, least-squares, bounded-noise and integer-programming estimators) recovers the TALUS s2 channel secret of one "
-     "ML-DSA-44 ring element from about 7×10^4 signatures (2^16.1), which is 3.1 bits above the cap and 0.9 bits above the "
-     "authors' uniqueness wall in our channel model: a thinner margin, not a break. Controls give 9/9 recoveries on a leaky "
-     "variant and 0/18 false keys on genuine ML-DSA. Along the way we reproduce both published attacks on an early TALUS "
-     "version and find a parameter-proof gap in Mithril and a one-signature key exposure in a predecessor design; the "
-     "latter two await coordinated disclosure.")
+     "views, least-squares, bounded-noise and integer-programming estimators) recovers the whole TALUS s2 channel secret of "
+     "ML-DSA-44 in 18/20 trials at 7×10^4 signatures (2^16.1); for 95% success it needs about 3.1 bits (ML-DSA-44) and 3.5 "
+     "bits (-65, -87) more than the cap allows and about 1 bit more than the authors' uniqueness wall, in our channel model: "
+     "a thin margin, not a break. Controls give 9/9 recoveries on a leaky variant and 0/18 false keys on genuine ML-DSA. "
+     "Along the way we reproduce both published attacks on an early TALUS version, find a parameter-proof gap in Mithril "
+     "(whose real Go transcripts show no s2 leak) and demonstrate a one-signature key exposure in a predecessor design at "
+     "full ML-DSA size; the latter two await coordinated disclosure.")
 
 p = doc.add_paragraph()
 p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -230,10 +231,12 @@ para("**Why now, and what this report contributes.** NIST's First Call (IR 8214C
 para("**Survey method.** Sources came from the First Call submissions page, the proposals' ePrint/arXiv entries and their "
      "predecessors, and searches of ePrint, TCHES, EUROCRYPT and ASIACRYPT (“Dilithium rejected signatures ILP”, “ILWE”, "
      "“threshold lattice signatures”). A source was kept if it defines, attacks or supplies a technique against a threshold "
-     "ML-DSA design. Metadata of all references were verified online (Shamir [21] and Feldman [22] against Crossref).")
-para("**Scope and honesty note.** Quorus [8] and Trilithium [9] were read in full; Mithril [4] in full except Appendices D, E "
-     "and most of G; Kao [12] main text and Appendices B–O. Our own harness code was run (Section IV); the schemes' reference "
-     "code was not, except the Mithril authors' parameter script. Every TALUS number relies on our channel model, because "
+     "ML-DSA design. Metadata of all references were verified online (Shamir [21] and Feldman [22] against Crossref). "
+     "For Phase 2 the search was repeated in October 2026 (ePrint 2024–2026 and the NIST call's preview writeups), "
+     "adding nine sources [26]–[34] (Section II-F).")
+para("**Scope and honesty note.** Quorus [8], Trilithium [9] and Mithril [4] were read in full (Mithril Appendices D, E and G "
+     "at the level of the proof hybrids); Kao [12] main text and Appendices B–O. Our own harness code was run (Section IV); of "
+     "the schemes' reference code only Mithril's parameter script and Go signing code were run. Every TALUS number relies on our channel model, because "
      "the v0.22 writeup does not list the values released per signature. Results are labelled as measured, derived or hypothesis.")
 
 # ---------------- Literature survey ----------------
@@ -272,7 +275,8 @@ para("**Quorus** [8] (J.P. Morgan; USENIX Security 2026) modifies signing to be 
      "can be simulated relies on the noise e_w.")
 para("**SplitForge / Trilithium** [9] (Cybernetica) targets a server and a phone plus a correlated randomness provider (CRP). "
      "It is UC-secure against one malicious party among the three, takes 14 rounds per signing attempt, and publishes the "
-     "high bits w_H even for rejected attempts, justified by an MLWR-type assumption that the paper itself calls "
+     "high bits w_H even for rejected attempts, justified by an MLWR-type assumption (Module Learning With Rounding: like MLWE, but the "
+     "random noise is replaced by deterministic rounding) that the paper itself calls "
      "non-standard for ML-DSA parameters. It uses an actively secure comparison protocol and a new rounding protocol, has a "
      "Rust implementation, is given both for unmodified ML-DSA and for a Quorus-style variant with CRP-supplied noise e_w, "
      "and is part of Cybernetica's SplitKey submission. The writeup concedes that a malicious CRP can mount "
@@ -281,7 +285,8 @@ para("**TALUS** [10,11] (Codebat) introduces the Boundary Clearance Condition (B
      "31.7% and 39.1% at ML-DSA-44/65/87) s2 provably cannot push w across a rounding boundary, so rejection can be done "
      "offline on preprocessed nonces, giving a two-round distributed MPC profile. The paper states that its cap-based shield "
      "for the s2 channel is model-supported rather than proven, and proves that any FIPS-exact scheme revealing a summed "
-     "(Irwin–Hall) nonce admits key recovery after about 2^30 signatures. A TEE-assisted one-round variant appears in v0.22 "
+     "(Irwin–Hall) nonce admits key recovery after about 2^30 signatures. A one-round variant assisted by a TEE (trusted execution environment, a "
+     "hardware-isolated enclave trusted to keep secrets) appears in v0.22 "
      "only as a contrasting example. TALUS builds on Kao's Shamir nonce DKG [12], where the signing nonce is itself "
      "Shamir-shared with pairwise-cancelling PRF masks and claimed nonce-share min-entropy above 5× the key entropy for "
      "signing sets up to 17.")
@@ -317,7 +322,9 @@ para("The authors' response (v0.22 [11]) replaces commitments by zero-knowledge 
      "by themselves. Each preprocessed nonce is bound to one quorum and erased after use. The cap is the entire defence of "
      "the s2 channel, which makes it the natural core target; it also hurts deployability, because certificates and pinned "
      "keys cannot rotate every few thousand signatures.")
-para("**Worked illustration of Attack 1.** Working in the NTT domain, A splits into 256 independent k×ℓ matrices over Z_q, "
+para("**Worked illustration of Attack 1.** The number-theoretic transform (NTT) is the modular analogue of the FFT: it "
+     "turns a product of polynomials in R_q into 256 independent products of numbers mod q, one per slot. Working in the "
+     "NTT domain, A splits into 256 independent k×ℓ matrices over Z_q, "
      "one per slot. Each is left-invertible unless an event of probability about 1/q occurs, which is the origin of the "
      "2^-15 and 2^-38 bounds, so any observer solves the system slot by slot and obtains s1,i exactly; shortness is "
      "irrelevant because no lattice problem arises. With k = ℓ = 1 the commitment is just a·s mod q, and dividing by a "
@@ -362,7 +369,32 @@ para("The Mithril line began as a poster [6] and a withdrawn preliminary ePrint 
      "dishonest-majority unforgeability with UC proofs against static adversaries. Its Irwin–Hall analysis bounds the loss "
      "by 0.013 bits per signing query, stated as non-vacuous for q_s < 16,000.")
 
-heading("2.6 Gap analysis and comparison", 2)
+heading("2.6 Recent work, 2024–2026 (added in Phase 2)", 2)
+para("**Lattice threshold designs that drop ML-DSA compatibility.** Espitau, Katsumata and Takemure [27] give a two-round "
+     "lattice threshold signature under a new algebraic one-more MLWE assumption, with signatures of about 11 KB even for "
+     "1024 signers. Ringtail [26] reaches two rounds from standard LWE, with a message-independent first round, 13.4 KB "
+     "signatures and 10.5 KB of online communication at 1024 parties, and was run across 8 countries. Their authors have "
+     "joined in Tanuki [28], a Raccoon-based two-round scheme announced for the same NIST call; its signatures are not "
+     "ML-DSA signatures, so it lies outside our four targets. These schemes show the price of FIPS 204 compatibility: "
+     "giving it up buys fewer rounds and thousands of parties. TOPCOAT [29], from the Cybernetica group behind Trilithium, "
+     "is an earlier two-party Dilithium protocol with public-key compression and fewer rounds, based on MLWE and MSIS.")
+para("**Follow-ups to the ML-DSA proposals.** Rambaud, Roth and Urban [30] turn Mithril into a “threshold signatures as a "
+     "service” variant, ML-DSaaS, that merges its first two rounds into one message-independent round and reports a two to "
+     "three times faster online phase. A preprint by Meng [31], posted on 20 October 2026 after our experiments, studies "
+     "fault-induced nonce repetition: if a party's device is made to reuse its nonce sample across sessions, the revealed "
+     "per-party responses expose that party's share. It reports exact key recovery on Mithril, classifies Quorus as "
+     "immune because per-party responses are never revealed, TALUS as exposed only if one-time preprocessing is skipped, "
+     "and Trilithium as fault-fragile. This is a physical fault model, outside our transcript-only threat model; we read "
+     "only its abstract page and have not reproduced it.")
+para("**Better leakage estimators for ML-DSA.** Two 2026 preprints sharpen the toolbox of Section II-D for single-signer "
+     "ML-DSA when one bit of the nonce leaks per signature: Schubert et al. [32] replace linear regression by constraint "
+     "satisfaction with hill climbing and need 37–68× fewer relations (5,000–35,000), and Paskarbeit et al. [33] estimate "
+     "the bit-error rate of noisy leakage and cut the relations needed by 20–44%. Both support the lesson of our P1 result: "
+     "estimators that use the exact structure of the leakage beat plain least squares by orders of magnitude. Finally, "
+     "HAETAE [34] is the main other Fiat–Shamir-with-aborts signature built on hyperball sampling; Section V-B uses it as "
+     "a check on Mithril's intersection bound.")
+
+heading("2.7 Gap analysis and comparison", 2)
 bullet("**No systematic public testing** of Mithril, Quorus or Trilithium transcripts, only design-level arguments.")
 bullet("**TALUS's cap** sits about 2 bits below the authors' wall and 14–17 bits below Niot's unoptimised estimate (1); an "
        "optimised bounded-noise or ILP estimator could close this gap.")
@@ -377,7 +409,7 @@ para("Mithril alone tolerates a dishonest majority but is limited to N ≤ 6; Qu
      "MLWR-type assumption, and TALUS an information-theoretic argument with a numerical margin. A margin is the one kind "
      "of evidence that can be checked directly by experiment, which is a further reason to make the TALUS cap the core problem.")
 
-heading("2.7 A reusable attack checklist", 2)
+heading("2.8 A reusable attack checklist", 2)
 para("Generalising the observed attacks, Table IV lists ten questions that can be asked of any threshold ML-DSA design; "
      "they structure both the survey and the harness of Section IV.")
 table([
@@ -394,17 +426,18 @@ table([
     ["10", "Do implementations match the specification?", "Float samplers, timing, test vectors"],
 ], [0.4, 3.2, 2.9], "Attack checklist distilled from the survey")
 
-heading("2.8 Literature matrix", 2)
+heading("2.9 Literature matrix", 2)
 para("Table V rates each surveyed source for relevance (H central, M supporting, L background) and marks its themes: TS "
      "threshold signatures, MD ML-DSA compatible, AT attack or leakage, SS secret sharing or MPC, RS rejection sampling, ST "
-     "standard. Ref. [25], added in Phase 2 for the Mithril finding, is not part of the survey matrix.")
+     "standard. Rows [26]–[34] were added in Phase 2 (Section II-F). Ref. [25], added in Phase 2 for the Mithril finding, "
+     "is not part of the survey matrix.")
 table([
     ["Ref", "Year", "Rel.", "TS", "MD", "AT", "SS", "RS", "ST"],
     ['[1] FIPS 204', '2024', 'H', '', 'x', '', 'x', '', 'x'],
     ['[2] Dilithium', '2018', 'M', '', 'x', '', 'x', '', ''],
     ['[3] IR 8214C', '2026', 'H', 'x', 'x', '', '', '', 'x'],
     ['[4] Mithril ePrint', '2026', 'H', 'x', 'x', '', 'x', 'x', ''],
-    ['[5] Reloaded', '2025', 'M', 'x', 'x', '', '', 'x', ''],
+    ['[5] Reloaded', '2025', 'L', 'x', 'x', '', '', 'x', ''],
     ['[6] Mithril poster', '2025', 'L', 'x', 'x', '', '', '', ''],
     ['[7] Mithril PW01', '2026', 'H', 'x', 'x', '', 'x', 'x', 'x'],
     ['[8] Quorus', '2025', 'H', 'x', 'x', '', 'x', 'x', ''],
@@ -424,8 +457,18 @@ table([
     ['[22] Feldman', '1987', 'M', '', '', '', 'x', '', ''],
     ['[23] FROST', '2020', 'L', 'x', '', '', 'x', '', ''],
     ['[24] Finally!', '2025', 'M', 'x', '', '', 'x', '', ''],
-], [1.5, 0.4, 0.4, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3], "Literature matrix of the 24 surveyed sources")
-para("Of the 24 sources, 13 are central, 6 supporting and 5 background; sixteen appeared in 2025 or 2026, and 22 of 24 in "
+    ['[26] Ringtail', '2025', 'M', 'x', '', '', 'x', '', ''],
+    ['[27] AOM-MLWE TS', '2024', 'M', 'x', '', '', 'x', '', ''],
+    ['[28] Tanuki PW', '2026', 'M', 'x', '', '', 'x', '', 'x'],
+    ['[29] TOPCOAT', '2024', 'M', 'x', 'x', '', 'x', 'x', ''],
+    ['[30] ML-DSaaS', '2026', 'H', 'x', 'x', '', 'x', 'x', ''],
+    ['[31] Fault nonce rep.', '2026', 'H', 'x', 'x', 'x', '', '', ''],
+    ['[32] Descent', '2026', 'M', '', 'x', 'x', '', 'x', ''],
+    ['[33] Noisy leakage', '2026', 'M', '', 'x', 'x', '', 'x', ''],
+    ['[34] HAETAE', '2024', 'L', '', '', '', '', 'x', ''],
+], [1.5, 0.4, 0.4, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3], "Literature matrix of the 33 surveyed sources")
+para("Of the 33 sources, 15 are central, 11 supporting and 7 background (the two withdrawn ePrints [5], [15] are background "
+     "only; no claim rests on them); twenty-two appeared in 2025 or 2026, and 31 of 33 in "
      "2018 or later. The sources marked AT are the evidence base for the estimators in Section IV.")
 para("**Design rules that follow from the survey.** Do not publish any linear image of a secret or nonce under A, however it "
      "is masked, unless the mask stays hiding under the worst-case corruption allowed (checklist items 1 and 8). Treat the "
@@ -434,13 +477,14 @@ para("**Design rules that follow from the survey.** Do not publish any linear im
      "optimised estimator, not just least squares, cannot close (item 4). The First-Call history shows these rules are easy "
      "to violate when importing discrete-log patterns.")
 
-heading("2.9 Attack surface: Phase 1 hypotheses and verdicts after full reading", 2)
+heading("2.10 Attack surface: Phase 1 hypotheses and verdicts after full reading", 2)
 para("Each Phase 1 hypothesis is listed with its verdict after reading the papers and running the harness (details in "
      "Section V). “Confirmed” means the paper text supports it; it does not mean an attack.")
 para("**Mithril.** (i) Accepted-response loss beyond 2^50: confirmed as a proof gap; the published parameters give "
      "Q_s = 2^26–2^37 under the paper's own theorem (Section V-B). (ii) Hint loss of 7–12 bits: revised; our lattice-estimator "
      "rerun gives up to 23.9 bits for ML-DSA-65. (iii) Adaptive corruption and (iv) selective aborts: not examined further. "
-     "(v) Floating-point sampler: not tested (Go code not run).")
+     "(v) Floating-point sampler: the Go code was run; its transcripts show no s2 leak (Section V-B), but the sampler "
+     "itself was not audited.")
 para("**Quorus.** (i) Reveal-on-reject is proven simulatable: confirmed, but the proof is computational (MLWE), not "
      "statistical. We also correct our own wording: A·y + e_w is uniform per coefficient, not as a whole vector, so only "
      "low-order statistical tests are ruled out. (ii) Only ⊥ is revealed: confirmed; the batched-OR step has 40-bit "
@@ -452,7 +496,7 @@ para("**Trilithium.** (i) Revised: after rejection the released value is the com
      "paper's own proof text, worth at most about log2(attempts) bits once. (iv) CRP: trusted; CRP+server collusion is fatal "
      "by design.")
 para("**TALUS v0.22.** The cap is the whole s2 argument and the noise has sharp edges: measured in Section V-A. **Kao P2:** "
-     "hypothesis strengthened to a key exposure (Section V-C).")
+     "hypothesis strengthened to a key exposure, demonstrated at full ML-DSA size (Section V-C).")
 
 # ---------------- Problem formulation ----------------
 heading("3. Problem Formulation")
@@ -467,7 +511,7 @@ table([
     ["s′, t0", "s′ = s2 − t0, where t0 holds the d = 13 dropped low bits of t"],
     ["e, b", "e = LowBits(w) rounding residue; b = −c·s′ + e one observation"],
     ["(T, N), S, C", "Threshold, parties; signing set S, corrupted set C"],
-    ["q_s, N, N*", "Sessions observed; signatures used; N* = N giving 99% success"],
+    ["q_s, N, N*", "Sessions observed; signatures used; N* = N giving 95% success"],
     ["cap, wall", "TALUS per-key signature limit; authors' uniqueness wall q_uniq"],
 ], [1.1, 5.4], "Notation added for Sections III–V")
 para("What each scheme publishes beyond the signature (c, z, h) decides which checklist items apply. Table VII gives it as "
@@ -486,7 +530,7 @@ para("**Intuition.** TALUS removes the s2 check, so each signature leaks one noi
      "single sample near an edge excludes many candidate secrets, so a bounded-noise estimator can need far fewer samples "
      "than least squares, whose error falls only like 1/√N. **Statement.** Given observations b_j = −c_j·s′ + e_j with e_j "
      "confined to the BCC interval, find the number of signatures N* at which s′ is recovered (and checked against the "
-     "public key) with probability 0.99, for each parameter set, and compare log2 N* with the cap and the wall. A value "
+     "public key) with probability 0.95, for each parameter set, and compare log2 N* with the cap and the wall. A value "
      "below the cap is a break; above it, log2 N* minus log2 cap is the margin in bits. **Success criterion:** N* with stated "
      "trials and seeds, a positive control (estimator recovers a leaky variant) and a negative control (no false keys on "
      "genuine ML-DSA).")
@@ -541,7 +585,7 @@ para("**Implementation.** Python with numpy and scipy; the linear programs use t
      "for each frequency are independent, so each frequency is a single division (agreeing with an iterative solver to "
      "10^-13). Transcripts for several trials are built in parallel processes while the GPU solves.")
 para("**Evaluation and validity.** Every experiment reports signatures used, recovered fraction, cost and parameter set. "
-     "N* is the smallest N with success ≥ 0.99 over the stated trials (interpolated between grid points). Recovery is "
+     "N* is where a logistic fit to the success counts (20 trials per N, Clopper–Pearson intervals) reaches 0.95. Recovery is "
      "verified against ground truth, so partial correlations are never counted as breaks. Internal threats (primitive bugs, "
      "estimator over-fitting) are addressed by the ACVP vectors and by many random keys; external threats (our simulator "
      "differing from the real protocol, parameters changing before the packages) remain and are why every TALUS number is "
@@ -574,35 +618,61 @@ para("**Model assumption.** We model the TALUS s2 channel as b = −c·s′ + e 
      "writeup does not list per-signature released values, so this is our reading, not the specification. N* is measured "
      "per ring element (one of k) unless stated. Table IX summarises the margins.")
 table([
-    ["Set", "Cap", "Wall", "Measured N*", "log2", "Above cap / wall"],
-    ["-44 edge", "2^13", "2^15.2", "1.45e5 (20 tr.)", "17.1", "4.1 / 1.9"],
-    ["-44 edge+ILP", "2^13", "2^15.2", "7e4 (8/8)", "16.1", "3.1 / 0.9"],
-    ["-65 edge", "2^14", "2^16.4", "3.58e5 (20 tr.)", "18.4", "4.4 / 2.0"],
-    ["-87 edge", "2^14", "2^16.2", "3.69e5 (20 tr.)", "18.5", "4.5 / 2.3"],
-], [1.5, 0.6, 0.7, 1.4, 0.5, 1.0], "TALUS cap margins, ML-DSA-44/65/87, n = 256 (per ring element)")
-para("For ML-DSA-44 the full secret (all k = 4 elements) was recovered in 20/20 trials at 1.46×10^5. With the ILP finishing "
-     "step (seed 2032, 8 trials per point) success was 1/8 at 5×10^4, 5/8 at 6×10^4, 8/8 at 7×10^4 and 32/32 from 8×10^4 to "
-     "1.45×10^5, where plain rounding gave 0/8 at 8×10^4. For -65 and -87 (seed 2026 for the dense runs) the full secret was "
-     "checked with 300 trials (seed 2028): 299/300 elements at 2^18.47 and 300/300 at 2^18.53, so by a union bound the "
-     "full-secret success is at least about 91% and 92% (95% confidence). With ILP (4 trials per point, seed 2032) -65 "
-     "needs about 2^17.45 (4/4; 3.45 bits above the cap, 1.05 above the wall) and -87 at most 2^17.18 (4/4 at the lowest N tried; 3.18 and 0.98). **Controls.** On real ML-DSA-44 signing without the r0 check the estimator recovered the key "
+    ["Set", "Cap", "Wall", "Element 95%", "Whole s2 95%", "Above cap / wall"],
+    ["ML-DSA-44", "2^13", "2^15.2", "2^16.01", "2^16.09 (run)", "3.1 / 0.9"],
+    ["ML-DSA-65", "2^14", "2^16.4", "2^17.40", "2^17.51 (extr.)", "3.5 / 1.1"],
+    ["ML-DSA-87", "2^14", "2^16.2", "2^17.30", "2^17.51 (extr.)", "3.5 / 1.3"],
+], [1.0, 0.5, 0.6, 0.9, 1.2, 1.0], "TALUS cap margins, n = 256, edge estimator with ILP finishing (whole-secret 95% point)")
+figure(RES / "talus_success_vs_N.png", 3.2,
+       "Key-recovery success against signatures N on the TALUS s2 channel, ML-DSA-44, n = 256, 20 trials per point. "
+       "Grey: least squares (seed 2026), 0/20 everywhere; blue: edge estimator with rounding (seed 2026); orange: edge "
+       "with ILP finishing (seed 2041); green: whole secret, all k = 4 elements, edge with ILP (seed 2081). Dashed: the "
+       "authors' cap and uniqueness wall.")
+para("**Superiority over the baseline (Fig. 3).** On the same transcripts least squares, the estimator behind Niot's "
+     "attack (1), recovers nothing up to 2^17.8 signatures and needs about 2^31.7 in our model. The edge estimator "
+     "reaches 100% at 2^17.2, and ILP finishing moves the curve about a further 1.1 bits left, to 95% at 2^16.0 for one element. "
+     "That is a gain of about 2^15.7 (roughly 5×10^4 times fewer signatures) over the baseline, from using the known hard "
+     "edges of the noise instead of averaging them away. The whole-secret curve sits only about 0.1 bit to the right of "
+     "the one-element curve.")
+para("**Statistics.** Each point uses 20 independent trials (seed 2041, 120 s ILP limit) with a logistic fit to the "
+     "success counts. One ring element: ML-DSA-44 0/20 at 2^15.61, 11/20 at 2^15.87, 19/20 at 2^15.99, 20/20 from 2^16.10; "
+     "-65 16/20 at 2^17.29, 20/20 at 2^17.71; -87 18/20 at 2^17.18, 20/20 at 2^17.49. **Whole secret.** An attacker needs "
+     "all k elements from the same signatures; assuming independence, 95% whole-secret success needs p_elem^k = 0.95, where p_elem is the success rate for one element. For "
+     "ML-DSA-44 we ran it (seed 2081, 20 whole secrets per N): 3/20 at 2^15.92, 15/20 at 2^16.01, 18/20 at 2^16.10, inside "
+     "the intervals of the predicted 0.26/0.77/0.90, so the -65/-87 extrapolations are trustworthy. Without ILP (plain "
+     "rounding) the points sit about 1 bit higher (ML-DSA-44 N*99 = 1.45×10^5). **Controls.** On real ML-DSA-44 signing without the r0 check (the second rejection check of "
+     "Section I, on r0 = LowBits(w − c·s2)) the estimator recovered the key "
      "in 9/9 runs (3 keys × N = 2, 4, 8×10^5); on genuine ML-DSA it returned the key for 0/18 keys (15 of them from seed 2027), only "
      "the public-equivalent −t0, so the false-positive rate is below about 15% at 95% confidence. **Verdict:** no break; "
-     "the margin above the cap is 3–4.5 bits and above the authors' wall only about 1–2 bits, thinner than the 12–15 bits "
-     "suggested by (1).")
+     "the margin above the cap is about 3–3.5 bits and above the authors' wall only about 1 bit, much thinner than the "
+     "12–15 bits suggested by (1).")
+para("**Other attack routes on the cap, all closed.** (a) Key rotation is a fresh key generation (v0.22 Sec. 2.3), not a "
+     "share refresh, so leakage does not carry over. (b) Rejected attempts stay offline; the rare online failures add at "
+     "most about 0.03 bits. (c) A corrupt insider subtracts its own nonce shares, but at least T honest shares remain in "
+     "the MPC profile; the insider wall is 2^24.8–2^29.7, 12–16 bits above the cap, and a simulation with two honest shares "
+     "(n = 8) shows maximum likelihood needs 1.5–2× the formula, so the formula favours the attacker. (Only the "
+     "non-proposed TEE variant falls below the cap, from T = 7, as the authors concede.) (d) A corrupt coordinator sees an "
+     "out-of-box value once per 2^33.1/2^35.5/2^37.3 sessions by our exact convolution, within one bit of the authors' "
+     "figures. (e) Below the wall the estimate is only a soft hint (43% of coefficients right at the cap); used in a "
+     "lattice attack it lowers the ML-DSA-44 key-recovery cost from 2^123.8 to 2^120.6, so no lattice finish under the cap.")
 para("**From toy rings to full size.** We first ran the edge estimator on reduced rings (n = 8 to 128, 10–20 trials per "
      "point, ML-DSA-44 numbers). Per-element N* flattened around 1–2×10^5 (n = 64: 2.8×10^5; n = 128: 1.9×10^5) instead of "
      "falling toward the cap, which is why the full-size runs above were then made denser. At n = 64 the harder target "
      "s2 − t0 needed the same N* as s2, and plain LowBits noise behaved like BCC noise. Relative to plain least squares "
-     "(about 3.6×10^9 in our model) the edge estimator is worth about four orders of magnitude, yet it stops 3–4.5 bits "
-     "short of the cap. The theory module explains the shape: for one coefficient alone the uniform-noise error falls like "
+     "(about 3.6×10^9 in our model) the edge estimator is worth about four orders of magnitude, yet without ILP it stays "
+     "4–4.5 bits above the cap. The least-squares figure is about 12 times estimate (1) (3.1×10^8) for a simple reason: "
+     "(1) only asks that the typical per-coefficient error fall to 1/2, whereas rounding all 256 coefficients correctly "
+     "at once needs the error about 3.5 standard deviations inside 1/2, and since error shrinks like 1/√N this costs a "
+     "factor of about 3.5² ≈ 12 in N. The theory module explains the shape: for one coefficient alone the uniform-noise error falls like "
      "1/N exactly (checked by Monte Carlo), and when all 256 coefficients are solved jointly a fitted coupling constant "
      "(about 0.76·τ^0.42) accounts for the real N* sitting 1.5–2 bits above the single-coefficient formula. ILP finishing "
      "lowers the 50% point by 1.0×, 1.1×, 1.1× and 1.5× at n = 8, 16, 32 and 64, consistent with the roughly 2× at n = 256.")
 para("**Limits of the P1 result.** (i) The channel model (independent uniform noise on the BCC interval, no wrap-around, "
-     "no use of the hint) is our reading of TALUS, not quoted from the specification. (ii) The ILP figure is per ring "
-     "element with 8 trials per point. (iii) Lattice reduction and better use of hints were not tried, so N* is an upper "
-     "bound on what an attacker needs. (iv) Our wall and cap figures are the authors'; we did not re-derive the wall.")
+     "no use of the hint) is our reading of TALUS, not quoted from the specification. (ii) The whole-secret run is "
+     "ML-DSA-44 only; -65/-87 are extrapolated. (iii) The hint h was not used separately and the lattice estimate is a "
+     "Python core-SVP model (core-SVP counts only the cost of the single shortest-vector search inside lattice "
+     "reduction, the usual conservative way to price lattice attacks), so N* is an upper bound on what an attacker needs. (iv) Our wall and cap figures are the "
+     "authors'; we did not re-derive the wall.")
 heading("5.2 TALUS v0.1 and Mithril", 2)
 para("**TALUS v0.1 (Niot's attacks reproduced).** On our implementation of the arXiv v2 design [10] (ML-DSA-44, |S| = 3, keys "
      "from seeds 101–103; DKG simplified to Shamir sharing), attack 1 recovered s1 exactly from the key-generation broadcast "
@@ -619,11 +689,16 @@ para("**Mithril proof-parameter gap (P2).** Theorem 3.2 of [4] bounds the number
      "covers Q_s = 2^26–2^37 rather than 2^50. Under the typical norm distribution (heuristic, not a proof) most sets "
      "still reach 2^50, some fall up to about 3 bits short; corrected parameters need 1.3× to 8.5× more parallel "
      "repetitions K. The faulty bound is ePrint-only (the ASIACRYPT version states only the exact formula), and among 13 "
-     "citing works we checked only Mithril uses it; HAETAE, the other main hyperball scheme, evaluates the exact "
+     "citing works we checked only Mithril uses it; HAETAE [34], the other main hyperball scheme, evaluates the exact "
      "incomplete-Beta value numerically and is unaffected. Seen from the other side, reaching 2^50 with the published radii "
      "would require the norm bound B in the proof to sit only 0–7 standard deviations above the mean norm of c·s, whereas "
      "the proof needs an overwhelming bound (the paper's footnote says about 13). This is a proof gap, not an attack: "
-     "exceeding the bound slightly enlarges a Rényi-divergence budget and does not obviously reveal s. **Hint loss.** With the exact share "
+     "exceeding the bound slightly enlarges a Rényi-divergence budget and does not obviously reveal s. We wrote a corrected "
+     "bound with proof (exponent (n−1)/2, within 0.04 bits of the exact value at Mithril sizes; 320 test points, 0 "
+     "violations, while the printed bound fails at 149). **Real transcripts.** Running the authors' Go signing code "
+     "(ML-DSA-44, (T, N) = (2, 3), 110,000 slots, 39,461 with no party rejecting) and regressing the leftover of "
+     "A·z − c·t − w on −c·s2 gives slope 0.004 ± 0.10 (1 would mean an s2 leak): accepted responses do not depend on s2, "
+     "only the public-equivalent c·t0 remains, and we corrected our Mithril view accordingly. **Hint loss.** With the exact share "
      "subset of T−1 parties, the lattice estimator gives losses of 4.9–7.7 (ML-DSA-44), 17.7–23.9 (-65) and 8.6–14.4 bits "
      "(-87), against the reported 7–12 (Table X).")
 table([
@@ -646,7 +721,10 @@ heading("5.3 Kao's P2 profile (P4)", 2)
 para("The paper's own text (Fig. 1b, Remark 11, App. M.1) has every party broadcast W_i, and its pairwise masks cancel "
      "(Lemma 1), so Σ W_i = A·y is public; Gaussian elimination gives y and then s1 = c⁻¹(z − y) from a single P2 "
      "signature, for any |S∖C|. The proof of Corollary 5 itself calls this value the public broadcast, and no later appendix "
-     "changes it. Confirmed by algebra and a toy implementation; the author's code is not public. The toy (ring size 8, "
+     "changes it. **Demonstrated at full size:** in our re-implementation at real ML-DSA-44/65/87 sizes the combined "
+     "signatures pass the standard verifier and s1 was recovered exactly from one signature for 15/15 keys per set; "
+     "withholding a single W_i drops this to 0/15, so the attack really uses the sum. The author's code is not public, and "
+     "our rejection checks run in the clear rather than in the paper's MPC. The earlier toy (ring size 8, "
      "real q) also checks the narrower Phase 1 hypothesis: with all but one signer corrupted, the honest party's mask can "
      "be stripped and λ_h·A·y_h inverted, while with two honest signers this route fails, as the paper says; the sum "
      "route above, however, works whatever the number of honest parties. Two further points: Corollary 6 claims the full "
@@ -658,7 +736,7 @@ para("Our Quorus implementation produced 0 of 272,664 signatures failing FIPS 20
      "Trilithium, exact enumeration at n = 4 and Monte Carlo at n = 8 (2×10^8 samples × 3 trials) show the gap between "
      "rejected w_H and the simulator shrinking with γ1 and n (branch 2: 3×10^-5 to 7×10^-7 at n = 8). Paper errata, not "
      "attacks: Quorus Functionality 6 uses the bound γ2−β−η where every other place uses γ2−β (PDF p. 32), and Lemma 8 "
-     "has a wrong normalising constant; Trilithium's simulation of unsuccessful signing (p. 24) leaves the gap noted in Section II-I.")
+     "prints the denominator 2(β+1)δ+1 instead of (2β+1)δ+1 (exhaustive check: printed probabilities sum to 0.84–0.95); Trilithium's simulation of unsuccessful signing (p. 24) leaves the gap noted in Section II-J.")
 para("**Trilithium in more detail.** The released mixture after a rejection comes from two branches: branch 3 (the z check "
      "failed) and branch 2 (z passed but the LowBits check failed). Exact enumeration at n = 4 showed a real but small "
      "gap between rejected w_H and the simulator, shrinking with γ1 (branch 3 roughly as γ1^-2.7). A branch-2 floor near "
@@ -683,21 +761,21 @@ para("**What the Phase 3 prototype will demonstrate.** An end-to-end TALUS-cap m
      "the TALUS reference code (packages expected from March 2027) through a scheme view, it runs the bounded-noise "
      "estimator with ILP finishing, reports N* and the margin in bits against the cap and the wall, and runs the positive "
      "and negative controls automatically, so a reported margin is never quoted without them. Concretely it will (i) "
-     "replace our channel model by the released values of the real code, (ii) extend ILP finishing to the full secret and "
-     "to ML-DSA-65/87, and (iii) rerun the Mithril parameter check on the submitted parameters. Success means reproducing "
+     "replace our channel model by the released values of the real code, (ii) run the whole-secret ILP for ML-DSA-65/87 "
+     "instead of extrapolating, and (iii) rerun the Mithril parameter check on the submitted parameters. Success means reproducing "
      "Table IX on real transcripts, or explaining any difference, with each margin reported together with its controls. "
      "Until packages appear, the prototype runs on our TALUS view, so the demonstration does not depend on the release date. "
      "The demonstration will be a single command that takes a transcript file and a parameter set and prints the margin "
      "table with its controls, trial counts and seeds; the stretch goals continue alongside it (a lattice-level "
-     "distinguisher for rejected transcripts, the Go signing code of Mithril, and disclosure to the Kao and Mithril authors).")
+     "distinguisher for rejected transcripts, and disclosure to the Kao and Mithril authors).")
 table([
-    ["Stage", "Phase 2 item (Phase 1 plan)", "Status (13 Oct 2026)"],
+    ["Stage", "Phase 2 item (Phase 1 plan)", "Status (29 Oct 2026)"],
     ["1", "ML-DSA primitives, interface, ILWE sanity check", "Done: 81 ACVP vectors; 0.97× Niot's formula"],
-    ["2", "TALUS cap, bounded-noise and ILP (P1)", "Done for per-element N*; ILP only -44"],
-    ["3", "Mithril accepted z, hint accounting (P2)", "Done: proof gap; hint table"],
+    ["2", "TALUS cap, bounded-noise and ILP (P1)", "Done: 20 trials/point; whole secret run for -44"],
+    ["3", "Mithril accepted z, hint accounting (P2)", "Done: proof gap, corrected bound; Go transcripts"],
     ["4", "Quorus, Trilithium rejected attempts (P3)", "Done at statistical level; lattice test not run"],
-    ["5", "Kao P2 and DKG claims (P4)", "Done: key exposure confirmed in text"],
-    ["6", "Rerun on reference code (from Mar. 2027)", "Phase 3; only Mithril script run so far"],
+    ["5", "Kao P2 and DKG claims (P4)", "Done: key from one signature at full size"],
+    ["6", "Rerun on reference code (from Mar. 2027)", "Phase 3; Mithril script and Go code run so far"],
 ], [0.5, 3.0, 3.0], "Phase 2 plan against outcome, and the hand-over to Phase 3")
 para("Table XI sets the Phase 1 plan against what Phase 2 delivered.")
 para("**Research questions, answered.** (RQ1) Which threshold ML-DSA designs exist? Four First-Call proposals, differing in "
@@ -705,14 +783,14 @@ para("**Research questions, answered.** (RQ1) Which threshold ML-DSA designs exi
      "that we reproduced; Kao's P2 profile exposes the key from one signature by the paper's own text. (RQ3) Which "
      "techniques work? Linear inversion of published A·x, nonce-leak recovery, and for the TALUS channel a bounded-noise "
      "estimator with ILP finishing, about four orders of magnitude better than least squares. (RQ4) Where is the evidence "
-     "thinnest? The TALUS cap margin (now measured at 3–4.5 bits above the cap), Mithril's parameter-proof accounting, and "
+     "thinnest? The TALUS cap margin (now measured at about 3–3.5 bits above the cap), Mithril's parameter-proof accounting, and "
      "the untested lattice-level question for rejected transcripts in Quorus and Trilithium.")
 para("**Lessons from Phase 2.** Three methodological points carry over to Phase 3. First, controls change conclusions: "
      "without the negative control the estimator's output −t0 on genuine ML-DSA could have been mistaken for leakage. "
      "Second, reduced-size runs can mislead in either direction (the ML-DSA-87 shortcut at n = 64 overstated the margin, "
      "and ILP gains grow with n), so only full-size numbers are quoted. Third, reading the papers in full revised two of "
      "our own Phase 1 statements (Trilithium releases w_H, not a partial signature; uniformity holds per coefficient only), "
-     "which is why every hypothesis in Section II-I now carries a verdict.")
+     "which is why every hypothesis in Section II-J now carries a verdict.")
 para("**Positioning.** Earlier cryptanalysis of lattice signatures [17]–[20] targets a single signer leaking through a "
      "physical side channel. Here the leakage is logical: it is part of the protocol transcript, visible to any observer or "
      "corrupted party, and its noise distribution is known exactly from the specification. Results therefore transfer "
@@ -720,10 +798,11 @@ para("**Positioning.** Earlier cryptanalysis of lattice signatures [17]–[20] t
 para("**Ethics.** We study only public, standardisation-stage specifications, as NIST invites. Findings about a scheme are "
      "shared with its authors before any public posting, and we distinguish confirmed key recovery, measured margins, proof "
      "gaps and errata, labelling results that rely on our simulators rather than the authors' code.")
-para("**Conclusion.** The survey of twenty-four sources showed that threshold ML-DSA designs fail when patterns from "
+para("**Conclusion.** The survey of thirty-three sources showed that threshold ML-DSA designs fail when patterns from "
      "discrete-log protocols are imported, and that three of the four proposals had not been tested. Phase 2 built and "
-     "validated a harness and measured the core quantity: the TALUS cap holds in our model, but by 3–4.5 bits above the "
-     "cap and only about 1–2 bits above the authors' wall, much less than least squares suggests. Secondary findings are a "
+     "validated a harness and measured the core quantity: the TALUS cap holds in our model, but by only about 3–3.5 bits "
+     "for the whole secret and about 1 bit above the authors' wall, much less than least squares suggests; insider, "
+     "coordinator, rotation and lattice-finish routes do not lower it. Secondary findings are a "
      "proof-parameter gap in Mithril, a key exposure in Kao's P2 profile, and errata in Quorus and Trilithium, with "
      "disclosure to the authors to follow before any public posting.")
 
@@ -755,6 +834,15 @@ refs = [
     ("C. Komlo and I. Goldberg", "FROST: Flexible round-optimized Schnorr threshold signatures", "in Proc. SAC 2020, LNCS 12804, 2021, pp. 34–65."),
     ("R. del Pino and G. Niot", "Finally! A compact lattice-based threshold signature", "in Proc. PKC 2025, Part III, LNCS 15676, 2025, pp. 169–199."),
     ("T. Devevey, O. Fawzi, A. Passelègue, and D. Stehlé", "On rejection sampling in Lyubashevsky’s signature scheme", "in Proc. ASIACRYPT 2022, LNCS 13794, pp. 34–64, 2022 (full version: IACR ePrint 2022/1249)."),
+    ("C. Boschini, D. Kaviani, R. W. F. Lai, G. Malavolta, A. Takahashi, and M. Tibouchi", "Ringtail: Practical two-round threshold signatures from learning with errors", "in Proc. IEEE Symp. Security and Privacy, 2025, doi:10.1109/SP61157.2025.00070 (IACR ePrint 2024/1113)."),
+    ("T. Espitau, S. Katsumata, and K. Takemure", "Two-round threshold signature from algebraic one-more learning with errors", "in Proc. CRYPTO 2024, Part VII, pp. 387–424; J. Cryptol., vol. 38, no. 4, 2025 (IACR ePrint 2024/496)."),
+    ("C. Boschini, T. Espitau, A. Kaiser, S. Katsumata, D. Kaviani, R. W. F. Lai, G. Malavolta, T. Prest, P. Schwabe, A. Takahashi, K. Takemure, and M. Tibouchi", "Tanuki: Two-round threshold signatures from lattices", "NIST MPTC First Call preview writeup v0.1, Jan. 2026."),
+    ("N. Snetkov, J. Vakarjuk, and P. Laud", "TOPCOAT: towards practical two-party Crystals-Dilithium", "Discover Computing, vol. 27, no. 1, art. 18, 2024, doi:10.1007/s10791-024-09449-2."),
+    ("M. Rambaud, S. Roth, and A. Urban", "Threshold signatures as-a-service: Achieving threshold ML-DSA in one online round", "IACR ePrint 2026/814, Apr. 2026."),
+    ("Y. Meng", "Fault-induced nonce repetition in threshold lattice signatures: A reveal-structure criterion, cross-scheme analysis, and detection boundaries", "IACR ePrint 2026/2566, Oct. 2026."),
+    ("C. Schubert, N. J. Müller, J.-P. Seifert, and M. Margraf", "Descent into broken trust: Uncovering ML-DSA subkeys with scarce leakage and local optimization", "IACR ePrint 2026/472, Mar. 2026."),
+    ("N. Paskarbeit, C. Schubert, M. Margraf, and J.-P. Seifert", "Statistical inference from noisy randomness leakage for ML-DSA attacks", "IACR ePrint 2026/1712, Aug. 2026."),
+    ("J. H. Cheon, H. Choe, J. Devevey, T. Güneysu, D. Hong, M. Krausz, G. Land, M. Möller, D. Stehlé, and M. Yi", "HAETAE: Shorter lattice-based Fiat–Shamir signatures", "IACR Trans. Cryptogr. Hardw. Embed. Syst., vol. 2024, no. 3, pp. 25–75, 2024."),
 ]
 for i, (au, ti, ve) in enumerate(refs, 1):
     p = doc.add_paragraph()
