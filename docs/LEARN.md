@@ -704,3 +704,16 @@ Newest entries at the bottom. Format: **date, what, how, why.**
 
 - **What:** the subtitle in both versions is now "Phase 2 Report - Cryptography". The LaTeX contribution table now lists Phase 2 work split half and half (both members use one account, so git history does not show who did what; the split is an agreed assumption). `report/latex/overleaf_upload.zip` holds `main.tex` and a `figures/` folder; the LaTeX now looks for figures next to itself, in `figures/`, or in the repo's results folder, so the same file compiles locally and on Overleaf.
 - **Why:** Overleaf only sees uploaded files; the old figure path pointed two folders up into the repo, which does not exist there.
+
+## 2026-10-29: report checked against the Phase 2 brief
+
+- **What:** each rubric item was checked against the report. Two gaps were closed, in both versions: the introduction's contribution paragraph now names the 2026 events (Niot's attack, the TALUS v0.22 cap) and states the proposed method and its measured gain, and Section IV is titled "Proposed Solution: The Leakage-Testing Harness" so a reader finds the solution where the rubric expects it. Nothing else was padded; docx stays 11 pages.
+- **Why:** the brief asks to "propose an approach" and "prove its superiority with simulation results"; both were already in the body but not signposted.
+
+## 2026-10-29: results section strengthened with existing data (4 tables, 2 figures)
+
+- **What:** `experiments/report_extras.py` (reads saved results only, no new runs) makes two figures and a summary file `experiments/results/report_extra_tables.txt`. Added to both report versions: Table X controls (positive 9/9, negative 0/9 and 0/15, gate B), Table XI TALUS insider walls per set, Table XII Mithril Q_s over all 45 parameter sets with corrected K factors, Table XIV the Kao P2 attack steps, Fig. 4 success vs N for ring sizes 8 to 256, Fig. 5 the Trilithium gap vs ring size. Docx now 12 pages; in LaTeX the two wide tables span both columns.
+- **Two corrections found while doing it (good for credibility):** (1) the controls recover one ring element of s2 - t0, not the whole key, so the text now says "secret element" instead of "key"; (2) the TALUS trusted-hardware variant falls below the cap from T = 7 only for ML-DSA-44; for -65 and -87 it is T = 11 and T = 9.
+- **Why:** a reviewer wants to see every claimed number, its trials and its seed, not only a sentence. The tables put the evidence next to the claim.
+- **Honest notes kept in captions:** the ring-size runs do not store their seed (script default 2026); the Trilithium trend is not monotone from n = 3 to 4; n = 8 branch-3 values are below the sampling floor.
+- **New basic:** *squared Hellinger distance H^2* = a number for how different two probability distributions are; to tell them apart you need about 1/H^2 samples, so H^2 = 10^-6 means about a million rejected attempts.

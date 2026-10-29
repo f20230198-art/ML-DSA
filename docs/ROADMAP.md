@@ -78,7 +78,9 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [ ] Optional: user downloads ePrint 2026/2566 (Meng, fault attack on Mithril/TALUS/Trilithium) for a full read; only the abstract page was read
 - [x] Title "Phase 2 Report - Cryptography" in both versions; LaTeX contribution table split half and half (user: assume, same account used by both), 29 Oct
 - [x] Overleaf package `report/latex/overleaf_upload.zip` (main.tex + figures/); \graphicspath now also searches ./ and figures/
-- [ ] Compile on Overleaf (pdfLaTeX) and check page count; page target still open (brief once said 20)
+- [x] Rubric check (29 Oct): intro updated with 2026 context and proposed method; Section IV titled Proposed Solution
+- [x] Results strengthened from saved data (29 Oct): Tables X-XII, XIV and Figs. 4-5 via experiments/report_extras.py; wording fixes (controls = one element; TEE T = 7/11/9)
+- [ ] Compile on Overleaf (upload all 5 PNGs) (pdfLaTeX) and check page count; page target still open (brief once said 20)
 - [ ] Rubric note: "AI-generated content will not be evaluated": report prose to be rewritten by the students in their own words
 - [ ] Final read-through of report abstract and numbers before submitting
 

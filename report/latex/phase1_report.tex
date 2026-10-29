@@ -132,10 +132,15 @@ below. $A$ is tall ($k\ge\ell$), so publishing $Ax$ reveals $x$ by Gaussian elim
 integers, so any leak of the nonce $y$ gives $s_1=c^{-1}(z-y)$.
 
 \textbf{Why now, and what this report contributes.} NIST's First Call (IR~8214C)~\cite{ir8214c} expects preliminary
-packages from late 2026 and full packages not before March 2027, so scrutiny is most useful now. Following the Phase~1
-review, the core problem is the TALUS signing cap (P1); the Mithril, rejected-attempt and Kao questions (P2--P4) are
-stretch goals. We give (i) a survey of the four proposals and the attack toolbox, (ii) the problem formulation, (iii) a
-working leakage-testing harness (Fig.~\ref{fig:arch}) and (iv) its Phase~2 results with trial counts and seeds.
+packages from late 2026 and full packages not before March 2027, so scrutiny is most useful now. The year has already
+shown why: in July 2026 Niot~\cite{niot} recovered keys from earlier TALUS versions, and TALUS v0.22~\cite{taluspw}
+answered with a per-key signing cap whose safety margin had not been measured independently. Following the Phase~1
+review, the core problem is that cap (P1); the Mithril, rejected-attempt and Kao questions (P2--P4) are stretch goals. We
+give (i) a survey of the four proposals, the attack toolbox and recent work, (ii) the problem formulation, (iii) our
+proposed solution, a leakage-testing harness (Fig.~\ref{fig:arch}) whose bounded-noise estimator with integer-programming
+finishing uses the hard edges of the TALUS noise, and (iv) simulation results with trial counts and seeds showing that it
+needs about $5\times10^4$ times fewer signatures than the least-squares baseline, yet still stays about 3 bits above the
+cap.
 
 \textbf{Survey method.} Sources came from the First Call submissions page, the proposals' ePrint/arXiv entries and their
 predecessors, and searches of ePrint, TCHES, EUROCRYPT and ASIACRYPT (``Dilithium rejected signatures ILP'', ``ILWE'',
@@ -545,7 +550,7 @@ statistical test with stated false-positive rate and sample budget (P3), and an 
 reason why the masks hide (P4).
 
 % =====================================================================
-\section{The Leakage-Testing Harness}\label{sec:solution}
+\section{Proposed Solution: The Leakage-Testing Harness}\label{sec:solution}
 
 \begin{figure}[t]
 \centering
@@ -683,23 +688,62 @@ whole-secret success needs $p_\mathrm{elem}^k=0.95$, where $p_\mathrm{elem}$ is 
 at $2^{15.92}$, 15/20 at $2^{16.01}$, 18/20 at $2^{16.10}$, inside the intervals of the predicted 0.26/0.77/0.90, so the
 -65/-87 extrapolations are trustworthy. Without ILP (plain rounding) the points sit about 1 bit higher (ML-DSA-44
 $N^*_{99}=1.45\times10^5$). \textbf{Controls.} On real ML-DSA-44 signing
-without the $r_0$ check (the second rejection check of Section~I, on $r_0=\LB(w-cs_2)$) the estimator recovered the key in 9/9 runs (3 keys $\times$ $N=2,4,8\times10^5$); on genuine ML-DSA
-it returned the key for 0/18 keys (15 of them from seed 2027), only the public-equivalent $-t_0$, so the false-positive
-rate is below about 15\% at 95\% confidence. \textbf{Verdict:} no break; the margin above the cap is about 3--3.5 bits and
-above the authors' wall only about 1 bit, much thinner than the 12--15 bits suggested by (\ref{eq:ilwe}).
+without the $r_0$ check (the second rejection check of Section~I, on $r_0=\LB(w-cs_2)$) the estimator recovered the secret element $s_2-t_0$ (one ring element) in 9/9 runs (3 keys $\times$
+$N=2,4,8\times10^5$); on genuine ML-DSA it returned it for 0/18 keys (15 of them from seed 2027), only the
+public-equivalent $-t_0$, so the false-positive rate is below about 15\% at 95\% confidence (Table~\ref{tab:controls}).
+\textbf{Verdict:} no break; the margin above the cap is about 3--3.5 bits and above the authors' wall only about 1 bit,
+much thinner than the 12--15 bits suggested by (\ref{eq:ilwe}).
+
+\begin{table*}[t]
+\caption{Controls and end-to-end check: same estimator settings in every run; time is the GPU estimator per run}\label{tab:controls}
+\centering\scriptsize
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Run (ML-DSA-44, one element) & Seed & Keys $\times$ $N$ & Edge: secret & Edge: $-t_0$ & LS: secret & Time\\
+\midrule
+Positive: no $r_0$ check & 2026 & $3\times\{2,4,8\}$e5 & 9/9 & 0/9 & 0/9 & 49--74\,s\\
+Negative: genuine ML-DSA & 2026 & $3\times\{2,4,8\}$e5 & 0/9 & 9/9 & 0/9 & 41--58\,s\\
+Negative: genuine ML-DSA & 2027 & $15\times2$e5 & 0/15 & 15/15 & 0/15 & 40--61\,s\\
+Gate B: real signing, TALUS view & 2029 & $2\times\{1,2,4\}$e5 & 0/2, 2/2, 2/2 & -- & -- & 46--67\,s\\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 \textbf{Other attack routes on the cap, all closed.} (a) Key rotation is a fresh key generation (v0.22 Sec.~2.3), not a
 share refresh, so leakage does not carry over. (b) Rejected attempts stay offline; the rare online failures add at most
 about 0.03 bits. (c) A corrupt insider subtracts its own nonce shares, but at least $T$ honest shares remain in the MPC
-profile; the insider wall is $2^{24.8}$--$2^{29.7}$, 12--16 bits above the cap, and a simulation with two honest shares
-($n=8$) shows maximum likelihood needs 1.5--$2\times$ the formula, so the formula favours the attacker. (Only the
-non-proposed TEE variant falls below the cap, from $T=7$, as the authors concede.) (d) A corrupt coordinator sees an
+profile; the insider wall is $2^{24.8}$--$2^{29.7}$, 12--16 bits above the cap (Table~\ref{tab:insider}), and a simulation
+with two honest shares ($n=8$) shows maximum likelihood needs 1.5--$2\times$ the formula, so the formula favours the
+attacker. (Only the non-proposed TEE variant falls below the cap, from $T=7$, 11 and 9 for ML-DSA-44/65/87, as the authors
+concede.) (d) A corrupt coordinator sees an
 out-of-box value once per $2^{33.1}/2^{35.5}/2^{37.3}$ sessions by our exact convolution, within one bit of the authors'
 figures. (e) Below the wall the estimate is only a soft hint (43\% of coefficients right at the cap); used in a lattice
 attack it lowers the ML-DSA-44 key-recovery cost from $2^{123.8}$ to $2^{120.6}$, so no lattice finish under the cap.
 
+\begin{table}[t]
+\caption{TALUS insider walls (signatures a corrupt insider needs), rough Fisher formula; $m=2$ case checked exactly}\label{tab:insider}
+\centering\scriptsize
+\resizebox{\columnwidth}{!}{\begin{tabular}{@{}lcccc@{}}
+\toprule
+Set (cap) & MPC insider, $T=2..6$ & Margin over cap & TEE, $T=2$ & TEE below cap from\\
+\midrule
+ML-DSA-44 ($2^{13}$) & $2^{24.8}$--$2^{26.1}$ & $+11.8$ to $+13.1$ & $2^{14.6}$ & $T=7$\\
+ML-DSA-65 ($2^{14}$) & $2^{28.5}$--$2^{29.7}$ & $+14.5$ to $+15.7$ & $2^{16.4}$ & $T=11$\\
+ML-DSA-87 ($2^{14}$) & $2^{28.2}$--$2^{29.4}$ & $+14.2$ to $+15.4$ & $2^{16.1}$ & $T=9$\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{talus_ladder.png}
+\caption{Edge-estimator success (rounding, no ILP) for one ring element against $N$, ML-DSA-44 BCC channel, ring size
+$n=8$ to 256 (20 or 10 trials per point as labelled; script default seed 2026). Larger rings need fewer signatures per
+element, so the full size $n=256$ is the relevant one and toy sizes are pessimistic for the attacker.}\label{fig:ladder}
+\end{figure}
+
 \textbf{From toy rings to full size.} We first ran the edge estimator on reduced rings ($n=8$ to 128, 10--20 trials per
-point, ML-DSA-44 numbers). Per-element $N^*$ flattened around $1$--$2\times10^5$ ($n=64$: $2.8\times10^5$; $n=128$:
+point, ML-DSA-44 numbers; Fig.~\ref{fig:ladder}). Per-element $N^*$ flattened around $1$--$2\times10^5$ ($n=64$: $2.8\times10^5$; $n=128$:
 $1.9\times10^5$) instead of falling toward the cap, which is why the full-size runs above were then made denser. At $n=64$
 the harder target $s_2-t_0$ needed the same $N^*$ as $s_2$, and plain $\LB$ noise behaved like BCC noise. Relative to plain
 least squares (about $3.6\times10^9$ in our model) the edge estimator is worth about four orders of magnitude, yet without
@@ -735,7 +779,7 @@ uses exponent $n-1$ where a correct cylinder argument gives $(n-1)/2$; for ML-DS
 value is $2^{-33.5}$ (reproduced with the authors' own Sage parameter script). With the published parameters the theorem
 then covers $Q_s=2^{26}$--$2^{37}$ rather than $2^{50}$. Under the typical norm distribution (heuristic, not a proof) most
 sets still reach $2^{50}$, some fall up to about 3 bits short; corrected parameters need $1.3\times$ to $8.5\times$ more
-parallel repetitions $K$. The faulty bound is ePrint-only (the ASIACRYPT version states only the exact formula), and among
+parallel repetitions $K$ (Table~\ref{tab:mithrilqs}). The faulty bound is ePrint-only (the ASIACRYPT version states only the exact formula), and among
 13 citing works we checked only Mithril uses it; HAETAE~\cite{haetae}, the other main hyperball scheme, evaluates the exact
 incomplete-Beta value numerically and is unaffected. Seen from the other side, reaching $2^{50}$ with the published radii
 would require the norm bound $B$ in the proof to sit only 0--7 standard deviations above the mean norm of $cs$, whereas the
@@ -748,6 +792,21 @@ $0.004\pm0.10$ (1 would mean an $s_2$ leak): accepted responses do not depend on
 remains, and we corrected our Mithril view accordingly. \textbf{Hint loss.} With the exact
 share subset of $T-1$ parties, the lattice estimator gives losses of 4.9--7.7 (ML-DSA-44), 17.7--23.9 (-65) and 8.6--14.4
 bits (-87), against the reported 7--12 (Table~\ref{tab:hint}).
+
+\begin{table*}[t]
+\caption{Mithril: signing queries $Q_s$ covered over all 45 published parameter sets (claimed $2^{50}$); typical case is a
+heuristic from the empirical norm distribution; $K$ factor is the extra parallel repetitions after correcting the lemma}\label{tab:mithrilqs}
+\centering\scriptsize
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Set (15 each) & Thm.~3.2, paper's $B$ & Typical case & $<2^{50}$ & Corrected $\varphi$ & $K$ factor, $2^{50}$ / $2^{64}$\\
+\midrule
+ML-DSA-44 & $2^{27.4}$--$2^{33.0}$ & $2^{46.7}$--$2^{53.5}$ & 3 & 5.27--5.64 & 1.50--3.73 / 2.00--7.16\\
+ML-DSA-65 & $2^{26.0}$--$2^{34.9}$ & $2^{47.4}$--$2^{56.5}$ & 4 & 5.92--6.55 & 1.60--8.53 / 2.00--23.2\\
+ML-DSA-87 & $2^{30.7}$--$2^{37.3}$ & $2^{53.7}$--$2^{60.6}$ & 0 & 7.09--7.66 & 1.33--3.77 / 1.67--8.35\\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 \begin{table}[t]
 \caption{Mithril a posteriori key-sharing hint loss, exact $T-1$ share subset}\label{tab:hint}
@@ -780,7 +839,8 @@ The paper's own text (Fig.~1b, Remark~11, App.~M.1) has every party broadcast $W
 (Lemma~1), so $\sum_i W_i=Ay$ is public; Gaussian elimination gives $y$ and then $s_1=c^{-1}(z-y)$ from a single P2
 signature, for any $|S\setminus C|$. The proof of Corollary~5 itself calls this value the public broadcast, and no later
 appendix changes it. \textbf{Demonstrated at full size:} in our re-implementation at real ML-DSA-44/65/87 sizes the combined
-signatures pass the standard verifier and $s_1$ was recovered exactly from one signature for 15/15 keys per set;
+signatures pass the standard verifier and $s_1$ was recovered exactly from one signature for 15/15 keys per set
+(Table~\ref{tab:kao}; $(N,T)=(3,2),(5,3),(5,5)$, five keys each, seed 2051, under 0.2\,s per attack);
 withholding a single $W_i$ drops this to 0/15, so the attack really uses the sum. The author's code is not public, and our
 rejection checks run in the clear rather than in the paper's MPC. The earlier toy (ring size
 8, real $q$) also checks the narrower Phase~1 hypothesis: with all but one signer corrupted, the honest party's mask can be
@@ -789,6 +849,24 @@ above, however, works whatever the number of honest parties. Two further points:
 threshold-signature functionality without the $|H|\ge2$ condition that its Simulator~17 needs, and the key-generation
 commitment $t^{(i)}=As_1^{(i)}+s_2^{(i)}$ carries the noise $s_2^{(i)}$, so the bare $As_{1,i}$ pattern broken in TALUS
 does not recur there.
+
+\begin{table}[t]
+\caption{Kao P2 attack as run at real ML-DSA-44/65/87 size}\label{tab:kao}
+\centering\scriptsize
+\begin{tabularx}{\columnwidth}{@{}lX@{}}
+\toprule
+Step & Key recovery from one P2 signature (public data only)\\
+\midrule
+Input & $\mathit{pk}=(\rho,t_1)$; message; signature $(\tilde c,z,h)$; broadcast values $W_i$ of the accepted attempt\\
+1 & $w\leftarrow\sum_i W_i \bmod q$ (pairwise masks cancel, so $w=Ay$)\\
+2 & $A\leftarrow\mathrm{ExpandA}(\rho)$; move $A$ and $w$ to the NTT domain\\
+3 & For each of the 256 slots solve the $k\times\ell$ system $\hat A_j\hat y_j=\hat w_j$ ($A$ tall, invertible w.h.p.);
+$y\leftarrow\mathrm{NTT}^{-1}(\hat y)$\\
+4 & $c\leftarrow\mathrm{SampleInBall}(\tilde c)$; $s_1\leftarrow c^{-1}(z-y)$ in $R_q$\\
+Check & $s_1$ short ($\norm{s_1}\le\eta$) and consistent with $t_1$; result 15/15 per set, 0/15 with one $W_i$ withheld\\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \subsection{Quorus and Trilithium (P3)}\label{sec:p3}
 Our Quorus implementation produced 0 of 272{,}664 signatures failing FIPS~204 verification. No statistical leak is
@@ -805,12 +883,22 @@ check failed) and branch~2 ($z$ passed but the $\LB$ check failed). Exact enumer
 between rejected $w_H$ and the simulator, shrinking with $\gamma_1$ (branch~3 roughly as $\gamma_1^{-2.7}$). A branch-2
 floor near $10^{-4}$ persisted for $\gamma_1\ge\gamma_2$ at $q=257$, 513 and 1025, so it is not a small-$q$ artefact; it
 comes from the wrap-around rounding cell, and masking that cell removes it (30--65$\times$ smaller). Exact convolution for
-$n=2$ to 6 at $q=17$ shows both gaps falling with $n$ (branch~3 by 2--3 orders of magnitude from $n=4$ to 6). At $n=8$ the
-branch-3 gap is below the Monte Carlo floor of about $10^{-7}$. Toy sizes cannot prove anything about $n=256$, but every
+$n=2$ to 6 at $q=17$ shows both gaps falling with $n$ (branch~3 by 2--3 orders of magnitude from $n=4$ to 6;
+Fig.~\ref{fig:trigap}, which also shows the trend is not monotone from $n=3$ to 4). At $n=8$ the branch-3 gap is below the
+Monte Carlo floor of about $3\times10^{-7}$. Toy sizes cannot prove anything about $n=256$, but every
 trend points toward the assumption holding statistically; a lattice-level distinguisher remains untested. On H-F3, a
 server that tampers with the rejection check is detected and stopped, so the leak is bounded by the stopping time, about
 $\log_2(\text{attempts})$ bits, once; the issue is that the paper's simulation does not reproduce how that stopping
 probability depends on the real $z$.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{trilithium_gap.png}
+\caption{Trilithium toy model ($q=17$, $\gamma_2=4$, $\tau=1$): squared Hellinger distance $H^2$ between the rejected
+$w_H$ distribution and the paper's simulator, per rejection branch; about $1/H^2$ rejected attempts are needed to tell them
+apart. $n=2$--6 exact (mean of 5 keys, seed $2026+n$); $n=8$ Monte Carlo ($2\times10^8$ samples $\times$ 3 keys, seed
+2026, bias-corrected; open marker = below the sampling floor).}\label{fig:trigap}
+\end{figure}
 
 \textbf{Quorus in more detail.} Besides the two text errors, the batched-OR protocol has statistical soundness $2^{-39}$
 ($\kappa=40$), so about one rejected attempt in $2^{39}$ is wrongly declared a pass and its failing, key-dependent $z$ is

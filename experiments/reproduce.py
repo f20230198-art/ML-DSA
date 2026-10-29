@@ -22,6 +22,7 @@ ITEMS = [
     ("arch-diagram", "Figure: harness architecture", ["-m", "experiments.arch_diagram"], "fast", f"{R}/harness_architecture.png", False),
     ("ls-error-plot", "Figure: least-squares error vs N with theory curve", ["-m", "experiments.ls_error_plot"], "fast-ish", f"{R}/ls_error_vs_N.png", False),
     ("success-plot", "Figure: TALUS success vs N (least squares, edge, edge+ILP, whole secret)", ["-m", "experiments.talus_success_plot"], "fast", f"{R}/talus_success_vs_N.png", False),
+    ("report-extras", "Figures 4-5 and summaries behind Tables X-XIV (ladder, Trilithium gap, Mithril, insider, controls)", ["-m", "experiments.report_extras"], "fast", f"{R}/report_extra_tables.txt", True),
     ("coordinator-tail","Scorecard: TALUS coordinator out-of-box tail probabilities", ["-m", "experiments.talus_coordinator_tail"], "fast", f"{R}/talus_coordinator_tail.txt", True),
     ("m2-sim", "TALUS m = 2 insider simulation (writes .json; table in .txt made from it)", ["-m", "experiments.talus_m2_sim", "--w", "32", "64", "128", "256", "--trials", "20"], "medium (CPU, ~1 h)", f"{R}/talus_m2_sim.json", False),
     ("quorus-lemma8", "Quorus Lemma 8 exhaustive toy check (normaliser erratum)", ["-m", "experiments.quorus_lemma8_check"], "fast", f"{R}/quorus_lemma8_check.txt", True),
