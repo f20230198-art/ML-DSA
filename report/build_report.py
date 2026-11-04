@@ -48,7 +48,8 @@ def para(text, align=WD_ALIGN_PARAGRAPH.JUSTIFY):
     return p
 
 
-ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI"]
+ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI",
+         "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV"]
 _cnt = {"sec": 0, "sub": 0, "tab": 0, "fig": 0}
 
 
@@ -56,7 +57,8 @@ def heading(text, level=1):
     p = doc.add_paragraph()
     p.paragraph_format.keep_with_next = True
     text = re.sub(r"^\d+(\.\d+)?\.? ", "", text)
-    if level == 1 and text in ("Abstract", "References"):
+    if level == 1 and text in ("Abstract", "References", "Appendices"):
+        _cnt["sub"] = 0
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.space_before = Pt(6)
         p.paragraph_format.space_after = Pt(3)
@@ -895,6 +897,295 @@ para("**Conclusion.** The survey of 33 sources showed that threshold ML-DSA desi
      "coordinator, key change and lattice finishing routes do not lower it. Our other findings are a gap between "
      "Mithril's parameters and its proof, a key exposure in Kao's P2 profile, and errata in Quorus and Trilithium. We will "
      "disclose these to the authors before any public posting.")
+
+# ---------------- Appendices (added 4 Nov 2026) ----------------
+heading("Appendices")
+heading("Notation and ML-DSA background", 2)
+para("This appendix collects the symbols used in the main text in one place. The values are the FIPS 204 parameters [1], "
+     "which our harness uses unchanged (harness/mldsa/params.py).")
+table([
+    ["Symbol", "Meaning", "ML-DSA-44", "ML-DSA-65", "ML-DSA-87"],
+    ["q", "Modulus of the ring R_q", "8,380,417", "8,380,417", "8,380,417"],
+    ["n", "Ring dimension (coefficients per element)", "256", "256", "256"],
+    ["(k, ℓ)", "Rows and columns of the matrix A", "(4, 4)", "(6, 5)", "(8, 7)"],
+    ["η", "Bound on the secret coefficients of s1, s2", "2", "4", "2"],
+    ["τ", "Number of ±1 entries in the challenge c", "39", "49", "60"],
+    ["γ1", "Range of the nonce y", "2^17", "2^19", "2^19"],
+    ["γ2", "Low-order rounding range", "(q−1)/88", "(q−1)/32", "(q−1)/32"],
+    ["β", "β = τ·η, the largest possible |c·s| coefficient", "78", "196", "120"],
+    ["ω", "Largest number of 1s in the hint h", "80", "55", "75"],
+    ["d", "Bits dropped from t to form t1", "13", "13", "13"],
+], [0.55, 2.55, 0.9, 0.9, 0.9], "ML-DSA symbols and parameter values (FIPS 204, Table 1)")
+para("**Keys.** The public matrix A is expanded from a seed ρ. The secret key is a pair of short vectors s1 (ℓ ring "
+     "elements) and s2 (k ring elements), with every coefficient in [−η, η]. The public value is t = A·s1 + s2. It is "
+     "split as t = t1·2^d + t0, and only t1 is published. So t0 is not in the public key, but it can be worked out from "
+     "enough signatures, which is why the output −t0 in our negative control is not a leak.")
+para("**One signing attempt.** (1) Draw a nonce y with coefficients in (−γ1, γ1]. (2) Compute w = A·y and its high part "
+     "w1 = HighBits(w). (3) Hash the message and w1 into the challenge c, a ring element with τ entries equal to ±1 and "
+     "the rest 0. (4) Set z = y + c·s1. (5) Reject and start again if any coefficient of z has size at least γ1 − β, or "
+     "if any coefficient of r0 = LowBits(w − c·s2) has size at least γ2 − β. (6) Otherwise output (c̃, z, h), where c̃ is "
+     "the hash behind c and h is a short hint that lets the verifier rebuild w1 from public data. The two checks in step "
+     "(5) are rejection sampling. They make the released z independent of s1, and they keep the rounding of w − c·s2 "
+     "away from a boundary. Every leak studied in this report is about one of these two checks, run across several parties.")
+para("**Threshold words.** N is the number of parties, T the number needed to sign, S the set that signs a given "
+     "message, C the corrupted parties and H = S∖C the honest ones. In Section V the letter N is also the number of "
+     "signatures an attacker sees. N* is the smallest such number at which our estimator recovers the target with 95% "
+     "success. A cap is the number of signatures a scheme allows per key. A wall is the number beyond which the scheme's "
+     "authors expect the leak to identify the key uniquely.")
+
+heading("The estimators as optimisation problems", 2)
+para("**Samples.** Each accepted signature gives one ring equation b = −c·s′ + e, where s′ is the target element, c is "
+     "public and e is noise with |e| ≤ B coefficient by coefficient. Multiplying by c in R_q is the same as multiplying "
+     "by a signed cyclic matrix (negacyclic, because x^n = −1). So N signatures give N·n linear rows a_j·s′ + b_j = e_j "
+     "with n unknowns.")
+para("**Least squares.** It minimises Σ_j (a_j·s′ + b_j)². In the FFT basis the negacyclic matrices become diagonal, so "
+     "each frequency is solved by one division (harness/estimators/edge.py, least_squares_fft). The answer is the average, "
+     "and its error falls like 1/√N.")
+para("**Edge estimator (Chebyshev linear program).** It solves: minimise t subject to −t ≤ a_j·x + b_j ≤ t for every row "
+     "j, and |x_k| ≤ box for every coefficient k. The box is the known range of the secret and keeps the program "
+     "bounded. The N·n rows do not fit in memory at full size. So we use cutting planes. We start with a random set of "
+     "rows, solve, add the rows that the current x violates most, and repeat for at most 80 rounds. The optimum t of the "
+     "working set is a lower bound on the true optimum. At the end, a certificate check confirms that the final answer "
+     "satisfies every row with |a_j·x + b_j| ≤ B, so no row is silently ignored. The solver is HiGHS through scipy.")
+para("**ILP finishing.** Rounding x fails if even one of the n coefficients is more than 1/2 away from the truth. ILP "
+     "finishing gives each coefficient a short candidate list, the integers within 1 of x_k that are also inside "
+     "[−η, η]. Coefficients with one candidate are fixed. The rest are solved by a mixed integer program: minimise t "
+     "subject to |a_j·z + b_j| ≤ t on the rows, with z integer inside the candidate box (harness/estimators/ilp.py). "
+     "Rows are again added only when violated, and each run has a time limit of 120 s. Under uniform noise every integer "
+     "point inside the bound is equally likely, so choosing the smallest t is a tie break. A finish can still be wrong "
+     "when more than one integer point fits, and this is why every result is checked against the true key.")
+para("**Why the edges help.** A single coefficient with uniform noise on [−B, B] and N samples is pinned to an interval "
+     "whose width falls like 1/N, while the average used by least squares only improves like 1/√N. This is the whole "
+     "advantage of the edge estimator. The 256 coefficients are coupled through c, so in practice the gain is smaller "
+     "than the one coefficient picture, as Section V-A explains.")
+
+heading("The corrected hyperball bound (Mithril Lemma 2.5)", 2)
+para("**The printed statement.** Write x = 1 − 1/φ² for a radius ratio φ > 1. The full version of Devevey et al. [25] "
+     "(App. A.6), copied as Mithril's Lemma 2.5, states I_x((n+1)/2, 1/2) < x^(n−1)·n·(1 − 1/φ). Here I_x is the "
+     "regularised incomplete Beta function, which gives the relative volume of a cap of a ball. In simple terms, the "
+     "lemma bounds how likely a random point is to fall in the part of one ball that sticks out of another. The bound "
+     "is smaller than the true value at 149 of the 320 points we tested (2 ≤ n ≤ 8192, 1.05 ≤ φ ≤ 50), including every "
+     "Mithril set. So it is not an upper bound there.")
+para("**Where it goes wrong.** The proof places the cap inside a cylinder of height 1 − 1/φ. The base of that cylinder "
+     "is a ball of dimension n − 1 and radius √x. Its volume therefore carries the factor x^((n−1)/2), not x^(n−1). "
+     "Squaring the factor makes the bound far too small in high dimension.")
+para("**Corrected statement.** Let h = 1/φ and let V_d be the volume of the unit ball in d dimensions. Then (a) "
+     "I_x ≤ (2V_(n−1)/V_n)·x^((n−1)/2)·(1 − h), and (b) I_x ≤ (2V_(n−1)/V_n)·x^((n+1)/2)/((n − 1)·h). Both ratios satisfy "
+     "2V_(n−1)/V_n < √(2(n+2)/π). Part (a) is the cylinder argument done correctly. Part (b) is sharper.")
+para("**Proof idea.** The cap volume relative to the ball is I_x/2. Slicing the cap at height t gives balls of radius "
+     "√(1 − t²), so the cap volume is V_(n−1) times the integral of (1 − t²)^((n−1)/2) from h to 1. For (a), on that range "
+     "1 − t² ≤ x, so the integral is at most x^((n−1)/2)(1 − h). For (b), use t² − h² ≥ 2h(t − h) and 1 − u ≤ e^(−u). This "
+     "gives (1 − t²)^((n−1)/2) ≤ x^((n−1)/2)·e^(−(n−1)h(t−h)/x). Extending the integral to infinity gives the stated "
+     "form. The bound on the volume ratio follows from Gautschi's inequality for the Gamma function.")
+table([
+    ["Dimension n", "φ", "Exact", "Printed", "(a)", "(b)"],
+    ["2048 (ML-DSA-44)", "7", "−33.53", "−50.12", "−25.49", "−33.49"],
+    ["2816 (ML-DSA-65)", "8", "−35.09", "−52.69", "−26.77", "−35.06"],
+    ["3840 (ML-DSA-87)", "9", "−37.56", "−57.07", "−28.94", "−37.53"],
+], [1.4, 0.4, 0.75, 0.75, 0.75, 0.75],
+   "log2 of the cap fraction at Mithril sizes: exact (mpmath, 50 digits), printed Lemma 2.5, and corrected bounds (a), (b)")
+para("**Check.** Neither corrected form falls below the exact value at any of the 320 points "
+     "(experiments/a6_corrected_bound.py). Form (b) is within 0.04 bits of the exact value at Mithril sizes, so using it "
+     "gives the same Q_s as the exact value, 2^26 to 2^37 at the published parameters. The proof is elementary, but no "
+     "one outside our team has reviewed it yet.")
+
+heading("Worked examples on tiny numbers", 2)
+para("The two main attacks are easier to follow on numbers small enough to check by hand. Both examples below were "
+     "computed by a short script, and the numbers are exact.")
+para("**Example 1, bounded noise (the TALUS channel).** Take one secret coefficient s = 1, known to lie in [−2, 2]. Each "
+     "signature gives b = −c·s + e, where c is public and the noise e is a whole number in [−4, 4]. Since |b + c·s| ≤ 4, "
+     "each sample says that s lies between (−b − 4)/c and (−b + 4)/c. Table XVIII shows six samples. Every sample cuts the "
+     "allowed interval, and after six of them only [1/2, 1] is left. The only whole number in it is s = 1, so the secret "
+     "is found exactly. Least squares on the same six samples gives 0.81. That also rounds to 1, but only just. Its error "
+     "shrinks slowly, like 1/√N, while the edges make the interval shrink like 1/N. At full size there are 256 coupled "
+     "coefficients and the noise range is about 10^5, but the idea is the same.")
+table([
+    ["j", "c", "e", "b", "Interval from this sample", "Interval so far"],
+    ["1", "3", "1", "−2", "[−2/3, 2]", "[−2/3, 2]"],
+    ["2", "2", "4", "2", "[−3, 1]", "[−2/3, 1]"],
+    ["3", "1", "2", "1", "[−5, 3]", "[−2/3, 1]"],
+    ["4", "3", "−2", "−5", "[1/3, 3]", "[1/3, 1]"],
+    ["5", "−3", "−2", "1", "[−1, 5/3]", "[1/3, 1]"],
+    ["6", "−2", "3", "5", "[1/2, 9/2]", "[1/2, 1]"],
+], [0.3, 0.4, 0.4, 0.4, 1.6, 1.4], "Bounded noise on one coefficient: s = 1, noise in [−4, 4]; the interval pins s after six samples")
+para("**Example 2, the Kao P2 broadcast.** Work mod q = 17 with a 2×1 matrix A = (3, 5), so k = 2 rows and ℓ = 1 "
+     "column. Two parties hold nonce shares y1 = 4 and y2 = 3, so y = 7. They share a mask m = 6 and broadcast "
+     "W1 = A·y1 + m = (1, 9) and W2 = A·y2 − m = (3, 9). An outsider adds them and gets (4, 1). The masks cancel, so this "
+     "is A·y. The first row says 3·y = 4 mod 17, so y = 3^(−1)·4 = 7. The secret is s1 = 2 and the challenge c = 3, so the "
+     "signature contains z = y + c·s1 = 13. Then s1 = c^(−1)·(z − y) = 6·6 = 36 = 2 mod 17, the secret. No party was "
+     "corrupted. At full size the same steps run on 256 slots after the NTT, each a small k×ℓ system (Table XIV).")
+
+heading("How each scheme signs, in brief", 2)
+para("This appendix gives a short picture of each proposal, enough to see where its transcript could leak. The main "
+     "text (Section II-B) compares them, and Table II lists their properties.")
+para("**TALUS.** The parties hold shares of s1. Each signer draws nonce shares offline, and the nonce y is their sum, "
+     "so its coefficients follow an Irwin–Hall law, a sum of uniform values. A nonce is kept only if it passes the "
+     "boundary clearance condition (BCC). Every coefficient of r0 = LowBits(A·y) must satisfy |r0| < γ2 − β. Then the "
+     "LowBits check on w − c·s2 passes for any key and any challenge, so this check never rejects online. BCC accepts "
+     "43.2%, 31.7% and 39.1% of nonces for ML-DSA-44, 65 and 87. Because accepted nonces are pushed away from the "
+     "rounding boundary, the released values carry a small trace of s2. The authors admit this and cap each key at "
+     "2^13 or 2^14 signatures, after which a fresh key is generated. Section V-A measures how much room this cap leaves.")
+para("**Mithril.** It uses replicated sharing. There is one short ML-DSA style secret for each set of N − T + 1 "
+     "parties, so any T parties together know all of them. Each signer commits to w_i = [A | I]·r_i with r_i drawn "
+     "uniformly from a ball of radius r′. Signing takes three rounds: a hashed commitment, the reveal of w_i, and the "
+     "response. Each party accepts its own response z_i = (its part of c·s) + r_i only if ‖z_i‖₂ ≤ r. This local check "
+     "makes z_i uniform on a smaller ball, but only when the shift c·s is short enough. K attempts run in parallel so "
+     "that at least one succeeds for all T parties. The security theorem limits the number of signing queries through "
+     "the hyperball lemma that Appendix C corrects.")
+para("**Quorus.** It is an honest majority MPC protocol over Shamir shares mod q. The parties compute ML-DSA signing "
+     "inside MPC on shared values, using edabits for comparisons and for Decompose. It adds a small error, so "
+     "w = A·y + e_w. A rejection is opened as a single bit through a batched OR of all comparison results, so the "
+     "position of a failing coefficient stays hidden. A rejected attempt releases only (w1, c, ⊥). We proved that "
+     "leaving e_w out of the hint is always correct, since |e_w| ≤ η < β, and our 272,664 test signatures all verified.")
+para("**Trilithium.** It is a two party scheme, between a phone and a server, with correlated randomness from a "
+     "trusted dealer. Every attempt opens the commitment w_H = HighBits(A·y), including rejected ones. The proof splits "
+     "rejected attempts into the two branches studied in Section V-D and argues that w_H then still looks like the "
+     "high part of a uniform value. This argument rests on an MLWR style assumption with a set of nonces that depends on "
+     "the key.")
+para("**Kao's P2 profile.** Key and nonce are both Shamir sharings over Z_q. Each party sends z_i = y_i + c·s1,i "
+     "without a mask, and a combiner forms z from the Lagrange weighted sum. The commitments W_i = λ_i·A·y_i + m_i carry "
+     "pairwise masks m_i that sum to zero. In profiles P1 and P3+ only a coordinator sees the W_i. In P2 there is no "
+     "coordinator, so every W_i is broadcast. This is exactly the case of Example 2 above.")
+
+heading("Full success counts for the TALUS runs", 2)
+para("Section V-A quotes only the 95% points. Tables XIX and XX give every count behind them, so a reader can redo "
+     "the logistic fit. The 95% intervals are Clopper–Pearson. Each element trial is a fresh key and transcript.")
+table([
+    ["Set", "N", "log2 N", "Recovered", "95% interval"],
+    ["ML-DSA-44", "50,000", "15.61", "0/20", "[0.00, 0.17]"],
+    ["", "55,000", "15.75", "5/20", "[0.09, 0.49]"],
+    ["", "60,000", "15.87", "11/20", "[0.32, 0.77]"],
+    ["", "65,000", "15.99", "19/20", "[0.75, 1.00]"],
+    ["", "70,000", "16.10", "20/20", "[0.83, 1.00]"],
+    ["", "80,000", "16.29", "20/20", "[0.83, 1.00]"],
+    ["ML-DSA-65", "130,000", "16.99", "0/20", "[0.00, 0.17]"],
+    ["", "143,000", "17.13", "4/20", "[0.06, 0.44]"],
+    ["", "160,000", "17.29", "16/20", "[0.56, 0.94]"],
+    ["", "179,000", "17.45", "19/20", "[0.75, 1.00]"],
+    ["", "215,000", "17.71", "20/20", "[0.83, 1.00]"],
+    ["ML-DSA-87", "120,000", "16.87", "5/20", "[0.09, 0.49]"],
+    ["", "135,000", "17.04", "10/20", "[0.27, 0.73]"],
+    ["", "148,000", "17.18", "18/20", "[0.68, 0.99]"],
+    ["", "165,000", "17.33", "19/20", "[0.75, 1.00]"],
+    ["", "184,000", "17.49", "20/20", "[0.83, 1.00]"],
+], [0.9, 0.8, 0.6, 0.8, 1.0],
+   "Edge estimator with ILP finishing, one ring element, n = 256, seed 2041, 120 s ILP limit")
+para("**Logistic fits.** For ML-DSA-44 the 50% point is 2^15.84 and the 95% point 2^16.01. For ML-DSA-65 they are "
+     "2^17.22 and 2^17.40, and for ML-DSA-87 2^17.01 and 2^17.30. The curves are steep. Going from 50% to 95% success "
+     "costs only 0.2 to 0.3 bits, so the attacker gains little by settling for a lower success rate.")
+table([
+    ["Set (k)", "Element rate needed", "Full 50%", "Full 95%", "Above cap at 95%"],
+    ["ML-DSA-44 (4)", "0.841 / 0.987", "2^15.93", "2^16.09", "+3.09"],
+    ["ML-DSA-65 (6)", "0.891 / 0.991", "2^17.34", "2^17.51", "+3.51"],
+    ["ML-DSA-87 (8)", "0.917 / 0.994", "2^17.25", "2^17.51", "+3.51"],
+], [1.0, 1.25, 0.75, 0.75, 1.0],
+   "Whole secret from the fitted element curve, P_full = P_elem^k (independence assumed); ML-DSA-44 checked by a real run")
+para("**An earlier, smaller run.** Before the dense runs we tried ILP finishing with only 4 trials per point (seed "
+     "2032, 300 s limit). It recovered 4 of 4 elements from 179,000 signatures for ML-DSA-65 and from 148,000 for "
+     "ML-DSA-87, while plain rounding recovered none at those sizes. These small samples are only indicative, but they "
+     "agree with the dense table above.")
+
+
+def _mithril_rows():
+    """Per (T, N) rows from the saved Mithril parameter checks (published and corrected)."""
+    pub, cor, cur = {}, {}, None
+    for name, store in (("mithril_params.txt", pub), ("mithril_corrected.txt", cor)):
+        for line in open(RES / name, encoding="utf-8"):
+            m = re.match(r"^(ML-DSA-\d\d)", line)
+            if m:
+                cur = m.group(1)
+            m = re.match(r"^\s+\((\d),(\d)\)\s+(.*)", line)
+            if m and cur:
+                store[(cur, int(m.group(1)), int(m.group(2)))] = m.group(3).replace("|", " ").split()
+    rows = []
+    for key in pub:
+        p, c = pub[key], cor.get(key)
+        rows.append([key[0][-2:] if key[2] == 2 and key[1] == 2 else "", f"({key[1]},{key[2]})", p[0], p[3], p[-1],
+                     c[6] if c else "–", c[7] if c else "–"])
+    return rows
+
+
+heading("Mithril, set by set", 2)
+para("Table XII in Section V-B gives ranges. Table XXI lists all 45 published (T, N) sets, so the worst cases can be "
+     "seen. The columns are the published number of parallel attempts K, the queries Q_s that Theorem 3.2 covers with "
+     "the paper's norm bound B, the typical case heuristic, and the K needed after correcting the lemma for 2^50. The "
+     "sets that fall short even in the typical case are the ones with the largest K, where many parallel attempts "
+     "multiply the loss per session.")
+table([["Set", "(T,N)", "K", "log2 Q_s, Thm 3.2", "log2 Q_s, typical", "K corrected", "Factor"]] + _mithril_rows(),
+      [0.4, 0.55, 0.5, 1.0, 1.0, 0.8, 0.6],
+      "Mithril, every published parameter set: queries covered (claimed 2^50) and K after correcting Lemma 2.5")
+
+heading("Quorus correctness run", 2)
+para("We ran Algorithm 1 of Quorus outside MPC, 400,000 single attempts per set over 20 keys, and checked every "
+     "released signature with our FIPS 204 verifier. Table XXII gives the rates. The average number of attempts per "
+     "signature matches the paper's Table 2 within about 1%. The second check, on line 6, fails 0.4% to 1.3% of the time, "
+     "always because of the hint weight, which is somewhat below the paper's rough figure of 2%. A control run without "
+     "the extra error e_w gave the same rates, so e_w changes nothing measurable.")
+table([
+    ["Set", "Attempts (ours)", "Attempts (paper)", "Line 6 failure", "Signatures", "Failed verify"],
+    ["ML-DSA-44", "4.30", "4.25", "1.34%", "91,810", "0"],
+    ["ML-DSA-65", "5.12", "5.09", "0.40%", "77,862", "0"],
+    ["ML-DSA-87", "3.85", "3.85", "0.77%", "102,992", "0"],
+], [0.9, 0.9, 0.9, 0.9, 0.8, 0.8], "Quorus Algorithm 1: attempts per signature, line 6 failures and verification, 400,000 attempts per set")
+
+heading("Experiment register", 2)
+para("Every number in Section V comes from one of the runs below. Each script is in experiments/ and writes its output "
+     "to experiments/results/. Seeds are passed to numpy's default_rng, usually together with N and the trial number, so "
+     "each trial can be rerun on its own.")
+table([
+    ["Result", "Script", "Set, size", "Trials", "Seed"],
+    ["LS calibration (Fig. 2)", "ls_error_plot", "44, n = 256", f"{LS['trials']} per N", f"{LS['seed']}"],
+    ["Edge, rounding, ring ladder (Fig. 4)", "talus_edge_scaling", "44, n = 8–256", "10–20 per N", "2026"],
+    ["Edge + ILP, one element (Table IX)", "ilp_n256", "44/65/87, n = 256", "20 per N", "2041"],
+    ["Whole secret, ML-DSA-44", "ilp_n256 (run_item8_full.sh)", "44, n = 256", "20 secrets per N", "2081"],
+    ["Controls (Table X)", "mldsa_controls", "44, real signing", "3 + 15 keys", "2026, 2027"],
+    ["Gate B, real signing in view", "gate_b_views", "44", "2 keys per N", "2029"],
+    ["TALUS v0.1, Niot attacks", "talus_v01_niot", "44, |S| = 3", "3 keys, 60 sigs", "101–103"],
+    ["Niot error formula check", "niot_sanity", "44", "12 runs", "fixed"],
+    ["Insider walls (Table XI)", "talus_insider_wall", "44/65/87", "formula", "–"],
+    ["m = 2 insider simulation", "talus_m2_sim", "44, w = 32–512", "20 per width", "fixed"],
+    ["Coordinator tail", "talus_coordinator_tail", "44/65/87", "exact", "–"],
+    ["Soft hint lattice cost", "soft_hint_lwe", "44", "model", "–"],
+    ["A.6 bound check", "a6_corrected_bound", "320 grid points", "exact", "–"],
+    ["Mithril Go transcripts", "mithril_real_transcripts", "44, (T,N) = (2,3)", "110,000 slots", "fixed"],
+    ["Kao P2 at full size (Table XIV)", "kao_p2_real_demo", "44/65/87", "5 keys per set", "2051"],
+    ["Quorus Lemma 8 check", "quorus_lemma8_check", "toy", "exhaustive", "–"],
+    ["Trilithium n = 4 exact", "trilithium_toy", "toy, n = 4", "exact", "–"],
+    ["Trilithium n = 2–6 (Fig. 5)", "trilithium_dim", "q = 17", "5 keys", "2026 + n"],
+    ["Trilithium n = 8 (Fig. 5)", "trilithium_mc", "q = 17", "2×10^8 samples, 3 keys", "2026"],
+], [1.75, 1.45, 1.15, 1.2, 0.65], "Experiment register: script, parameter set, trials and seed behind each result")
+
+heading("Reproducing the results", 2)
+para("**Environment.** Windows 11, Python 3.13 with numpy, scipy (HiGHS) and PyTorch in double precision on an NVIDIA "
+     "RTX 4060 laptop GPU (8 GB), and 15 GB of RAM. The lattice estimator runs in Docker (sagemath/sagemath:10.4). The "
+     "Mithril transcripts use the authors' Go code. The repository has 181 unit tests, including the 81 ACVP vectors.")
+para("**One command per result.** python -m experiments.reproduce lists every table and figure, the command behind it, "
+     "its cost and its output file. With --fast it reruns everything that takes minutes on a CPU. With --run ID it reruns "
+     "one item. The heavy items, the ILP trial runs behind Table IX, need the GPU and several hours each. They are listed "
+     "with the exact command that produced the stored results, and they resume from their JSON output if stopped.")
+para("**Lessons for running it.** Run only one GPU job at a time, because two concurrent jobs crashed the graphics driver "
+     "once. Run scripts as modules (python -m experiments.name) so that the harness package is found. The ILP step runs "
+     "on the CPU and its memory grows with N, so the whole secret runs for ML-DSA-65 and 87 need several GB of free RAM.")
+
+heading("Glossary", 2)
+for term, meaning in [
+    ("Threshold signature", "A key split among N parties so that any T of them can sign together, while fewer than T learn nothing useful about the key."),
+    ("Rejection sampling", "Throwing away a signing attempt whose output would depend on the secret, and trying again with a fresh nonce."),
+    ("Nonce", "The fresh random value y used once in each signing attempt."),
+    ("ILWE", "Integer learning with errors. Recovering a secret from many noisy linear equations over the integers, with no reduction mod q."),
+    ("Bounded noise", "Noise known to lie inside a fixed interval. Its edges give hard limits on the secret, unlike Gaussian noise."),
+    ("Fisher information", "A measure of how much one sample tells about an unknown value. More information per sample means fewer samples needed."),
+    ("Cramér–Rao bound", "A lower limit on the error of any unbiased estimator, set by the Fisher information."),
+    ("Rényi divergence", "A way to measure how far two distributions are apart, used in proofs to bound how much a real protocol differs from an ideal one."),
+    ("Core-SVP", "A cautious cost model for lattice attacks that counts only the hardest single step, the shortest vector search."),
+    ("BCC", "Boundary clearance condition in TALUS. Nonces are kept only if the rounding of w is far from a boundary, so signing never needs an online rejection."),
+    ("DKG", "Distributed key generation. The parties create shares of a key without anyone ever holding the whole key."),
+    ("MPC", "Secure multiparty computation. Parties compute a function together while each keeps its input private."),
+    ("TEE", "Trusted execution environment. Hardware that runs code in isolation, trusted to keep secrets."),
+    ("Hint (lattice)", "Partial information about the secret, such as a few known coefficients, that lowers the cost of a lattice attack."),
+    ("Toy size", "A version of a scheme with a much smaller ring, used because exact computation at full size is too slow."),
+]:
+    para(f"**{term}.** {meaning}")
 
 # ---------------- References ----------------
 heading("References")

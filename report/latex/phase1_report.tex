@@ -1003,6 +1003,433 @@ proof, a key exposure in Kao's P2 profile, and errata in Quorus and Trilithium. 
 any public posting.
 
 % =====================================================================
+% Appendices (added 4 Nov 2026, mirrors report/build_report.py)
+\appendices
+
+\section{Notation and ML-DSA background}\label{app:notation}
+This appendix collects the symbols used in the main text in one place. The values are the FIPS 204 parameters
+\cite{fips204}, which our harness uses unchanged (\texttt{harness/mldsa/params.py}).
+
+\begin{table}[t]
+\caption{ML-DSA symbols and parameter values (FIPS 204, Table 1)}\label{tab:appnotation}
+\centering\footnotesize
+\begin{tabular}{@{}p{0.7cm}p{3.2cm}ccc@{}}
+\toprule
+Symbol & Meaning & 44 & 65 & 87\\
+\midrule
+$q$ & Modulus of the ring $R_q$ & \multicolumn{3}{c}{8{,}380{,}417}\\
+$n$ & Coefficients per ring element & \multicolumn{3}{c}{256}\\
+$(k,\ell)$ & Rows and columns of $A$ & $(4,4)$ & $(6,5)$ & $(8,7)$\\
+$\eta$ & Bound on coefficients of $s_1,s_2$ & 2 & 4 & 2\\
+$\tau$ & Number of $\pm1$ entries in $c$ & 39 & 49 & 60\\
+$\gamma_1$ & Range of the nonce $y$ & $2^{17}$ & $2^{19}$ & $2^{19}$\\
+$\gamma_2$ & Low-order rounding range & $\frac{q-1}{88}$ & $\frac{q-1}{32}$ & $\frac{q-1}{32}$\\
+$\beta$ & $\tau\eta$, largest $|c\cdot s|$ coefficient & 78 & 196 & 120\\
+$\omega$ & Largest number of 1s in the hint $h$ & 80 & 55 & 75\\
+$d$ & Bits dropped from $t$ to form $t_1$ & 13 & 13 & 13\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Keys.} The public matrix $A$ is expanded from a seed $\rho$. The secret key is a pair of short vectors $s_1$ ($\ell$
+ring elements) and $s_2$ ($k$ ring elements), with every coefficient in $[-\eta,\eta]$. The public value is
+$t=A s_1+s_2$. It is split as $t=t_1 2^d+t_0$, and only $t_1$ is published. So $t_0$ is not in the public key, but it can
+be worked out from enough signatures, which is why the output $-t_0$ in our negative control is not a leak.
+
+\textbf{One signing attempt.} (1) Draw a nonce $y$ with coefficients in $(-\gamma_1,\gamma_1]$. (2) Compute $w=Ay$ and its
+high part $w_1=\HB(w)$. (3) Hash the message and $w_1$ into the challenge $c$, a ring element with $\tau$ entries equal to
+$\pm1$ and the rest 0. (4) Set $z=y+c s_1$. (5) Reject and start again if any coefficient of $z$ has size at least
+$\gamma_1-\beta$, or if any coefficient of $r_0=\LB(w-c s_2)$ has size at least $\gamma_2-\beta$. (6) Otherwise output
+$(\tilde c,z,h)$, where $\tilde c$ is the hash behind $c$ and $h$ is a short hint that lets the verifier rebuild $w_1$ from
+public data. The two checks in step (5) are rejection sampling. They make the released $z$ independent of $s_1$, and they
+keep the rounding of $w-c s_2$ away from a boundary. Every leak studied in this report is about one of these two checks,
+run across several parties.
+
+\textbf{Threshold words.} $N$ is the number of parties, $T$ the number needed to sign, $S$ the set that signs a given
+message, $C$ the corrupted parties and $H=S\setminus C$ the honest ones. In Section~\ref{sec:results} the letter $N$ is also
+the number of signatures an attacker sees. $N^*$ is the smallest such number at which our estimator recovers the target with
+95\% success. A cap is the number of signatures a scheme allows per key. A wall is the number beyond which the scheme's
+authors expect the leak to identify the key uniquely.
+
+\section{The estimators as optimisation problems}\label{app:estimators}
+\textbf{Samples.} Each accepted signature gives one ring equation $b=-c s'+e$, where $s'$ is the target element, $c$ is
+public and $e$ is noise with $|e|\le B$ coefficient by coefficient. Multiplying by $c$ in $R_q$ is the same as multiplying
+by a signed cyclic matrix (negacyclic, because $x^n=-1$). So $N$ signatures give $N n$ linear rows $a_j\cdot s'+b_j=e_j$
+with $n$ unknowns.
+
+\textbf{Least squares.} It minimises $\sum_j (a_j\cdot s'+b_j)^2$. In the FFT basis the negacyclic matrices become
+diagonal, so each frequency is solved by one division (\texttt{least\_squares\_fft} in
+\texttt{harness/estimators/edge.py}). The answer is the average, and its error falls like $1/\sqrt N$.
+
+\textbf{Edge estimator (Chebyshev linear program).} It solves
+\begin{equation*}
+\min_{x,t}\ t \quad\text{s.t.}\quad -t\le a_j\cdot x+b_j\le t\ \ \forall j,\qquad |x_k|\le \mathrm{box}\ \ \forall k.
+\end{equation*}
+The box is the known range of the secret and keeps the program bounded. The $N n$ rows do not fit in memory at full size.
+So we use cutting planes. We start with a random set of rows, solve, add the rows that the current $x$ violates most, and
+repeat for at most 80 rounds. The optimum $t$ of the working set is a lower bound on the true optimum. At the end, a
+certificate check confirms that the final answer satisfies every row with $|a_j\cdot x+b_j|\le B$, so no row is silently
+ignored. The solver is HiGHS through scipy.
+
+\textbf{ILP finishing.} Rounding $x$ fails if even one of the $n$ coefficients is more than $1/2$ away from the truth. ILP
+finishing gives each coefficient a short candidate list, the integers within 1 of $x_k$ that are also inside
+$[-\eta,\eta]$. Coefficients with one candidate are fixed. The rest are solved by a mixed integer program, minimise $t$
+subject to $|a_j\cdot z+b_j|\le t$ on the rows, with $z$ integer inside the candidate box
+(\texttt{harness/estimators/ilp.py}). Rows are again added only when violated, and each run has a time limit of 120\,s.
+Under uniform noise every integer point inside the bound is equally likely, so choosing the smallest $t$ is a tie break. A
+finish can still be wrong when more than one integer point fits, and this is why every result is checked against the true
+key.
+
+\textbf{Why the edges help.} A single coefficient with uniform noise on $[-B,B]$ and $N$ samples is pinned to an interval
+whose width falls like $1/N$, while the average used by least squares only improves like $1/\sqrt N$. This is the whole
+advantage of the edge estimator. The 256 coefficients are coupled through $c$, so in practice the gain is smaller than the
+one coefficient picture, as Section~\ref{sec:p1} explains.
+
+\section{The corrected hyperball bound (Mithril Lemma 2.5)}\label{app:a6}
+\textbf{The printed statement.} Write $x=1-1/\varphi^2$ for a radius ratio $\varphi>1$. The full version of Devevey et
+al.~\cite{devevey} (App.~A.6), copied as Mithril's Lemma 2.5, states
+\begin{equation*}
+I_x\!\left(\tfrac{n+1}{2},\tfrac12\right) < x^{\,n-1}\cdot n\cdot(1-1/\varphi).
+\end{equation*}
+Here $I_x$ is the regularised incomplete Beta function, which gives the relative volume of a cap of a ball. In simple
+terms, the lemma bounds how likely a random point is to fall in the part of one ball that sticks out of another. The bound
+is smaller than the true value at 149 of the 320 points we tested ($2\le n\le 8192$, $1.05\le\varphi\le 50$), including
+every Mithril set. So it is not an upper bound there.
+
+\textbf{Where it goes wrong.} The proof places the cap inside a cylinder of height $1-1/\varphi$. The base of that cylinder
+is a ball of dimension $n-1$ and radius $\sqrt x$. Its volume therefore carries the factor $x^{(n-1)/2}$, not $x^{n-1}$.
+Squaring the factor makes the bound far too small in high dimension.
+
+\textbf{Corrected statement.} Let $h=1/\varphi$ and let $V_d$ be the volume of the unit ball in $d$ dimensions. Then
+\begin{align*}
+\text{(a)}\quad & I_x \le \tfrac{2V_{n-1}}{V_n}\, x^{(n-1)/2}(1-h),\\
+\text{(b)}\quad & I_x \le \tfrac{2V_{n-1}}{V_n}\, \frac{x^{(n+1)/2}}{(n-1)h},
+\end{align*}
+and $2V_{n-1}/V_n<\sqrt{2(n+2)/\pi}$. Part (a) is the cylinder argument done correctly. Part (b) is sharper.
+
+\textbf{Proof idea.} The cap volume relative to the ball is $I_x/2$. Slicing the cap at height $t$ gives balls of radius
+$\sqrt{1-t^2}$, so the cap volume is $V_{n-1}\int_h^1(1-t^2)^{(n-1)/2}\,dt$. For (a), on that range $1-t^2\le x$, so the
+integral is at most $x^{(n-1)/2}(1-h)$. For (b), use $t^2-h^2\ge 2h(t-h)$ and $1-u\le e^{-u}$. This gives
+$(1-t^2)^{(n-1)/2}\le x^{(n-1)/2}e^{-(n-1)h(t-h)/x}$. Extending the integral to infinity gives the stated form. The bound
+on the volume ratio follows from Gautschi's inequality for the Gamma function.
+
+\begin{table}[t]
+\caption{$\log_2$ of the cap fraction at Mithril sizes: exact (mpmath, 50 digits), printed Lemma 2.5, and corrected bounds
+(a), (b)}\label{tab:a6}
+\centering\footnotesize
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Dimension $n$ & $\varphi$ & Exact & Printed & (a) & (b)\\
+\midrule
+2048 (44) & 7 & $-33.53$ & $-50.12$ & $-25.49$ & $-33.49$\\
+2816 (65) & 8 & $-35.09$ & $-52.69$ & $-26.77$ & $-35.06$\\
+3840 (87) & 9 & $-37.56$ & $-57.07$ & $-28.94$ & $-37.53$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Check.} Neither corrected form falls below the exact value at any of the 320 points
+(\texttt{experiments/a6\_corrected\_bound.py}), see Table~\ref{tab:a6}. Form (b) is within 0.04 bits of the exact value at
+Mithril sizes, so using it gives the same $Q_s$ as the exact value, $2^{26}$ to $2^{37}$ at the published parameters. The
+proof is elementary, but no one outside our team has reviewed it yet.
+
+\section{Worked examples on tiny numbers}\label{app:examples}
+The two main attacks are easier to follow on numbers small enough to check by hand. Both examples below were computed by a
+short script, and the numbers are exact.
+
+\textbf{Example 1, bounded noise (the TALUS channel).} Take one secret coefficient $s=1$, known to lie in $[-2,2]$. Each
+signature gives $b=-c s+e$, where $c$ is public and the noise $e$ is a whole number in $[-4,4]$. Since $|b+c s|\le 4$, each
+sample says that $s$ lies between $(-b-4)/c$ and $(-b+4)/c$. Table~\ref{tab:toy} shows six samples. Every sample cuts the
+allowed interval, and after six of them only $[1/2,1]$ is left. The only whole number in it is $s=1$, so the secret is found
+exactly. Least squares on the same six samples gives 0.81. That also rounds to 1, but only just. Its error shrinks slowly,
+like $1/\sqrt N$, while the edges make the interval shrink like $1/N$. At full size there are 256 coupled coefficients and
+the noise range is about $10^5$, but the idea is the same.
+
+\begin{table}[t]
+\caption{Bounded noise on one coefficient: $s=1$, noise in $[-4,4]$; the interval pins $s$ after six samples}\label{tab:toy}
+\centering\footnotesize
+\begin{tabular}{@{}rrrrcc@{}}
+\toprule
+$j$ & $c$ & $e$ & $b$ & Interval from this sample & Interval so far\\
+\midrule
+1 & 3 & 1 & $-2$ & $[-2/3,2]$ & $[-2/3,2]$\\
+2 & 2 & 4 & 2 & $[-3,1]$ & $[-2/3,1]$\\
+3 & 1 & 2 & 1 & $[-5,3]$ & $[-2/3,1]$\\
+4 & 3 & $-2$ & $-5$ & $[1/3,3]$ & $[1/3,1]$\\
+5 & $-3$ & $-2$ & 1 & $[-1,5/3]$ & $[1/3,1]$\\
+6 & $-2$ & 3 & 5 & $[1/2,9/2]$ & $[1/2,1]$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Example 2, the Kao P2 broadcast.} Work mod $q=17$ with a $2\times1$ matrix $A=(3,5)$, so $k=2$ rows and $\ell=1$
+column. Two parties hold nonce shares $y_1=4$ and $y_2=3$, so $y=7$. They share a mask $m=6$ and broadcast
+$W_1=A y_1+m=(1,9)$ and $W_2=A y_2-m=(3,9)$. An outsider adds them and gets $(4,1)$. The masks cancel, so this is $Ay$.
+The first row says $3y=4 \bmod 17$, so $y=3^{-1}\cdot4=7$. The secret is $s_1=2$ and the challenge $c=3$, so the signature
+contains $z=y+c s_1=13$. Then $s_1=c^{-1}(z-y)=6\cdot6=36=2 \bmod 17$, the secret. No party was corrupted. At full size the
+same steps run on 256 slots after the NTT, each a small $k\times\ell$ system (Table~\ref{tab:kao}).
+
+\section{How each scheme signs, in brief}\label{app:schemes}
+This appendix gives a short picture of each proposal, enough to see where its transcript could leak. The survey
+(Section II) compares them, and Table~\ref{tab:schemes} lists their properties.
+
+\textbf{TALUS.} The parties hold shares of $s_1$. Each signer draws nonce shares offline, and the nonce $y$ is their sum, so
+its coefficients follow an Irwin--Hall law, a sum of uniform values. A nonce is kept only if it passes the boundary
+clearance condition (BCC). Every coefficient of $r_0=\LB(Ay)$ must satisfy $|r_0|<\gamma_2-\beta$. Then the $\LB$ check
+on $w-c s_2$ passes for any key and any challenge, so this check never rejects online. BCC accepts 43.2\%, 31.7\% and
+39.1\% of nonces for ML-DSA-44, 65 and 87. Because accepted nonces are pushed away from the rounding boundary, the released
+values carry a small trace of $s_2$. The authors admit this and cap each key at $2^{13}$ or $2^{14}$ signatures, after
+which a fresh key is generated. Section~\ref{sec:p1} measures how much room this cap leaves.
+
+\textbf{Mithril.} It uses replicated sharing. There is one short ML-DSA style secret for each set of $N-T+1$ parties, so any
+$T$ parties together know all of them. Each signer commits to $w_i=[A\,|\,I]\,r_i$ with $r_i$ drawn uniformly from a ball
+of radius $r'$. Signing takes three rounds: a hashed commitment, the reveal of $w_i$, and the response. Each party accepts
+its own response $z_i=(\text{its part of } c s)+r_i$ only if $\lVert z_i\rVert_2\le r$. This local check makes $z_i$
+uniform on a smaller ball, but only when the shift $c s$ is short enough. $K$ attempts run in parallel so that at least one
+succeeds for all $T$ parties. The security theorem limits the number of signing queries through the hyperball lemma that
+Appendix~\ref{app:a6} corrects.
+
+\textbf{Quorus.} It is an honest majority MPC protocol over Shamir shares mod $q$. The parties compute ML-DSA signing inside
+MPC on shared values, using edabits for comparisons and for Decompose. It adds a small error, so $w=Ay+e_w$. A rejection is
+opened as a single bit through a batched OR of all comparison results, so the position of a failing coefficient stays
+hidden. A rejected attempt releases only $(w_1,c,\bot)$. We proved that leaving $e_w$ out of the hint is always correct,
+since $|e_w|\le\eta<\beta$, and our 272{,}664 test signatures all verified.
+
+\textbf{Trilithium.} It is a two party scheme, between a phone and a server, with correlated randomness from a trusted
+dealer. Every attempt opens the commitment $w_H=\HB(Ay)$, including rejected ones. The proof splits rejected attempts into
+the two branches studied in Section~\ref{sec:p3} and argues that $w_H$ then still looks like the high part of a uniform
+value. This argument rests on an MLWR style assumption with a set of nonces that depends on the key.
+
+\textbf{Kao's P2 profile.} Key and nonce are both Shamir sharings over $\mathbb{Z}_q$. Each party sends
+$z_i=y_i+c s_{1,i}$ without a mask, and a combiner forms $z$ from the Lagrange weighted sum. The commitments
+$W_i=\lambda_i A y_i+m_i$ carry pairwise masks $m_i$ that sum to zero. In profiles P1 and P3+ only a coordinator sees the
+$W_i$. In P2 there is no coordinator, so every $W_i$ is broadcast. This is exactly the case of Example 2 above.
+
+\section{Full success counts for the TALUS runs}\label{app:counts}
+Section~\ref{sec:p1} quotes only the 95\% points. Tables~\ref{tab:counts} and~\ref{tab:fullsecret} give every count behind
+them, so a reader can redo the logistic fit. The 95\% intervals are Clopper--Pearson. Each element trial is a fresh key and
+transcript.
+
+\begin{table}[t]
+\caption{Edge estimator with ILP finishing, one ring element, $n=256$, seed 2041, 120\,s ILP limit}\label{tab:counts}
+\centering\footnotesize
+\begin{tabular}{@{}lrccc@{}}
+\toprule
+Set & $N$ & $\log_2 N$ & Recovered & 95\% interval\\
+\midrule
+ML-DSA-44 & 50{,}000 & 15.61 & 0/20 & [0.00, 0.17]\\
+ & 55{,}000 & 15.75 & 5/20 & [0.09, 0.49]\\
+ & 60{,}000 & 15.87 & 11/20 & [0.32, 0.77]\\
+ & 65{,}000 & 15.99 & 19/20 & [0.75, 1.00]\\
+ & 70{,}000 & 16.10 & 20/20 & [0.83, 1.00]\\
+ & 80{,}000 & 16.29 & 20/20 & [0.83, 1.00]\\
+\midrule
+ML-DSA-65 & 130{,}000 & 16.99 & 0/20 & [0.00, 0.17]\\
+ & 143{,}000 & 17.13 & 4/20 & [0.06, 0.44]\\
+ & 160{,}000 & 17.29 & 16/20 & [0.56, 0.94]\\
+ & 179{,}000 & 17.45 & 19/20 & [0.75, 1.00]\\
+ & 215{,}000 & 17.71 & 20/20 & [0.83, 1.00]\\
+\midrule
+ML-DSA-87 & 120{,}000 & 16.87 & 5/20 & [0.09, 0.49]\\
+ & 135{,}000 & 17.04 & 10/20 & [0.27, 0.73]\\
+ & 148{,}000 & 17.18 & 18/20 & [0.68, 0.99]\\
+ & 165{,}000 & 17.33 & 19/20 & [0.75, 1.00]\\
+ & 184{,}000 & 17.49 & 20/20 & [0.83, 1.00]\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Logistic fits.} For ML-DSA-44 the 50\% point is $2^{15.84}$ and the 95\% point $2^{16.01}$. For ML-DSA-65 they are
+$2^{17.22}$ and $2^{17.40}$, and for ML-DSA-87 $2^{17.01}$ and $2^{17.30}$. The curves are steep. Going from 50\% to 95\%
+success costs only 0.2 to 0.3 bits, so the attacker gains little by settling for a lower success rate.
+
+\begin{table}[t]
+\caption{Whole secret from the fitted element curve, $P_\text{full}=P_\text{elem}^k$ (independence assumed); ML-DSA-44
+checked by a real run}\label{tab:fullsecret}
+\centering\footnotesize
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Set ($k$) & Element rate needed & Full 50\% & Full 95\% & Above cap\\
+\midrule
+ML-DSA-44 (4) & 0.841 / 0.987 & $2^{15.93}$ & $2^{16.09}$ & $+3.09$\\
+ML-DSA-65 (6) & 0.891 / 0.991 & $2^{17.34}$ & $2^{17.51}$ & $+3.51$\\
+ML-DSA-87 (8) & 0.917 / 0.994 & $2^{17.25}$ & $2^{17.51}$ & $+3.51$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{An earlier, smaller run.} Before the dense runs we tried ILP finishing with only 4 trials per point (seed 2032,
+300\,s limit). It recovered 4 of 4 elements from 179{,}000 signatures for ML-DSA-65 and from 148{,}000 for ML-DSA-87, while
+plain rounding recovered none at those sizes. These small samples are only indicative, but they agree with the dense table
+above.
+
+\section{Mithril, set by set}\label{app:mithril}
+Table~\ref{tab:mithrilqs} in Section~\ref{sec:mithril} gives ranges. Table~\ref{tab:mithrilall} lists all 45 published
+$(T,N)$ sets, so the worst cases can be seen. The columns are the published number of parallel attempts $K$, the queries
+$Q_s$ that Theorem 3.2 covers with the paper's norm bound $B$, the typical case heuristic, and the $K$ needed after
+correcting the lemma for $2^{50}$. The sets that fall short even in the typical case are the ones with the largest $K$,
+where many parallel attempts multiply the loss per session.
+
+\begin{table}[t]
+\caption{Mithril, every published parameter set: queries covered (claimed $2^{50}$) and $K$ after correcting Lemma 2.5}
+\label{tab:mithrilall}
+\centering\footnotesize
+\begin{tabular}{@{}llrcccc@{}}
+\toprule
+Set & $(T,N)$ & $K$ & $\log_2 Q_s$ Thm & $\log_2 Q_s$ typ. & $K$ corr. & Factor\\
+\midrule
+44 & (2,2) & 2 & 32.83 & 52.44 & 3 & 1.50\\
+ & (2,3) & 3 & 32.37 & 51.73 & 5 & 1.67\\
+ & (3,3) & 4 & 32.96 & 53.51 & 6 & 1.50\\
+ & (2,4) & 3 & 32.36 & 51.91 & 5 & 1.67\\
+ & (3,4) & 7 & 31.91 & 51.81 & 12 & 1.71\\
+ & (4,4) & 8 & 31.95 & 52.16 & 14 & 1.75\\
+ & (2,5) & 3 & 32.55 & 51.93 & 5 & 1.67\\
+ & (3,5) & 14 & 30.90 & 50.76 & 28 & 2.00\\
+ & (4,5) & 30 & 31.17 & 51.75 & 70 & 2.33\\
+ & (5,5) & 16 & 32.10 & 53.07 & 31 & 1.94\\
+ & (2,6) & 4 & 32.82 & 52.45 & 6 & 1.50\\
+ & (3,6) & 19 & 30.26 & 49.91 & 43 & 2.26\\
+ & (4,6) & 74 & 28.79 & 48.59 & 242 & 3.27\\
+ & (5,6) & 100 & 27.42 & 46.69 & 373 & 3.73\\
+ & (6,6) & 37 & 29.71 & 50.11 & 95 & 2.57\\
+\midrule
+65 & (2,2) & 3 & 34.91 & 56.55 & 5 & 1.67\\
+ & (2,3) & 5 & 33.67 & 55.02 & 8 & 1.60\\
+ & (3,3) & 9 & 32.77 & 54.29 & 15 & 1.67\\
+ & (2,4) & 6 & 33.41 & 54.56 & 10 & 1.67\\
+ & (3,4) & 20 & 32.03 & 53.29 & 41 & 2.05\\
+ & (4,4) & 26 & 31.15 & 52.48 & 60 & 2.31\\
+ & (2,5) & 8 & 33.09 & 54.12 & 14 & 1.75\\
+ & (3,5) & 62 & 30.15 & 51.31 & 172 & 2.77\\
+ & (4,5) & 205 & 28.29 & 49.45 & 922 & 4.50\\
+ & (5,5) & 78 & 30.12 & 51.67 & 235 & 3.01\\
+ & (2,6) & 8 & 33.12 & 54.07 & 14 & 1.75\\
+ & (3,6) & 95 & 29.69 & 50.96 & 315 & 3.32\\
+ & (4,6) & 804 & 26.51 & 47.71 & 6256 & 7.78\\
+ & (5,6) & 1200 & 26.04 & 47.36 & 10234 & 8.53\\
+ & (6,6) & 250 & 27.86 & 49.09 & 1139 & 4.56\\
+\midrule
+87 & (2,2) & 3 & 37.31 & 60.57 & 4 & 1.33\\
+ & (2,3) & 4 & 35.99 & 58.54 & 6 & 1.50\\
+ & (3,3) & 6 & 36.29 & 59.69 & 9 & 1.50\\
+ & (2,4) & 4 & 36.68 & 59.54 & 6 & 1.50\\
+ & (3,4) & 11 & 34.46 & 57.00 & 18 & 1.64\\
+ & (4,4) & 14 & 35.07 & 58.41 & 23 & 1.64\\
+ & (2,5) & 5 & 36.14 & 58.89 & 7 & 1.40\\
+ & (3,5) & 26 & 33.89 & 56.78 & 50 & 1.92\\
+ & (4,5) & 70 & 32.24 & 55.08 & 173 & 2.47\\
+ & (5,5) & 35 & 33.73 & 57.04 & 68 & 1.94\\
+ & (2,6) & 5 & 36.20 & 59.13 & 7 & 1.40\\
+ & (3,6) & 39 & 33.12 & 55.89 & 83 & 2.13\\
+ & (4,6) & 208 & 31.05 & 54.25 & 723 & 3.48\\
+ & (5,6) & 295 & 30.67 & 53.74 & 1112 & 3.77\\
+ & (6,6) & 87 & 32.37 & 55.67 & 224 & 2.57\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Quorus correctness run}\label{app:quorus}
+We ran Algorithm 1 of Quorus outside MPC, 400{,}000 single attempts per set over 20 keys, and checked every released
+signature with our FIPS 204 verifier. Table~\ref{tab:quorusrun} gives the rates. The average number of attempts per
+signature matches the paper's Table 2 within about 1\%. The second check, on line 6, fails 0.4\% to 1.3\% of the time,
+always because of the hint weight, which is somewhat below the paper's rough figure of 2\%. A control run without the extra
+error $e_w$ gave the same rates, so $e_w$ changes nothing measurable.
+
+\begin{table}[t]
+\caption{Quorus Algorithm 1: attempts per signature, line 6 failures and verification, 400{,}000 attempts per set}
+\label{tab:quorusrun}
+\centering\footnotesize
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Set & Ours & Paper & Line 6 fail & Signatures & Failed\\
+\midrule
+ML-DSA-44 & 4.30 & 4.25 & 1.34\% & 91{,}810 & 0\\
+ML-DSA-65 & 5.12 & 5.09 & 0.40\% & 77{,}862 & 0\\
+ML-DSA-87 & 3.85 & 3.85 & 0.77\% & 102{,}992 & 0\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Experiment register}\label{app:register}
+Every number in Section~\ref{sec:results} comes from one of the runs in Table~\ref{tab:register}. Each script is in
+\texttt{experiments/} and writes its output to \texttt{experiments/results/}. Seeds are passed to numpy's
+\texttt{default\_rng}, usually together with $N$ and the trial number, so each trial can be rerun on its own.
+
+\begin{table*}[t]
+\caption{Experiment register: script, parameter set, trials and seed behind each result}\label{tab:register}
+\centering\footnotesize
+\begin{tabular}{@{}llllc@{}}
+\toprule
+Result & Script & Set, size & Trials & Seed\\
+\midrule
+LS calibration (Fig.~\ref{fig:ls}) & \texttt{ls\_error\_plot} & 44, $n=256$ & 10 per $N$ & 2033\\
+Edge, rounding, ring ladder (Fig.~\ref{fig:ladder}) & \texttt{talus\_edge\_scaling} & 44, $n=8$--256 & 10--20 per $N$ & 2026\\
+Edge + ILP, one element (Table~\ref{tab:margin}) & \texttt{ilp\_n256} & 44/65/87, $n=256$ & 20 per $N$ & 2041\\
+Whole secret, ML-DSA-44 & \texttt{ilp\_n256} (\texttt{run\_item8\_full.sh}) & 44, $n=256$ & 20 secrets per $N$ & 2081\\
+Controls (Table~\ref{tab:controls}) & \texttt{mldsa\_controls} & 44, real signing & 3 + 15 keys & 2026, 2027\\
+Gate B, real signing in view & \texttt{gate\_b\_views} & 44 & 2 keys per $N$ & 2029\\
+TALUS v0.1, Niot attacks & \texttt{talus\_v01\_niot} & 44, $|S|=3$ & 3 keys, 60 signatures & 101--103\\
+Niot error formula check & \texttt{niot\_sanity} & 44 & 12 runs & fixed\\
+Insider walls (Table~\ref{tab:insider}) & \texttt{talus\_insider\_wall} & 44/65/87 & formula & --\\
+$m=2$ insider simulation & \texttt{talus\_m2\_sim} & 44, $w=32$--512 & 20 per width & fixed\\
+Coordinator tail & \texttt{talus\_coordinator\_tail} & 44/65/87 & exact & --\\
+Soft hint lattice cost & \texttt{soft\_hint\_lwe} & 44 & model & --\\
+A.6 bound check & \texttt{a6\_corrected\_bound} & 320 grid points & exact & --\\
+Mithril Go transcripts & \texttt{mithril\_real\_transcripts} & 44, $(T,N)=(2,3)$ & 110{,}000 slots & fixed\\
+Kao P2 at full size (Table~\ref{tab:kao}) & \texttt{kao\_p2\_real\_demo} & 44/65/87 & 5 keys per set & 2051\\
+Quorus Lemma 8 check & \texttt{quorus\_lemma8\_check} & toy & exhaustive & --\\
+Trilithium $n=4$ exact & \texttt{trilithium\_toy} & toy, $n=4$ & exact & --\\
+Trilithium $n=2$--6 (Fig.~\ref{fig:trigap}) & \texttt{trilithium\_dim} & $q=17$ & 5 keys & $2026+n$\\
+Trilithium $n=8$ (Fig.~\ref{fig:trigap}) & \texttt{trilithium\_mc} & $q=17$ & $2\times10^8$ samples, 3 keys & 2026\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\section{Reproducing the results}\label{app:repro}
+\textbf{Environment.} Windows 11, Python 3.13 with numpy, scipy (HiGHS) and PyTorch in double precision on an NVIDIA RTX
+4060 laptop GPU (8\,GB), and 15\,GB of RAM. The lattice estimator runs in Docker (\texttt{sagemath/sagemath:10.4}). The
+Mithril transcripts use the authors' Go code. The repository has 181 unit tests, including the 81 ACVP vectors.
+
+\textbf{One command per result.} \texttt{python -m experiments.reproduce} lists every table and figure, the command behind
+it, its cost and its output file. With \texttt{--fast} it reruns everything that takes minutes on a CPU. With
+\texttt{--run ID} it reruns one item. The heavy items, the ILP trial runs behind Table~\ref{tab:margin}, need the GPU and
+several hours each. They are listed with the exact command that produced the stored results, and they resume from their
+JSON output if stopped.
+
+\textbf{Lessons for running it.} Run only one GPU job at a time, because two concurrent jobs crashed the graphics driver
+once. Run scripts as modules (\texttt{python -m experiments.name}) so that the harness package is found. The ILP step runs
+on the CPU and its memory grows with $N$, so the whole secret runs for ML-DSA-65 and 87 need several GB of free RAM.
+
+\section{Glossary}\label{app:glossary}
+\begin{description}\setlength{\itemsep}{1pt}
+\item[Threshold signature.] A key split among $N$ parties so that any $T$ of them can sign together, while fewer than $T$
+learn nothing useful about the key.
+\item[Rejection sampling.] Throwing away a signing attempt whose output would depend on the secret, and trying again with
+a fresh nonce.
+\item[Nonce.] The fresh random value $y$ used once in each signing attempt.
+\item[ILWE.] Integer learning with errors. Recovering a secret from many noisy linear equations over the integers, with no
+reduction mod $q$.
+\item[Bounded noise.] Noise known to lie inside a fixed interval. Its edges give hard limits on the secret, unlike Gaussian
+noise.
+\item[Fisher information.] A measure of how much one sample tells about an unknown value. More information per sample means
+fewer samples needed.
+\item[Cram\'er--Rao bound.] A lower limit on the error of any unbiased estimator, set by the Fisher information.
+\item[R\'enyi divergence.] A way to measure how far two distributions are apart, used in proofs to bound how much a real
+protocol differs from an ideal one.
+\item[Core-SVP.] A cautious cost model for lattice attacks that counts only the hardest single step, the shortest vector
+search.
+\item[BCC.] Boundary clearance condition in TALUS. Nonces are kept only if the rounding of $w$ is far from a boundary, so
+signing never needs an online rejection.
+\item[DKG.] Distributed key generation. The parties create shares of a key without anyone ever holding the whole key.
+\item[MPC.] Secure multiparty computation. Parties compute a function together while each keeps its input private.
+\item[TEE.] Trusted execution environment. Hardware that runs code in isolation, trusted to keep secrets.
+\item[Hint (lattice).] Partial information about the secret, such as a few known coefficients, that lowers the cost of a
+lattice attack.
+\item[Toy size.] A version of a scheme with a much smaller ring, used because exact computation at full size is too slow.
+\end{description}
+
+% =====================================================================
 \begin{thebibliography}{34}\footnotesize
 \bibitem{fips204} NIST, ``FIPS 204: Module-lattice-based digital signature standard,'' Aug. 2024.
 \bibitem{dilithium} L. Ducas, E. Kiltz, T. Lepoint, V. Lyubashevsky, P. Schwabe, G. Seiler, and D. Stehl\'e, ``CRYSTALS-Dilithium: A lattice-based digital signature scheme,'' \emph{IACR TCHES}, vol. 2018, no. 1, pp. 238--268, 2018.
