@@ -2,6 +2,20 @@
 
 Ordered as in the dossier's ranked plan. The detailed stages, gates and paper framing are in `docs/PLAN.md` (stages A to G).
 
+## Project status (23 Nov 2026) — research complete; remaining items are human-side
+
+All the analysis, code and experiments are done. The corrected full-secret run (WP-T) for ML-DSA-44 was the last open experiment, and it validated the independence assumption the referee flagged. Nothing is running. Everything is committed (nothing pushed; the user pushes).
+
+**What is left — only tasks that need the students, not more computation (course deadline 10 Dec 2026):**
+1. Rewrite the report prose in your own words (course rule: AI-generated text is not evaluated), then run Turnitin and get under 10%.
+2. Compile `report/latex/overleaf_upload/` on Overleaf (all 5 PNGs), check the glossary page and the page count (brief once said 20; currently ~17 docx).
+3. Final read-through of the abstract and the numbers.
+4. Seminar slides for Phase 3 (not started).
+5. Optional report edit: add one line that the -44 run *measured and confirmed* the whole-secret extrapolation (ask the user first; see 23 Nov LEARN entry).
+
+**Parked future work (not needed for the course):** the -65/-87 WP-T runs, the paper's Kao P2 section, outline restructure, and disclosure emails — see "11. Referee response" and "Parked / future work" below.
+
+
 ## 0. Setup
 - [x] Pick language/tooling (Python + numpy/scipy). Sage and fpylll are NOT installed (checked 6 Oct); Docker is, so a Sage image is an option for the Mithril lattice-estimator stage
 - [x] PLAN Stage A: NTT, SHAKE sampling, hints, full sign/verify with all attempts; byte-identical to dilithium-py oracle for -44/-65/-87 (6 Oct); passes 81 official NIST ACVP vectors (keyGen, pure sigGen, sigVer; 8 Oct). PreHash and external-mu not implemented
@@ -117,8 +131,15 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Scope decision: lead with Kao P2 (L1), TALUS cap as L2 on a reconstructed channel
 - [x] WP-T script written: experiments/full_secret_real.py (real keys, shared challenges, bootstrap CIs); smoke-tested, not yet run at full size
 - [x] WP-T run ML-DSA-44 (23 Nov 2026, 30 real keys, shared challenge, seed 3001, N=55k..75k, GPU): full-secret 0/0.07/0.47/0.77/0.93; measured matches the old p_elem^k prediction (0.003/0.109/0.502/0.786/0.935) within a few points, so the independence assumption is VALIDATED, not refuted; 95% threshold ~75k = 2^16.2, matching the extrapolated 2^16.1. `experiments/results/full_secret_real_ML-DSA-44.json`
-- [ ] WP-T run: -65/-87 on Colab Pro+ (key-split via --key-start/--key-end, merge with experiments/merge_full_secret.py; notebook experiments/colab/full_secret_colab.ipynb)
+- [~] WP-T run -65/-87: PARKED as future work (23 Nov, user) — not needed; the -44 run already validated the independence assumption, and -65/-87 use the same channel and logic. See "Parked / future work" below.
 - [ ] Write Kao P2 section (theorem + algorithm + security-model row) from PAPER_REVISION.md
 - [ ] Restructure outline: cut survey, drop Phase-3 framing, abstract last
 - [ ] Hold TALUS section at L2 with validation-pending note until March 2027 reference code
 - [ ] Kao disclosure: draft only, do not send (user decision)
+
+## Parked / future work (not needed for the course; revisit only if pushing the paper to a venue)
+- **WP-T runs for ML-DSA-65 and ML-DSA-87.** Everything is ready: `experiments/full_secret_real.py` with `--params ML-DSA-65`/`ML-DSA-87`, key-split via `--key-start/--key-end`, merge with `experiments/merge_full_secret.py`, and the Colab notebook `experiments/colab/full_secret_colab.ipynb`.
+  - Why parked: the -44 run already showed the measured whole-secret rate matches the independence extrapolation, and -65/-87 share the same channel and recovery logic, so they are expected to behave the same. They would upgrade "validated on one set" to "validated on all three" — nice for an A-venue resubmission, not decisive.
+  - N grids: -65 = 130k 143k 160k 179k 215k; -87 = 120k 135k 148k 165k 184k. Seed 3001 (must match so shards align).
+  - Time estimate (23 Nov, extrapolated from -44, not measured): laptop ~18-22 h (-65) and ~30-43 h (-87), one job at a time, with RAM-spike risk; Colab Pro+ A100 ~5-7 h (-65) and ~8-12 h (-87), or roughly half that if keys are split across two workers. No RAM worry on Colab.
+  - Before Colab: user must agree to upload the repo zip (includes the unpublished Kao P2 code) to a private Google Drive, and needs Colab Pro+ for the high-RAM A100. Keep the Drive folder and notebook link private.
