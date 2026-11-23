@@ -77,12 +77,14 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] Updated literature survey (rubric 1 mark), 29 Oct: new Sec. II-F "Recent work 2024-2026" with 9 verified sources [26]-[34] (Ringtail, AOM-MLWE TS, Tanuki, TOPCOAT, ML-DSaaS, Meng fault paper, two 2026 ML-DSA leakage estimators, HAETAE); matrix now 33 sources; docx now 11 pages (user: do not trim)
 - [ ] Optional: user downloads ePrint 2026/2566 (Meng, fault attack on Mithril/TALUS/Trilithium) for a full read; only the abstract page was read
 - [x] Title "Phase 2 Report - Cryptography" in both versions; LaTeX contribution table split half and half (user: assume, same account used by both), 29 Oct
+- [x] LaTeX contribution table removed (user request), 9 Nov
 - [x] Overleaf package `report/latex/overleaf_upload.zip` (main.tex + figures/); \graphicspath now also searches ./ and figures/
 - [x] Rubric check (29 Oct): intro updated with 2026 context and proposed method; Section IV titled Proposed Solution
 - [x] Results strengthened from saved data (29 Oct): Tables X-XII, XIV and Figs. 4-5 via experiments/report_extras.py; wording fixes (controls = one element; TEE T = 7/11/9)
 - [x] Plain-language pass on both versions (29 Oct): short sentences, few dashes/colons in prose, no content cut; docx 13 pages; Overleaf zip updated
 - [ ] Students rewrite the report in their own words (course AI rule), then Turnitin under 10%
 - [x] Appendices added to the docx (4 Nov): 11 appendices, 17 pages; LaTeX synced and Overleaf zip updated (not compiled)
+- [x] Glossary (App. K) overlap fixed: `description` replaced by a plain list (11 Nov); Overleaf zip updated (not compiled)
 - [ ] Compile on Overleaf (upload all 5 PNGs) (pdfLaTeX) and check page count; page target still open (brief once said 20)
 - [ ] Rubric note: "AI-generated content will not be evaluated": report prose to be rewritten by the students in their own words
 - [ ] Final read-through of report abstract and numbers before submitting
@@ -108,3 +110,15 @@ Ordered as in the dossier's ranked plan. The detailed stages, gates and paper fr
 - [x] 12. Open artifact driver `experiments/reproduce.py` (16 Oct; fast items verified identical, heavy items listed only)
 - [ ] 13. Venue rewrite (deferred by user, 16 Oct: decide after the project is done)
 - Targets: PQCrypto 2027 (paper 24 Nov 2026); USENIX Security '27 cycle 2 (26 Jan 2027) if items 1-3 find a hole
+- [x] Plain style pass and gap fill on LaTeX report (4 Nov 2026, docx not synced)
+
+## 11. Referee response (Nov 2026)
+- [x] Code audit of TALUS and Kao P2 claims; revision plan in docs/PAPER_REVISION.md (11 Nov)
+- [x] Scope decision: lead with Kao P2 (L1), TALUS cap as L2 on a reconstructed channel
+- [x] WP-T script written: experiments/full_secret_real.py (real keys, shared challenges, bootstrap CIs); smoke-tested, not yet run at full size
+- [x] WP-T run ML-DSA-44 (23 Nov 2026, 30 real keys, shared challenge, seed 3001, N=55k..75k, GPU): full-secret 0/0.07/0.47/0.77/0.93; measured matches the old p_elem^k prediction (0.003/0.109/0.502/0.786/0.935) within a few points, so the independence assumption is VALIDATED, not refuted; 95% threshold ~75k = 2^16.2, matching the extrapolated 2^16.1. `experiments/results/full_secret_real_ML-DSA-44.json`
+- [ ] WP-T run: -65/-87 on Colab Pro+ (key-split via --key-start/--key-end, merge with experiments/merge_full_secret.py; notebook experiments/colab/full_secret_colab.ipynb)
+- [ ] Write Kao P2 section (theorem + algorithm + security-model row) from PAPER_REVISION.md
+- [ ] Restructure outline: cut survey, drop Phase-3 framing, abstract last
+- [ ] Hold TALUS section at L2 with validation-pending note until March 2027 reference code
+- [ ] Kao disclosure: draft only, do not send (user decision)
