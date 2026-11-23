@@ -1425,8 +1425,11 @@ on the CPU and its memory grows with $N$, so the whole secret runs for ML-DSA-65
 
 \section{Glossary}\label{app:glossary}
 % Plain list instead of IEEEtran's description, whose fixed label width made long terms overlap their definitions.
+% \makelabel is set with \newcommand (not inline ## in the list's second arg, which caused a
+% "macro parameter character #" error), so each \item[...] label prints in bold at its natural width.
+\newcommand{\glossterm}[1]{\textbf{#1}}
 \begin{list}{}{\setlength{\leftmargin}{1em}\setlength{\itemindent}{-1em}\setlength{\labelwidth}{0pt}%
-  \setlength{\labelsep}{0.4em}\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}\renewcommand{\makelabel}[1]{\textbf{##1}}}
+  \setlength{\labelsep}{0.4em}\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}\let\makelabel\glossterm}
 \item[Threshold signature.] A key split among $N$ parties so that any $T$ of them can sign together, while fewer than $T$
 learn nothing useful about the key.
 \item[Rejection sampling.] Throwing away a signing attempt whose output would depend on the secret, and trying again with
